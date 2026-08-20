@@ -1,4 +1,1 @@
-<<<<<<< HEAD
-# quantamaze_website3.0
-JD made this.....
->>>>>>> club/main
+DONT EDIT THE FILE

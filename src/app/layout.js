@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ParticleBackground from "@/components/ParticleBackground";
+import NavBar from "@/components/NavBar";
+import MobileTaskbar from "@/components/MobileTaskbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,10 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   metadataBase: new URL("https://quant-a-maze.vercel.app"),
-  title: "Quant-A-Maze 3.0 | Q-Bits",
+  title: {
+    default: "Quant-A-Maze 3.0 | Q-Bits",
+    template: "%s | Quant-A-Maze 3.0",
+  },
   description:
     "Quant-A-Maze 3.0 is a 36-hour national-level hackathon by Q-Bits at NMIT Bangalore, hosted in partnership with KwantumG Research Labs.",
   icons: {
@@ -35,9 +40,13 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#0A0A0A] text-[#F2F2F2]">
         <ParticleBackground />
-        {children}
+        <NavBar />
+        <div className="mobile-page-shell flex-1 flex flex-col sm:pb-0">
+          {children}
+        </div>
+        <MobileTaskbar />
       </body>
     </html>
   );

@@ -57,7 +57,6 @@ export default function LoadingScreen({ onComplete }) {
   const [fading, setFading] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [pathLength, setPathLength] = useState(1);
   const [cursor, setCursor] = useState({ x: MAZE_ENTRANCE[0], y: MAZE_ENTRANCE[1] });
   const [skipReady, setSkipReady] = useState(false);
 
@@ -65,7 +64,6 @@ export default function LoadingScreen({ onComplete }) {
     if (!pathRef.current) return undefined;
     const length = pathRef.current.getTotalLength();
     pathLengthRef.current = length;
-    setPathLength(length);
     return undefined;
   }, []);
 
@@ -161,7 +159,7 @@ export default function LoadingScreen({ onComplete }) {
   if (!visible) return null;
 
   const route = solutionPath(MAZE_SOLUTION);
-  const dashOffset = reduced ? 0 : pathLength * (1 - progress / 100);
+  const dashOffset = reduced ? 0 : 1 - progress / 100;
 
   return (
     <div className={`maze-loader ${fading ? "maze-loader-complete" : ""}`} role="status" aria-label="Solving the maze">
@@ -181,8 +179,8 @@ export default function LoadingScreen({ onComplete }) {
             <rect width="400" height="400" fill="url(#maze-vignette)" />
             <g className="maze-walls">{MAZE_WALLS.map((wall) => <path key={wall} d={wall} />)}</g>
             <g className="maze-solution" filter="url(#maze-glow)">
-              <path ref={pathRef} d={route} style={{ strokeDasharray: pathLength, strokeDashoffset: dashOffset }} />
-              <path className="maze-solution-core" d={route} style={{ strokeDasharray: pathLength, strokeDashoffset: dashOffset }} />
+              <path ref={pathRef} d={route} pathLength="1" style={{ strokeDasharray: 1, strokeDashoffset: dashOffset }} />
+              <path className="maze-solution-core" d={route} pathLength="1" style={{ strokeDasharray: 1, strokeDashoffset: dashOffset }} />
             </g>
             <circle className="maze-entry" cx={MAZE_ENTRANCE[0]} cy={MAZE_ENTRANCE[1]} r="5" />
             <circle className="maze-exit" cx={MAZE_EXIT[0]} cy={MAZE_EXIT[1]} r="7" />

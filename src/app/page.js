@@ -8,6 +8,7 @@ import {
   useScroll,
   useTransform,
   useInView,
+  number,
 } from "framer-motion";
 
 const TARGET_DATE = new Date("2026-10-28T00:00:00+05:30");
@@ -94,7 +95,7 @@ function Counter({ value, suffix = "", duration = 1400 }) {
 function FlipUnit({ value, label }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="relative h-[1em] sm:h-[1em] overflow-hidden leading-none text-5xl sm:text-7xl">
+      <div className="relative h-[1em] overflow-hidden text-3xl leading-none sm:text-7xl">
         <AnimatePresence mode="popLayout">
           <motion.span
             key={value}
@@ -108,7 +109,7 @@ function FlipUnit({ value, label }) {
           </motion.span>
         </AnimatePresence>
       </div>
-      <span className="mt-2 text-sm sm:text-base uppercase tracking-widest text-zinc-400">
+      <span className="mt-2 text-[10px] uppercase tracking-[0.12em] text-zinc-400 sm:text-base sm:tracking-widest">
         {label}
       </span>
     </div>
@@ -162,10 +163,16 @@ function NavBar() {
     >
       <motion.div
         style={{ paddingTop: navPaddingY, paddingBottom: navPaddingY }}
-        className="flex items-center justify-between px-8"
+        className="flex items-center justify-between px-4 sm:px-8"
       >
         <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.97 }}>
-          <Image src="/logo.png" alt="Q-Bits logo" width={140} height={48} />
+          <Image
+            src="/logo.png"
+            alt="Q-Bits logo"
+            width={140}
+            height={48}
+            className="h-auto w-28 sm:w-[140px]"
+          />
         </motion.div>
 
         <div className="hidden sm:flex gap-8 text-base font-medium">
@@ -258,7 +265,7 @@ function HomeSection() {
     <section
       ref={sectionRef}
       id="home"
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black text-white px-6 pt-24"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-4 pt-24 text-white sm:px-6"
     >
       <motion.video
         initial={{ scale: 1.15, opacity: 0 }}
@@ -306,14 +313,14 @@ function HomeSection() {
             textShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" },
           }}
           whileHover={{ scale: 1.05 }}
-          className="cursor-default text-6xl sm:text-8xl font-bold tracking-tight text-center text-orange-500"
+          className="cursor-default text-center text-4xl font-bold tracking-tight text-orange-500 sm:text-8xl"
         >
           QUANT-A-MAZE 3.0
         </motion.h1>
 
         <motion.p
           variants={staggerItem}
-          className="mt-6 text-2xl sm:text-3xl text-zinc-200 text-center"
+          className="mt-6 text-center text-xl text-zinc-200 sm:text-3xl"
         >
           A 36-Hour National-Level Hackathon
         </motion.p>
@@ -341,7 +348,7 @@ function HomeSection() {
 
         <motion.div
           variants={staggerItem}
-          className="mt-16 flex gap-6 sm:gap-12"
+          className="mt-12 flex w-full justify-center gap-2 sm:mt-16 sm:gap-12"
         >
           <FlipUnit value={display.days} label="Days" />
           <FlipUnit value={display.hours} label="Hours" />
@@ -395,7 +402,7 @@ function AboutSection() {
     <section
       ref={sectionRef}
       id="about"
-      className="relative min-h-screen bg-black text-white px-6 py-32 flex items-center overflow-hidden"
+      className="relative flex min-h-screen items-center overflow-hidden bg-black px-4 py-24 text-white sm:px-6 sm:py-32"
     >
       <motion.img
         src="/abt_theme.jpg"
@@ -408,15 +415,15 @@ function AboutSection() {
         }}
       />
 
-      <div className="relative max-w-4xl mx-auto text-center">
+      <div className="relative mx-auto max-w-4xl text-center">
         <Reveal>
-          <h2 className="text-5xl sm:text-6xl font-bold text-orange-500 mb-10">
+          <h2 className="mb-8 text-4xl font-bold text-orange-500 sm:mb-10 sm:text-6xl">
             About Us
           </h2>
         </Reveal>
 
         <Reveal delay={0.1}>
-          <p className="text-xl text-zinc-300 leading-relaxed">
+          <p className="text-lg leading-relaxed text-zinc-300 sm:text-xl">
             Q-Bits is the official Quantum Technology Club of Nitte Meenakshi
             Institute of Technology (NMIT), anchored within the Department of
             Electrical & Electronics Engineering. We provide resources for
@@ -430,7 +437,7 @@ function AboutSection() {
         </Reveal>
 
         <Reveal delay={0.2}>
-          <p className="text-lg text-zinc-400 mt-6 leading-relaxed">
+          <p className="mt-6 text-base leading-relaxed text-zinc-400 sm:text-lg">
             Quant-A-Maze 3.0 is presented in partnership with{" "}
             <span className="text-orange-400 font-medium">
               KwantumG Research Labs
@@ -445,7 +452,7 @@ function AboutSection() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.4 }}
-          className="mt-12 flex flex-wrap justify-center gap-x-14 gap-y-8"
+          className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-8 sm:mt-12 sm:gap-x-14"
         >
           {stats.map((s) => (
             <motion.div
@@ -453,7 +460,7 @@ function AboutSection() {
               variants={staggerItem}
               className="flex flex-col items-center"
             >
-              <span className="text-3xl sm:text-5xl font-bold text-orange-500">
+              <span className="text-3xl font-bold text-orange-500 sm:text-5xl">
                 <Counter value={s.value} suffix={s.suffix} />
               </span>
               <span className="text-base sm:text-lg text-white">
@@ -496,10 +503,10 @@ function TracksSection() {
   ];
 
   return (
-    <section id="tracks" className="min-h-screen bg-zinc-950 text-white px-6 py-32">
-      <div className="max-w-6xl mx-auto">
+    <section id="tracks" className="min-h-screen bg-zinc-950 px-4 py-24 text-white sm:px-6 sm:py-32">
+      <div className="mx-auto max-w-6xl">
         <Reveal>
-          <h2 className="text-5xl sm:text-6xl font-bold text-orange-500 mb-16 text-center">
+          <h2 className="mb-10 text-center text-4xl font-bold text-orange-500 sm:mb-16 sm:text-6xl">
             Tracks
           </h2>
         </Reveal>
@@ -522,7 +529,7 @@ function TracksSection() {
                 boxShadow: "0 20px 45px -15px rgba(249,115,22,0.35)",
               }}
               transition={{ type: "spring", stiffness: 250, damping: 20 }}
-              className="rounded-2xl border border-orange-500/20 bg-black/40 p-8"
+              className="rounded-2xl border border-orange-500/20 bg-black/40 p-6 sm:p-8"
             >
               {track.icon && (
                 <motion.div
@@ -572,10 +579,10 @@ function TimelineSection() {
   });
 
   return (
-    <section id="timeline" className="min-h-screen bg-black text-white px-6 py-32">
-      <div className="max-w-3xl mx-auto">
+    <section id="timeline" className="min-h-screen bg-black px-4 py-24 text-white sm:px-6 sm:py-32">
+      <div className="mx-auto max-w-3xl">
         <Reveal>
-          <h2 className="text-5xl sm:text-6xl font-bold text-orange-500 mb-16 text-center">
+          <h2 className="mb-10 text-center text-4xl font-bold text-orange-500 sm:mb-16 sm:text-6xl">
             Timeline
           </h2>
         </Reveal>
@@ -608,14 +615,159 @@ function TimelineSection() {
                   }}
                   className="absolute left-2 top-2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.8)]"
                 />
-                <h3 className="text-2xl font-semibold text-white">
+                <h3 className="text-xl font-semibold text-white sm:text-2xl">
                   {event.title}
                 </h3>
-                <p className="text-zinc-400 text-lg mt-1">{event.date}</p>
+                <p className="mt-1 text-base text-zinc-400 sm:text-lg">{event.date}</p>
               </motion.div>
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------
+   Sponsors
+--------------------------------------------------------- */
+
+function SponsorsSection() {
+  const sponsorCardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.65, ease: easeOut },
+    },
+  };
+
+  const sponsors = [
+    {
+      name: "",
+      logo: "",
+      details: "",
+      href: "",
+    },
+    {
+      name: "",
+      logo: "",
+      details: "",
+      href: "",
+    },
+    {
+      name: "",
+      logo: "",
+      details: "",
+      href: "",
+    },
+  ];
+
+  return (
+    <section
+      id="sponsors"
+      className="relative overflow-hidden bg-zinc-950 px-4 py-24 text-white sm:px-6 sm:py-32"
+    >
+      <motion.video
+        initial={{ scale: 1.15, opacity: 0 }}
+        animate={{ scale: 1, opacity: 0.4 }}
+        transition={{ duration: 2.2, ease: easeOut }}
+        autoPlay
+        loop
+        muted
+        playsInline
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+      >
+        <source src="/fire-bg.mp4" type="video/mp4" />
+      </motion.video>
+      <div className="pointer-events-none absolute inset-0 bg-black/60" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/60 to-transparent" />
+      <div className="relative mx-auto max-w-6xl">
+        <div className="mx-auto max-w-2xl text-center">
+          <Reveal>
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-orange-400">
+              Built together
+            </p>
+            <h2 className="mb-6 text-4xl font-bold text-orange-500 sm:text-6xl">
+              Our Sponsors
+            </h2>
+            <p className="text-base leading-relaxed text-zinc-400 sm:text-xl">
+              The people and organizations helping the next generation explore
+              what is possible with technology.
+            </p>
+          </Reveal>
+        </div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+          className="mt-12 grid gap-5 sm:mt-16 md:grid-cols-3"
+        >
+          {sponsors.map((sponsor) => {
+            const sponsorContent = (
+              <>
+                <motion.div
+                  whileHover={{ scale: 1.025 }}
+                  transition={{ duration: 0.25, ease: easeOut }}
+                  className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-orange-500/30 bg-black/30 px-6"
+                >
+                  {sponsor.logo ? (
+                    <Image
+                      src={sponsor.logo}
+                      alt={`${sponsor.name} logo`}
+                      width={220}
+                      height={96}
+                      className="max-h-24 w-auto object-contain"
+                    />
+                  ) : (
+                    <span className="text-center text-sm font-medium uppercase tracking-[0.22em] text-zinc-600">
+                      Logo placement
+                    </span>
+                  )}
+                </motion.div>
+                <div className="mt-5 sm:mt-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
+                    {sponsor.tier}
+                  </p>
+                  <h3 className="mt-3 text-xl font-semibold text-white sm:text-2xl">
+                    {sponsor.name || "Sponsor name"}
+                  </h3>
+                  <p className="mt-3 min-h-14 text-sm leading-relaxed text-zinc-400">
+                    {sponsor.details ||
+                      "Add a short introduction, contribution, or website description here."}
+                  </p>
+                </div>
+              </>
+            );
+
+            return sponsor.href ? (
+              <motion.a
+                key={sponsor.tier}
+                variants={sponsorCardVariants}
+                whileHover={{ y: -4, borderColor: "rgba(249,115,22,0.65)" }}
+                whileTap={{ scale: 0.99 }}
+                href={sponsor.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border border-orange-500/20 bg-black/40 p-6 transition-shadow hover:shadow-[0_20px_45px_-20px_rgba(249,115,22,0.6)]"
+              >
+                {sponsorContent}
+              </motion.a>
+            ) : (
+              <motion.div key={sponsor.tier}
+                variants={sponsorCardVariants}
+                whileHover={{ y: -4, borderColor: "rgba(249,115,22,0.65)" }}
+                className="rounded-2xl border border-orange-500/20 bg-black/40 p-6 transition-shadow hover:shadow-[0_20px_45px_-20px_rgba(249,115,22,0.6)]"
+                 >
+                {sponsorContent}
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
       </div>
     </section>
   );
@@ -656,10 +808,10 @@ function ContactSection() {
   ];
 
   return (
-    <section id="contact" className="min-h-screen bg-black text-white px-6 py-32 flex items-center">
-      <div className="max-w-2xl mx-auto text-center">
+    <section id="contact" className="flex min-h-screen items-center bg-black px-4 py-24 text-white sm:px-6 sm:py-32">
+      <div className="mx-auto max-w-2xl text-center">
         <Reveal>
-          <h2 className="text-5xl sm:text-6xl font-bold text-orange-500 mb-8">
+          <h2 className="mb-8 text-4xl font-bold text-orange-500 sm:text-6xl">
             Contact Us
           </h2>
         </Reveal>
@@ -712,6 +864,7 @@ export default function Home() {
       <AboutSection />
       <TracksSection />
       <TimelineSection />
+      <SponsorsSection />
       <ContactSection />
     </div>
   );

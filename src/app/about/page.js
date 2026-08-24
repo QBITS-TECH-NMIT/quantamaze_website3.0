@@ -2,9 +2,23 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Reveal, Counter, staggerContainer, staggerItem, easeOut } from "@/components/MotionPrimitives";
+import { Counter, staggerContainer, staggerItem } from "@/components/MotionPrimitives";
 
 const MotionImage = motion(Image);
+
+const aboutReveal = {
+  hidden: { opacity: 0, y: 24 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut", staggerChildren: 0.12 },
+  },
+};
+
+const aboutRevealItem = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+};
 
 export default function AboutPage() {
   const stats = [
@@ -25,11 +39,11 @@ export default function AboutPage() {
     <div className="relative min-h-screen pt-20 sm:pt-24">
       <section
         id="about"
-        className="brochure-section stats-section relative overflow-hidden bg-[#0D0D0D] py-16 text-[#F2F2F2] sm:py-32"
+        className="stats-section relative mx-auto w-full max-w-7xl overflow-hidden bg-[#0D0D0D] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:px-20 lg:py-32"
       >
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-6 top-20 select-none font-mono text-[18vw] font-black tracking-tighter text-white/[0.015] sm:top-16 sm:text-[14vw]"
+          className="pointer-events-none absolute right-6 top-8 select-none font-mono text-[18vw] font-black tracking-tighter text-white/[0.015] sm:right-12 sm:top-8 sm:text-[14vw] lg:right-20"
         >
           Q-BITS
         </span>
@@ -39,71 +53,26 @@ export default function AboutPage() {
           className="pointer-events-none absolute right-0 top-1/3 h-[280px] w-[280px] -translate-y-1/4 rounded-full bg-[radial-gradient(circle,rgba(245,89,10,0.13)_0%,rgba(245,89,10,0.03)_50%,transparent_70%)] blur-3xl sm:h-[520px] sm:w-[520px]"
         />
 
-        <div className="relative z-10 mx-auto w-full max-w-7xl">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.88fr] lg:gap-20">
-            {/* Image first on mobile */}
-            <div className="relative order-1 lg:order-2">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -inset-3 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(245,89,10,0.18)_0%,transparent_70%)] blur-2xl sm:-inset-4"
-              />
-
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-2 -top-2 z-20 h-4 w-4 border-l-2 border-t-2 border-[#F5590A] sm:h-5 sm:w-5"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -bottom-2 -right-2 z-20 h-4 w-4 border-b-2 border-r-2 border-[#F5590A] sm:h-5 sm:w-5"
-              />
-
-              <motion.div
-                initial={{ opacity: 0, scale: 1.04, y: 24 }}
-                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.25 }}
-                transition={{ duration: 0.75, ease: easeOut }}
-                whileHover={{ scale: 1.015, transition: { duration: 0.25 } }}
-                className="about-image-frame relative z-10"
-              >
-                <div className="absolute left-3.5 top-3.5 z-20 hidden items-center gap-1.5 rounded-full border border-white/15 bg-black/60 px-2.5 py-0.5 text-[0.62rem] font-mono tracking-widest text-stone-300 backdrop-blur-md sm:flex">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#F5590A]" />
-                  <span>LAT // 13.1295° N</span>
-                </div>
-
-                <span className="tech-crosshair right-3.5 top-3 z-20">+</span>
-                <span className="tech-crosshair bottom-3 right-3.5 z-20">+</span>
-
-                <MotionImage
-                  src="/abt_theme.jpg"
-                  alt="Quantum technology visual for Q-Bits"
-                  width={720}
-                  height={900}
-                  priority
-                  className="h-[260px] w-full object-cover object-[center_28%] sm:h-[540px] sm:object-center"
-                />
-                <span className="about-image-label">QUANT-A-MAZE 3.0</span>
-              </motion.div>
-            </div>
-
-            {/* Text column */}
-            <div className="order-2 lg:order-1">
-              <Reveal>
-                <p className="section-kicker mb-4">The people behind the signal</p>
-                <h1 className="display-heading gradient-text text-3xl font-bold sm:text-5xl">
+        <div className="relative z-10">
+          <div className="grid items-start gap-10 lg:grid-cols-2 lg:items-center lg:gap-20">
+            <motion.div
+              variants={aboutReveal}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.3 }}
+              className="order-1 space-y-6 lg:space-y-8"
+            >
+              <motion.div variants={aboutRevealItem} className="space-y-5">
+                <p className="section-kicker text-xs font-semibold text-[#F5590A] sm:text-sm">
+                  The people behind the signal
+                </p>
+                <h2 className="display-heading gradient-text text-4xl font-extrabold leading-[0.95] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
                   About Us
-                </h1>
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.65, delay: 0.15, ease: easeOut }}
-                  className="mb-6 mt-3.5 h-[3px] w-16 origin-left rounded-full bg-gradient-to-r from-[#F5590A] via-[#FFA94D] to-transparent sm:mb-8 sm:w-20"
-                />
-              </Reveal>
+                </h2>
+              </motion.div>
 
-              <Reveal delay={0.1}>
-                <div className="relative my-5 border-l-2 border-[#F5590A]/70 pl-5 sm:my-6 sm:pl-7">
-                  <p className="max-w-[60ch] text-base font-normal leading-[1.75] text-slate-300 sm:text-xl sm:leading-[1.8]">
+              <motion.div variants={aboutRevealItem} className="border-l-2 border-[#F5590A]/70 pl-5 sm:pl-7">
+                <p className="max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
                     Q-Bits is the official Quantum Technology Club of Nitte Meenakshi
                     Institute of Technology (NMIT), anchored within the Department of
                     Electrical &amp; Electronics Engineering. We provide resources for
@@ -113,27 +82,19 @@ export default function AboutPage() {
                     Q-Bits bridges the gap between theory and practice — hosting
                     hackathons, workshops, expert talks, and industry collaborations
                     throughout the year.
-                  </p>
-                </div>
-              </Reveal>
+                </p>
+              </motion.div>
 
-              <Reveal delay={0.2}>
-                <div className="mt-6 sm:mt-8">
-                  <div className="mb-6 h-px w-full max-w-md bg-gradient-to-r from-[#F5590A]/30 via-white/10 to-transparent sm:mb-7" />
-
-                  <span className="mb-3 block font-mono text-[0.68rem] font-bold uppercase tracking-[0.22em] text-[#F5590A]">
+              <motion.div variants={aboutRevealItem} className="mt-10 border-t border-white/10 pt-8">
+                <span className="mb-4 block font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#F5590A]">
                     In partnership with
-                  </span>
+                </span>
 
-                  <motion.div
-                    whileHover={{
-                      scale: 1.025,
-                      borderColor: "rgba(245,89,10,0.75)",
-                      boxShadow: "0 0 25px rgba(245,89,10,0.22), 0 8px 24px rgba(0,0,0,0.5)",
-                    }}
-                    whileTap={{ scale: 0.98 }}
-                    className="about-partner-pill cursor-pointer"
-                  >
+                <motion.div
+                  whileHover={{ scale: 1.025 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 transition-all duration-300 hover:border-[#F5590A]/50 hover:bg-white/10"
+                >
                     <span aria-hidden className="about-partner-logo-dot">
                       <svg
                         viewBox="0 0 24 24"
@@ -149,15 +110,46 @@ export default function AboutPage() {
                     <span className="text-sm font-semibold tracking-tight text-[#F2F2F2]">
                       KwantumG Research Labs
                     </span>
-                  </motion.div>
+                </motion.div>
 
-                  <p className="mt-4 max-w-[52ch] text-sm leading-relaxed text-stone-400">
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-400">
                     Bringing industry-grade mentorship in quantum computing, quantum
                     machine learning, and applied research to every participant.
-                  </p>
+                </p>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              whileHover={{ scale: 1.015 }}
+              className="group relative order-2 transition-shadow duration-400"
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-3 rounded-3xl bg-[radial-gradient(ellipse_at_center,rgba(245,89,10,0.18)_0%,transparent_70%)] blur-2xl sm:-inset-4"
+              />
+              <div className="relative z-10 overflow-hidden rounded-2xl bg-[#0D0D0D] ring-1 ring-[#F5590A]/30 shadow-[0_0_60px_-15px_rgba(255,107,26,0.4)] transition-shadow duration-400 group-hover:shadow-[0_0_70px_-10px_rgba(255,107,26,0.6)]">
+                <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-3 py-1.5 font-mono text-[10px] text-slate-300 backdrop-blur-md sm:text-xs">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#F5590A]" />
+                  <span>LAT // 13.1295° N</span>
                 </div>
-              </Reveal>
-            </div>
+                <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <MotionImage
+                  src="/abt_theme.jpg"
+                  alt="Quantum technology visual for Q-Bits"
+                  width={720}
+                  height={900}
+                  priority
+                  className="h-[300px] w-full object-cover object-[center_28%] sm:h-[540px] sm:object-center"
+                />
+                <span className="absolute bottom-4 left-4 z-20 rounded-lg border border-white/10 bg-black/50 px-3 py-1.5 font-mono text-[10px] tracking-wider text-slate-200 backdrop-blur-md sm:text-xs">
+                  QUANT-A-MAZE 3.0
+                </span>
+              </div>
+            </motion.div>
           </div>
 
           <motion.div

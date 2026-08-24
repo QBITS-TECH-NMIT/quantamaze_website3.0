@@ -34,7 +34,7 @@ export default function NavBar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: easeOut }}
       style={{
-        backgroundColor: scrolled ? "rgba(10, 10, 15, 0.78)" : "rgba(10, 10, 15, 0.55)",
+        backgroundColor: scrolled ? "rgba(10, 10, 10, 0.84)" : "rgba(10, 10, 10, 0.62)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         boxShadow: scrolled
@@ -91,7 +91,7 @@ export default function NavBar() {
                 key={link.href}
                 href={link.href}
                 className={`nav-link relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                  isActive ? "text-[#F5590A]" : "text-stone-300 hover:text-[#F2F2F2]"
+                    isActive ? "text-[#F5590A]" : "text-stone-300 hover:text-[#FFA94D]"
                 }`}
               >
                 {link.label}

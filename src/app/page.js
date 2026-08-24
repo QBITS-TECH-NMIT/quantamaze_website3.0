@@ -9,6 +9,18 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 const TARGET_DATE = new Date("2026-10-28T00:00:00+05:30");
 
+const titleReveal = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+  },
+};
+
+const titleCharacter = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: easeOut } },
+};
+
 export default function HomePage() {
   const [siteReady, setSiteReady] = useState(false);
   const handleLoaderComplete = useCallback(() => setSiteReady(true), []);
@@ -52,7 +64,7 @@ export default function HomePage() {
           id="home"
           className="brochure-section relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[#0A0A0A] px-5 pt-28 pb-28 text-[#F2F2F2] sm:min-h-screen sm:px-6 sm:pt-32 sm:pb-24"
         >
-          {/* Background: parallax video + gradient overlay */}
+          {/* Background: parallax video + layered atmosphere */}
           <motion.video
             initial={{ scale: 1.15, opacity: 0 }}
             animate={{ scale: 1, opacity: 0.4 }}
@@ -71,6 +83,8 @@ export default function HomePage() {
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.48),rgba(10,10,10,0.82)_62%,#0A0A0A)]"
           />
+          <div aria-hidden className="pointer-events-none absolute inset-0 quantum-grid opacity-[0.035]" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.62)_100%)]" />
 
           {/* Content column */}
           <motion.div
@@ -82,9 +96,9 @@ export default function HomePage() {
             {/* Technical HUD metadata pill */}
             <motion.div
               variants={staggerItem}
-              className="hero-edition-pill mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] font-mono text-stone-400 backdrop-blur-md sm:mb-5 sm:gap-2.5"
+              className="hero-edition-pill mb-5 inline-flex items-center gap-2 rounded-full border border-[#F5590A]/20 bg-black/40 font-mono text-stone-300 shadow-[0_0_24px_rgba(245,89,10,0.08)] backdrop-blur-md sm:mb-6 sm:gap-2.5"
             >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#F5590A] animate-pulse" />
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#F5590A] shadow-[0_0_10px_3px_rgba(245,89,10,0.45)] animate-pulse" />
               <span>EDITION // 3.0</span>
               <span className="text-white/20">|</span>
               <span className="text-center sm:text-left">NMIT_BANGALORE</span>
@@ -93,67 +107,66 @@ export default function HomePage() {
             {/* Layered Title Treatment: "3.0" Background Layer + "QUANT-A-MAZE" Foreground */}
             <motion.div
               variants={staggerItem}
-              className="relative my-4 flex w-full max-w-[min(100%,22rem)] flex-col items-center justify-center select-none sm:my-10 sm:max-w-none"
+              className="relative my-5 flex min-h-[11rem] w-full max-w-[min(100%,22rem)] flex-col items-center justify-center select-none sm:my-8 sm:min-h-[15rem] sm:max-w-none lg:min-h-[17rem]"
             >
               {/* Layer 1: "3.0" Graphic Backdrop Element */}
               <motion.span
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{
-                  opacity: [0.42, 0.54, 0.42],
-                  scale: [1, 1.012, 1],
+                  opacity: [0.78, 1, 0.78],
+                  scale: [1, 1.02, 1],
                 }}
                 transition={{
-                  opacity: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
-                  scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                  opacity: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+                  scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
                 }}
                 aria-hidden="true"
                 className="hero-backdrop-version pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none text-center font-sans font-black leading-none tracking-tighter"
                 style={{
-                  color: "rgba(245, 89, 10, 0.22)",
+                  color: "rgba(245, 89, 10, 0.14)",
                   filter:
-                    "drop-shadow(0 0 18px rgba(245, 89, 10, 0.65)) drop-shadow(0 0 40px rgba(245, 89, 10, 0.35))",
+                    "drop-shadow(0 0 24px rgba(245, 89, 10, 0.28))",
+                  maskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
+                  WebkitMaskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
                 }}
               >
                 3.0
               </motion.span>
 
               {/* Layer 2: "QUANT-A-MAZE" Foreground Heading */}
-              <h1
-                className="relative z-10 cursor-default text-center text-[clamp(1.85rem,9.5vw,2.75rem)] font-black uppercase leading-[0.95] tracking-[-0.05em] sm:text-7xl md:text-8xl lg:text-9xl"
+              <motion.h1
+                variants={titleReveal}
+                className="relative z-10 flex cursor-default text-center text-[clamp(3rem,12vw,4.75rem)] font-black uppercase leading-[0.9] tracking-[-0.055em] sm:text-7xl md:text-8xl lg:text-9xl"
                 style={{
                   color: "#F5590A",
                   textShadow:
-                    "0 0 40px rgba(0, 0, 0, 0.95), 0 4px 20px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.9)",
+                    "0 0 40px rgba(245, 89, 10, 0.3), 0 0 40px rgba(0, 0, 0, 0.95), 0 4px 20px rgba(0, 0, 0, 0.95)",
                 }}
               >
                 <span className="sr-only">QUANT-A-MAZE 3.0</span>
-                <span aria-hidden="true">QUANT-A-MAZE</span>
-              </h1>
+                <span aria-hidden="true" className="flex">
+                  {Array.from("QUANT-A-MAZE").map((character, index) => (
+                    <motion.span key={`${character}-${index}`} variants={titleCharacter}>
+                      {character}
+                    </motion.span>
+                  ))}
+                </span>
+              </motion.h1>
 
-              {/* Layer 3: Clean, Independent Horizontal Underline Accent Line */}
-              <div
-                className="relative z-10 mt-4 shrink-0 sm:mt-6"
-                style={{
-                  width: "56px",
-                  height: "3px",
-                  background:
-                    "linear-gradient(90deg, transparent, #F5590A 20%, #FFA94D 50%, #F5590A 80%, transparent)",
-                  borderRadius: "9999px",
-                  boxShadow: "0 0 14px rgba(245, 89, 10, 0.8)",
-                }}
-              />
             </motion.div>
 
             <motion.p
               variants={staggerItem}
-              className="mt-5 max-w-[18rem] text-center text-lg font-medium leading-snug text-[#eeece6] sm:mt-6 sm:max-w-none sm:text-3xl"
+              className="my-6 max-w-[18rem] text-center text-lg font-semibold leading-snug text-gray-100 sm:my-8 sm:max-w-none sm:text-3xl"
             >
               A 36-Hour National-Level Hackathon
             </motion.p>
 
             <motion.p
               variants={staggerItem}
-              className="mt-2.5 text-center text-sm leading-relaxed text-stone-400 sm:mt-3 sm:text-xl"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="text-center text-sm italic leading-relaxed text-gray-400 sm:text-xl"
             >
               Something exciting is coming...
             </motion.p>
@@ -162,12 +175,13 @@ export default function HomePage() {
             <motion.div
               variants={staggerItem}
               style={{ opacity: heroTextOpacity, scale: heroTextScale }}
-              className="flex flex-col items-center px-1"
+              className="flex flex-col items-center rounded-2xl border border-[#F5590A]/20 bg-white/[0.02] px-6 py-5 shadow-[0_0_35px_rgba(245,89,10,0.08)] backdrop-blur-sm sm:px-8 sm:py-6"
             >
-              <p className="mt-5 text-center text-2xl font-semibold tracking-[0.14em] text-[#F5590A] sm:mt-6 sm:text-5xl sm:tracking-[0.18em]">
+              <p className="text-center text-3xl font-bold tracking-widest text-[#F5590A] drop-shadow-[0_0_18px_rgba(245,89,10,0.35)] sm:text-5xl">
                 OCT 28
               </p>
-              <p className="mt-1.5 max-w-[18rem] text-center text-sm leading-relaxed text-stone-300 sm:max-w-none sm:text-lg">
+              <p className="mt-2 flex max-w-[18rem] items-center justify-center gap-2 text-center text-sm leading-relaxed text-gray-300 sm:max-w-none sm:text-base">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#F5590A]" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>
                 Nitte Meenakshi Institute of Technology, Bangalore
               </p>
             </motion.div>

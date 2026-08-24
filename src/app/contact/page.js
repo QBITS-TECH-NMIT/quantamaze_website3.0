@@ -37,58 +37,52 @@ export default function ContactPage() {
     <div className="relative flex min-h-screen flex-col justify-between pt-20 sm:pt-24">
       <section
         id="contact"
-        className="brochure-section relative flex flex-1 items-center justify-center overflow-hidden bg-[#0A0A0A] py-16 text-[#F2F2F2] sm:py-32"
+        className="brochure-section relative flex flex-1 items-center justify-center overflow-hidden bg-[#0A0A0A] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:py-32"
       >
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,107,26,0.08),transparent_70%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
         <div className="relative mx-auto w-full max-w-3xl text-center">
-          <Reveal>
-            <div className="mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[0.62rem] font-mono tracking-[0.16em] text-stone-400 sm:px-3.5 sm:text-[0.68rem] sm:tracking-[0.2em]">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#F5590A] animate-pulse" />
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} className="flex flex-col items-center">
+            <motion.div variants={staggerItem} className="mb-6 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#F5590A]/20 bg-black/40 px-4 py-2 font-mono text-xs tracking-wide text-stone-300 shadow-[0_0_28px_rgba(245,89,10,0.08)] backdrop-blur-md sm:mb-8 sm:text-sm">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#F5590A] shadow-[0_0_10px_3px_rgba(245,89,10,0.45)] animate-pulse" />
               <span>STATUS // REGISTRATIONS_OPEN</span>
-            </div>
+            </motion.div>
 
-            <p className="section-kicker mb-4 justify-center">Stay connected</p>
-            <h1 className="display-heading gradient-text mb-6 text-3xl font-bold sm:mb-8 sm:text-5xl">
+            <motion.p variants={staggerItem} className="section-kicker mb-5 justify-center text-xs font-semibold tracking-[0.2em] text-[#F5590A] sm:text-sm">Stay connected</motion.p>
+            <motion.h1 variants={staggerItem} className="display-heading gradient-text mb-6 text-5xl font-extrabold tracking-tight drop-shadow-[0_0_30px_rgba(255,107,26,0.3)] sm:mb-8 sm:text-6xl md:text-7xl">
               Contact Us
-            </h1>
-            <p className="mx-auto mb-10 max-w-xl px-1 text-sm leading-relaxed text-stone-400 sm:mb-12 sm:text-base">
+            </motion.h1>
+            <motion.p variants={staggerItem} className="mx-auto mb-10 mt-4 max-w-xl text-sm leading-relaxed text-slate-300 sm:mb-12 sm:text-base">
               Have questions about Quant-A-Maze 3.0, problem tracks, or team registrations? Connect directly with the Q-Bits organizing team.
-            </p>
-          </Reveal>
+            </motion.p>
 
           <motion.div
             variants={staggerContainer}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.3 }}
-            className="flex flex-wrap justify-center gap-4 px-1 sm:gap-7"
+            className="flex flex-wrap justify-center gap-5 px-1 sm:gap-6"
           >
             {contacts.map((c) => (
               <motion.a
                 key={c.label}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.4, y: 20 },
-                  show: {
-                    opacity: 1,
-                    scale: 1,
-                    y: 0,
-                    transition: { type: "spring", stiffness: 300, damping: 18 },
-                  },
-                }}
-                whileHover={{ scale: 1.08, opacity: 1, borderColor: "rgba(245,89,10,0.8)" }}
+                variants={staggerItem}
+                whileHover={{ y: -5, scale: 1.1 }}
                 whileTap={{ scale: 0.94 }}
                 href={c.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                title={c.label}
                 aria-label={c.label}
-                className="contact-icon contact-icon-link flex items-center justify-center rounded-full border border-white/15 bg-white/[0.03] opacity-75 backdrop-blur-md transition-all hover:border-[#F5590A] hover:bg-[#F5590A]/10 hover:opacity-100 hover:shadow-[0_0_20px_rgba(245,89,10,0.35)]"
+                className="contact-icon contact-icon-link group relative flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-gray-400 opacity-100 backdrop-blur-sm transition-all duration-300 hover:border-[#F5590A]/40 hover:bg-[#F5590A]/10 hover:text-[#FFA94D] hover:shadow-[0_0_20px_rgba(255,107,26,0.3)]"
               >
-                <Image src={c.icon} alt="" width={48} height={48} className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
+                <Image src={c.icon} alt="" width={48} height={48} className="h-7 w-7 object-contain opacity-80 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0 sm:h-8 sm:w-8" />
+                <motion.span initial={{ opacity: 0, y: 6 }} whileHover={{ opacity: 1, y: 0 }} className="pointer-events-none absolute top-full mt-3 whitespace-nowrap rounded-full border border-white/10 bg-black/70 px-3 py-1 font-mono text-[10px] tracking-wide text-gray-200 opacity-0 backdrop-blur-md">
+                  {c.label}
+                </motion.span>
               </motion.a>
             ))}
           </motion.div>
 
-          <div className="mt-16 border-t border-white/10 pt-8 text-sm text-stone-500 font-mono sm:mt-20">
+          </motion.div>
+
+          <div className="mt-14 border-t border-white/10 pt-8 text-sm font-mono text-stone-500 sm:mt-16">
             <p>Q-Bits, Quantum Technology Club at NMIT Bangalore</p>
             <p className="mt-2 text-xs">
               Developed by Q-Bits <span className="mx-2 text-[#F5590A]/60">/</span> Copyright 2026

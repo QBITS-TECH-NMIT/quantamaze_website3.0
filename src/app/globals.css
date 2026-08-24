@@ -295,10 +295,9 @@ body::before {
 .timeline-line {
   background: linear-gradient(
     to bottom,
-    transparent,
-    rgba(255, 255, 255, 0.12) 10%,
-    rgba(255, 255, 255, 0.12) 90%,
-    transparent
+    rgba(245, 89, 10, 0.3),
+    rgba(245, 89, 10, 0.12) 45%,
+    rgba(255, 255, 255, 0.08)
   );
 }
 
@@ -310,19 +309,19 @@ body::before {
 .timeline-card {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  padding: 1.5rem 1.75rem;
-  border-radius: 2px;
+  max-width: none;
+  padding: 1.25rem;
+  border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(
-    155deg,
-    rgba(255, 255, 255, 0.035) 0%,
-    rgba(17, 17, 21, 0.85) 100%
-  );
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.02);
   transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+@media (min-width: 768px) {
+  .timeline-card { padding: 2rem; }
 }
 
 .timeline-card-stage {
@@ -918,13 +917,13 @@ body::before {
 
 .hero-backdrop-version {
   font-size: clamp(5.5rem, 28vw, 19rem);
-  -webkit-text-stroke: 2px rgba(255, 138, 51, 0.85);
+  -webkit-text-stroke: 2px rgba(255, 107, 26, 0.32);
 }
 
 @media (min-width: 640px) {
   .hero-backdrop-version {
     font-size: clamp(8rem, 24vw, 19rem);
-    -webkit-text-stroke: 3px rgba(255, 138, 51, 0.85);
+    -webkit-text-stroke: 3px rgba(255, 107, 26, 0.32);
   }
 }
 
@@ -981,25 +980,6 @@ body::before {
   .timeline-card-mobile {
     max-width: 420px;
     padding: 1.5rem 1.75rem;
-  }
-}
-
-.contact-icon-link {
-  min-height: 52px;
-  min-width: 52px;
-  height: 52px;
-  width: 52px;
-}
-
-.contact-icon-link:nth-child(odd) { transform: translateY(-0.5rem); }
-.contact-icon-link:hover { transform: translateY(-0.5rem) scale(1.08); }
-
-@media (min-width: 640px) {
-  .contact-icon-link {
-    min-height: 64px;
-    min-width: 64px;
-    height: 64px;
-    width: 64px;
   }
 }
 

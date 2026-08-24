@@ -4,6 +4,62 @@ import { useRef } from "react";
 import { motion, useScroll } from "framer-motion";
 import { Reveal, easeOut } from "@/components/MotionPrimitives";
 
+function CalendarIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+      <line x1="16" x2="16" y1="2" y2="6" />
+      <line x1="8" x2="8" y1="2" y2="6" />
+      <line x1="3" x2="21" y1="10" y2="10" />
+    </svg>
+  );
+}
+
+function TimelineCard({ event, isEven, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, delay: index * 0.08, ease: "easeOut" }}
+      whileHover={{ y: -3 }}
+      className={`timeline-card w-full rounded-2xl border bg-white/[0.03] p-5 backdrop-blur-sm transition-all duration-300 hover:border-[#F5590A]/30 hover:bg-white/[0.05] md:p-8 ${
+        event.active
+          ? "border-[#F5590A]/40 shadow-[0_0_40px_-10px_rgba(255,107,26,0.3)]"
+          : "border-white/10"
+      } ${isEven ? "md:text-right" : ""}`}
+    >
+      <div className={`flex items-center gap-3 ${isEven ? "md:justify-end" : ""}`}>
+        <span className="font-mono text-xs uppercase tracking-[0.15em] text-gray-500">
+          {event.stage}
+        </span>
+        {event.active && (
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#F5590A]/30 bg-[#F5590A]/15 px-3 py-1 text-xs font-semibold tracking-wide text-[#FFA94D]">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#F5590A] shadow-[0_0_8px_#F5590A]" />
+            Active
+          </span>
+        )}
+      </div>
+      <h3 className="mt-3 text-2xl font-bold tracking-tight text-white md:text-3xl">
+        {event.title}
+      </h3>
+      <div className={`mt-5 flex items-center gap-2 text-sm font-semibold text-[#FFA94D] ${isEven ? "md:justify-end" : ""}`}>
+        <CalendarIcon />
+        <span>{event.date}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function TimelinePage() {
   const events = [
     { stage: "STAGE 01", title: "Registration", date: "September 7 – 28", active: true },
@@ -23,186 +79,58 @@ export default function TimelinePage() {
     <div className="relative min-h-screen pt-20 sm:pt-24">
       <section
         id="timeline"
-        className="brochure-section timeline-section relative min-h-screen overflow-hidden bg-[#0D0D0D] py-16 text-[#F2F2F2] sm:py-32"
+        className="timeline-section relative min-h-screen overflow-hidden bg-[#0D0D0D] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:px-20 lg:py-32"
       >
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-7xl">
           <Reveal>
-            <p className="section-kicker mb-4">From first commit to final result</p>
-            <h1 className="display-heading gradient-text mb-10 text-left text-3xl font-bold sm:mb-24 sm:text-5xl">
+            <p className="section-kicker mb-5 text-xs font-semibold tracking-[0.2em] text-[#F5590A] sm:text-sm">
+              From first commit to final result
+            </p>
+            <h1 className="display-heading gradient-text mb-16 text-left text-5xl font-extrabold tracking-tight md:mb-20 md:text-6xl">
               Timeline
             </h1>
           </Reveal>
 
-          <div ref={containerRef} className="relative pl-1 sm:pl-0">
-            <div
-              aria-hidden
-              className="timeline-line absolute bottom-10 left-[1.125rem] top-10 w-[2px] -translate-x-1/2 sm:bottom-12 sm:left-1/2 sm:top-12"
-            />
-
+          <div ref={containerRef} className="relative">
+            <div aria-hidden className="timeline-line absolute bottom-6 left-4 top-6 w-0.5 -translate-x-1/2 md:left-1/2" />
             <motion.div
               style={{ scaleY: scrollYProgress, transformOrigin: "top" }}
               aria-hidden
-              className="timeline-progress absolute bottom-10 left-[1.125rem] top-10 w-[2px] -translate-x-1/2 sm:bottom-12 sm:left-1/2 sm:top-12"
+              className="timeline-progress absolute bottom-6 left-4 top-6 z-[1] w-0.5 -translate-x-1/2 md:left-1/2"
             />
 
-            <div className="space-y-8 sm:space-y-16">
-              {events.map((event, i) => {
-                const isEven = i % 2 === 0;
+            <ol className="space-y-16 md:space-y-20">
+              {events.map((event, index) => {
+                const isEven = index % 2 === 0;
                 return (
-                  <div
-                    key={event.title}
-                    className="relative flex items-center sm:grid sm:grid-cols-[1fr_48px_1fr] sm:items-center sm:gap-6"
-                  >
-                    {/* Left Column (Desktop: Even items) */}
-                    <div className="hidden sm:flex sm:justify-end">
-                      {isEven && (
-                        <motion.div
-                          initial={{ opacity: 0, x: -36 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true, amount: 0.3 }}
-                          transition={{ duration: 0.55, delay: i * 0.06, ease: easeOut }}
-                          whileHover={{
-                            y: -3,
-                            borderColor: "rgba(245,89,10,0.6)",
-                            boxShadow:
-                              "0 12px 36px rgba(0,0,0,0.45), 0 0 24px rgba(245,89,10,0.15)",
-                            transition: { duration: 0.2 },
-                          }}
-                          className={`timeline-card timeline-card-mobile text-right ${
-                            event.active
-                              ? "border-[#F5590A]/50 bg-[#F5590A]/[0.06] shadow-[0_0_28px_rgba(245,89,10,0.15)]"
-                              : ""
-                          }`}
-                        >
-                          <div className="flex items-center justify-end gap-2">
-                            {event.active && (
-                              <span className="inline-flex items-center rounded-full bg-[#F5590A]/20 px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-[#FFA94D] uppercase">
-                                Active
-                              </span>
-                            )}
-                            <span className="timeline-card-stage">{event.stage}</span>
-                          </div>
-                          <h3 className="mt-1.5 text-xl font-bold tracking-tight text-[#F2F2F2] sm:text-2xl">
-                            {event.title}
-                          </h3>
-                          <div className="mt-3.5 flex items-center justify-end gap-2 text-sm font-semibold tracking-wide text-[#F5590A]">
-                            <span>{event.date}</span>
-                            <svg
-                              className="h-4 w-4 shrink-0 opacity-85"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                              <line x1="16" x2="16" y1="2" y2="6" />
-                              <line x1="8" x2="8" y1="2" y2="6" />
-                              <line x1="3" x2="21" y1="10" y2="10" />
-                            </svg>
-                          </div>
-                        </motion.div>
+                  <li key={event.title} className="relative grid grid-cols-[2rem_minmax(0,1fr)] items-center md:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] md:gap-6">
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileInView={{ scale: 1, opacity: 1 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.45, delay: index * 0.08, ease: "easeOut" }}
+                      style={{ gridRow: 1 }}
+                      className="relative z-10 col-start-1 row-start-1 flex self-center items-center justify-center md:col-start-2"
+                    >
+                      {event.active && (
+                        <motion.span
+                          animate={{ scale: [1, 1.7, 1], opacity: [0.7, 0, 0.7] }}
+                          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                          className="pointer-events-none absolute h-10 w-10 rounded-full border border-[#F5590A]/70"
+                        />
                       )}
-                    </div>
+                      <span className={`flex h-5 w-5 items-center justify-center rounded-full border bg-[#0D0D0D] md:h-7 md:w-7 ${event.active ? "border-[#F5590A] shadow-[0_0_18px_rgba(245,89,10,0.85)]" : "border-white/25 ring-2 ring-[#F5590A]/10"}`}>
+                        <span className={`h-2 w-2 rounded-full ${event.active ? "bg-[#FFA94D] shadow-[0_0_8px_#FFA94D]" : "bg-[#F5590A]/70"}`} />
+                      </span>
+                    </motion.div>
 
-                    {/* Center Node / Dot */}
-                    <div className="absolute left-[1.125rem] z-10 flex -translate-x-1/2 items-center justify-center sm:static sm:left-auto sm:translate-x-0">
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
-                        viewport={{ once: true, amount: 0.3 }}
-                        transition={{
-                          delay: i * 0.06 + 0.1,
-                          type: "spring",
-                          stiffness: 380,
-                          damping: 18,
-                        }}
-                        className="relative flex items-center justify-center"
-                      >
-                        {event.active && (
-                          <motion.div
-                            animate={{ scale: [1, 1.85, 1], opacity: [0.7, 0, 0.7] }}
-                            transition={{
-                              duration: 2.2,
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                            }}
-                            className="pointer-events-none absolute h-9 w-9 rounded-full border border-[#F5590A] bg-[#F5590A]/20"
-                          />
-                        )}
-                        <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-full border bg-[#0D0D0D] transition-colors ${
-                            event.active
-                              ? "border-[#F5590A] shadow-[0_0_16px_rgba(245,89,10,0.8)]"
-                              : "border-white/20 hover:border-[#F5590A]/70 shadow-[0_0_10px_rgba(0,0,0,0.6)]"
-                          }`}
-                        >
-                          <div
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              event.active
-                                ? "bg-[#FFA94D] shadow-[0_0_8px_#FFA94D]"
-                                : "bg-[#F5590A]"
-                            }`}
-                          />
-                        </div>
-                      </motion.div>
+                    <div style={{ gridRow: 1 }} className={`col-start-2 row-start-1 min-w-0 self-center ${isEven ? "md:col-start-1" : "md:col-start-3"}`}>
+                      <TimelineCard event={event} isEven={isEven} index={index} />
                     </div>
-
-                    {/* Right Column (Desktop: Odd items; Mobile: All items) */}
-                    <div className="w-full pl-[3.25rem] sm:pl-0 sm:flex sm:justify-start">
-                      <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
-                        transition={{ duration: 0.55, delay: i * 0.06, ease: easeOut }}
-                        whileHover={{
-                          y: -3,
-                          borderColor: "rgba(245,89,10,0.6)",
-                          boxShadow:
-                            "0 12px 36px rgba(0,0,0,0.45), 0 0 24px rgba(245,89,10,0.15)",
-                          transition: { duration: 0.2 },
-                        }}
-                        className={`timeline-card timeline-card-mobile ${isEven ? "sm:hidden" : ""} ${
-                          event.active
-                            ? "border-[#F5590A]/50 bg-[#F5590A]/[0.06] shadow-[0_0_28px_rgba(245,89,10,0.15)]"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="timeline-card-stage">{event.stage}</span>
-                          {event.active && (
-                            <span className="inline-flex items-center rounded-full bg-[#F5590A]/20 px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-[#FFA94D] uppercase">
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="mt-1.5 text-xl font-bold tracking-tight text-[#F2F2F2] sm:text-2xl">
-                          {event.title}
-                        </h3>
-                        <div className="mt-3.5 flex items-center gap-2 text-sm font-semibold tracking-wide text-[#F5590A]">
-                          <svg
-                            className="h-4 w-4 shrink-0 opacity-85"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                            <line x1="16" x2="16" y1="2" y2="6" />
-                            <line x1="8" x2="8" y1="2" y2="6" />
-                            <line x1="3" x2="21" y1="10" y2="10" />
-                          </svg>
-                          <span>{event.date}</span>
-                        </div>
-                      </motion.div>
-                    </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </div>
         </div>
       </section>

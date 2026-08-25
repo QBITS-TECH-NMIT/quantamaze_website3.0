@@ -1,13 +1,12 @@
 ﻿"use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const navItems = [
   {
     label: "Home",
-    href: "/",
+    href: "#home",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -17,7 +16,7 @@ const navItems = [
   },
   {
     label: "About",
-    href: "/about",
+    href: "#about",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <circle cx="12" cy="12" r="10" />
@@ -28,7 +27,7 @@ const navItems = [
   },
   {
     label: "Tracks",
-    href: "/tracks",
+    href: "#tracks",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <polygon points="12 2 2 7 12 12 22 7 12 2" />
@@ -39,7 +38,7 @@ const navItems = [
   },
   {
     label: "Timeline",
-    href: "/timeline",
+    href: "#timeline",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
@@ -51,7 +50,7 @@ const navItems = [
   },
   {
     label: "Sponsors",
-    href: "/sponsors",
+    href: "#sponsors",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -60,7 +59,7 @@ const navItems = [
   },
   {
     label: "Contact",
-    href: "/contact",
+    href: "#contact",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <rect width="20" height="16" x="2" y="4" rx="2" />
@@ -71,7 +70,50 @@ const navItems = [
 ];
 
 export default function MobileTaskbar() {
-  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState("home");
+
+  function handleNavigation(event, href) {
+    event.preventDefault();
+    const section = document.getElementById(href.slice(1));
+    if (!section) {
+      window.location.assign(href);
+      return;
+    }
+
+    section.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+    window.history.replaceState(null, "", href);
+  }
+
+  useEffect(() => {
+    const sections = navItems
+      .map(({ href }) => document.querySelector(href))
+      .filter(Boolean);
+    let frameId;
+    const updateActiveSection = () => {
+      frameId = undefined;
+      const viewportCenter = window.innerHeight / 2;
+      const closest = sections.reduce((current, section) => {
+        const rect = section.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter);
+        return !current || distance < current.distance ? { id: section.id, distance } : current;
+      }, null);
+      if (closest) setActiveSection(closest.id);
+    };
+    const handleScroll = () => {
+      if (frameId === undefined) frameId = window.requestAnimationFrame(updateActiveSection);
+    };
+    updateActiveSection();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (frameId !== undefined) window.cancelAnimationFrame(frameId);
+    };
+  }, []);
 
   return (
     <nav
@@ -80,15 +122,13 @@ export default function MobileTaskbar() {
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
         {navItems.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+          const isActive = activeSection === item.href.slice(1);
 
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
+              onClick={(event) => handleNavigation(event, item.href)}
               aria-current={isActive ? "page" : undefined}
               className={`mobile-taskbar-item ${isActive ? "is-active text-[#F5590A]" : "text-stone-400"}`}
             >
@@ -110,7 +150,7 @@ export default function MobileTaskbar() {
 
               <span className="mobile-taskbar-label relative z-10">{item.label}</span>
               <span aria-hidden className="mobile-taskbar-dot" />
-            </Link>
+            </a>
           );
         })}
       </div>

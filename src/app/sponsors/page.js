@@ -21,10 +21,10 @@ export default function SponsorsPage() {
     },
     {
       category: "ACADEMIC HOST & INSTITUTION",
-      name: "Department of EEE, NMIT Bangalore",
+      name: "Department of EEE, Nitte (Deemed to be University)",
       badge: "Host Institution",
       description:
-        "Nitte Meenakshi Institute of Technology provides state-of-the-art infrastructure, computing labs, and academic anchoring for the 36-hour national-level hackathon.",
+        "Nitte (Deemed to be University) provides state-of-the-art infrastructure, computing labs, and academic anchoring for the 36-hour national-level hackathon.",
       points: [
         "36-hour on-campus lab infrastructure",
         "Faculty advisors & technical backing",
@@ -151,7 +151,7 @@ export default function SponsorsPage() {
               </div>
 
               <Link
-                href="/contact"
+                href="#contact"
                 className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition hover:bg-[#ff7b3f] hover:shadow-[0_0_24px_rgba(245,89,10,0.4)] active:scale-95 sm:w-auto"
               >
                 <span>Get in Touch</span>

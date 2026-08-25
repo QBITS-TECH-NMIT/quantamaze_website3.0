@@ -261,7 +261,7 @@ export default function CountdownTimer({
   label = "Launching In",
   accentColor = "#f5590a",
 }) {
-  const resolvedTarget = targetDate ?? new Date("2026-10-28T00:00:00+05:30");
+  const resolvedTarget = targetDate ?? new Date("2026-09-07T00:00:00+05:30");
   const resolvedStart =
     startDate ?? new Date(new Date(resolvedTarget).getTime() - 30 * 86_400_000);
 

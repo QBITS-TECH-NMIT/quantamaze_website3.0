@@ -4,10 +4,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import LoadingScreen from "@/components/LoadingScreen";
 import CountdownTimer from "@/components/CountdownTimer";
+import AboutPage from "@/app/about/page";
+import TracksPage from "@/app/tracks/page";
+import TimelinePage from "@/app/timeline/page";
+import SponsorsPage from "@/app/sponsors/page";
+import ContactPage from "@/app/contact/page";
 import { Reveal, staggerContainer, staggerItem, easeOut } from "@/components/MotionPrimitives";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-const TARGET_DATE = new Date("2026-10-28T00:00:00+05:30");
+const TARGET_DATE = new Date("2026-09-07T00:00:00+05:30");
 
 const titleReveal = {
   hidden: {},
@@ -20,6 +25,31 @@ const titleCharacter = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: easeOut } },
 };
+
+const sectionReveal = {
+  hidden: { opacity: 0, y: 40, scale: 0.98 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
+
+function SectionTransition({ children }) {
+  return (
+    <motion.div
+      variants={sectionReveal}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.2 }}
+      className="relative"
+    >
+      {children}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-px bg-gradient-to-r from-transparent via-[#F5590A]/30 to-transparent" />
+    </motion.div>
+  );
+}
 
 export default function HomePage() {
   const [siteReady, setSiteReady] = useState(false);
@@ -44,14 +74,20 @@ export default function HomePage() {
     offset: ["start start", "end start"],
   });
 
-  const bgParallaxY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const heroTextOpacity = useTransform(scrollYProgress, [0, 0.35], [1, 0]);
   const heroTextScale = useTransform(scrollYProgress, [0, 0.35], [1, 0.96]);
+  const { scrollYProgress: pageProgress } = useScroll();
 
   return (
     <div className="relative min-h-screen">
       {/* Session-gated Powering Core loading screen */}
       <LoadingScreen onComplete={handleLoaderComplete} />
+
+      <motion.div
+        aria-hidden="true"
+        style={{ scaleX: pageProgress, transformOrigin: "0% 50%" }}
+        className="fixed left-0 right-0 top-0 z-[60] h-0.5 bg-[#F5590A] shadow-[0_0_12px_rgba(245,89,10,0.8)]"
+      />
 
       <main
         aria-hidden={!siteReady}
@@ -59,32 +95,18 @@ export default function HomePage() {
           siteReady ? "hero-powered opacity-100" : "pointer-events-none select-none opacity-0"
         }`}
       >
-        <section
-          ref={sectionRef}
-          id="home"
-          className="brochure-section relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[#0A0A0A] px-5 pt-28 pb-28 text-[#F2F2F2] sm:min-h-screen sm:px-6 sm:pt-32 sm:pb-24"
-        >
-          {/* Background: parallax video + layered atmosphere */}
-          <motion.video
-            initial={{ scale: 1.15, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.4 }}
-            transition={{ duration: 2.2, ease: easeOut }}
-            style={{ y: bgParallaxY }}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover grayscale contrast-125 opacity-35"
+        <SectionTransition>
+          <section
+            ref={sectionRef}
+            id="home"
+            className="brochure-section relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[#0A0A0A] px-5 pt-28 pb-28 text-[#F2F2F2] sm:min-h-screen sm:px-6 sm:pt-32 sm:pb-24"
           >
-            <source src="/fire-bg.mp4" type="video/mp4" />
-          </motion.video>
-
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.48),rgba(10,10,10,0.82)_62%,#0A0A0A)]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.28),rgba(10,10,10,0.62)_62%,rgba(10,10,10,0.82))]"
           />
           <div aria-hidden className="pointer-events-none absolute inset-0 quantum-grid opacity-[0.035]" />
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.62)_100%)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.4)_100%)]" />
 
           {/* Content column */}
           <motion.div
@@ -93,17 +115,6 @@ export default function HomePage() {
             animate="show"
             className="relative z-10 flex w-full flex-col items-center text-center"
           >
-            {/* Technical HUD metadata pill */}
-            <motion.div
-              variants={staggerItem}
-              className="hero-edition-pill mb-5 inline-flex items-center gap-2 rounded-full border border-[#F5590A]/20 bg-black/40 font-mono text-stone-300 shadow-[0_0_24px_rgba(245,89,10,0.08)] backdrop-blur-md sm:mb-6 sm:gap-2.5"
-            >
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#F5590A] shadow-[0_0_10px_3px_rgba(245,89,10,0.45)] animate-pulse" />
-              <span>EDITION // 3.0</span>
-              <span className="text-white/20">|</span>
-              <span className="text-center sm:text-left">NMIT_BANGALORE</span>
-            </motion.div>
-
             {/* Layered Title Treatment: "3.0" Background Layer + "QUANT-A-MAZE" Foreground */}
             <motion.div
               variants={staggerItem}
@@ -162,27 +173,18 @@ export default function HomePage() {
               A 36-Hour National-Level Hackathon
             </motion.p>
 
-            <motion.p
-              variants={staggerItem}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="text-center text-sm italic leading-relaxed text-gray-400 sm:text-xl"
-            >
-              Something exciting is coming...
-            </motion.p>
-
-            {/* OCT 28 + venue */}
+            {/* 07 // SEPTEMBER + venue */}
             <motion.div
               variants={staggerItem}
               style={{ opacity: heroTextOpacity, scale: heroTextScale }}
               className="flex flex-col items-center rounded-2xl border border-[#F5590A]/20 bg-white/[0.02] px-6 py-5 shadow-[0_0_35px_rgba(245,89,10,0.08)] backdrop-blur-sm sm:px-8 sm:py-6"
             >
-              <p className="text-center text-3xl font-bold tracking-widest text-[#F5590A] drop-shadow-[0_0_18px_rgba(245,89,10,0.35)] sm:text-5xl">
-                OCT 28
+              <p className="text-center font-mono text-2xl font-bold tracking-wider text-[#F5590A] drop-shadow-[0_0_20px_rgba(255,107,26,0.25)] sm:text-4xl md:text-5xl">
+                07 <span className="text-[#F5590A]/50">{"//"}</span> SEPTEMBER
               </p>
               <p className="mt-2 flex max-w-[18rem] items-center justify-center gap-2 text-center text-sm leading-relaxed text-gray-300 sm:max-w-none sm:text-base">
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#F5590A]" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>
-                Nitte Meenakshi Institute of Technology, Bangalore
+                Nitte (Deemed to be University)
               </p>
             </motion.div>
 
@@ -201,7 +203,7 @@ export default function HomePage() {
             {/* Register CTA linking to /contact route */}
             <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
-                href="/contact"
+                href="#contact"
                 className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"
               >
                 <span>Register Now</span>
@@ -211,7 +213,15 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </motion.div>
-        </section>
+          </section>
+        </SectionTransition>
+
+        <SectionTransition><AboutPage /></SectionTransition>
+        <SectionTransition><TracksPage /></SectionTransition>
+        <SectionTransition><TimelinePage /></SectionTransition>
+        <SectionTransition><SponsorsPage /></SectionTransition>
+        <SectionTransition><ContactPage /></SectionTransition>
+
       </main>
     </div>
   );

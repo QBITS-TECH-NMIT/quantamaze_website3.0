@@ -27,19 +27,8 @@ function loadAssets(onAssetLoaded) {
         image.src = src;
       })
   );
-  const video = document.createElement("video");
-  const videoLoad = new Promise((resolve) => {
-    const complete = () => {
-      onAssetLoaded();
-      resolve();
-    };
-    video.onloadeddata = complete;
-    video.onerror = complete;
-    video.src = "/fire-bg.mp4";
-    video.load();
-  });
   const fontLoad = (document.fonts?.ready || Promise.resolve()).then(() => onAssetLoaded());
-  return Promise.all([...imageLoads, videoLoad, fontLoad]);
+  return Promise.all([...imageLoads, fontLoad]);
 }
 
 function solutionPath(points) {
@@ -86,7 +75,7 @@ export default function LoadingScreen({ onComplete }) {
     let assetsReady = false;
     let minTimeReady = prefersReducedMotion;
     const startedAt = performance.now();
-    const assetCount = 4;
+    const assetCount = 3;
     let loadedAssets = 0;
     const updateAssetProgress = () => {
       loadedAssets += 1;

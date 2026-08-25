@@ -2,98 +2,162 @@
 
 import { useEffect, useRef } from "react";
 
+const TAU = Math.PI * 2;
+const INTERACTION_RADIUS = 150;
+const BASE_RADIUS = 2;
+const ACTIVE_RADIUS = 5.5;
+const BASE_OPACITY = 0.25;
+const ACTIVE_OPACITY = 1;
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const lerp = (start, end, amount) => start + (end - start) * amount;
+
 export default function ParticleBackground() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    if (!canvas) return;
 
-    let particles = [];
-    let mouse = { x: -9999, y: -9999, radius: 160 };
-    let animationId;
+    const context = canvas.getContext("2d");
+    if (!context) return;
 
-    function resize() {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      initParticles();
-    }
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pointer = { x: -9999, y: -9999, active: false };
+    let width = 0;
+    let height = 0;
+    let dots = [];
+    let rafId = 0;
+    let lastTime = 0;
+    let visible = !document.hidden;
 
-    function initParticles() {
-      particles = [];
-      const area = window.innerWidth * window.innerHeight;
-      const count = Math.max(24, Math.floor(area / 60000));
-      for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: (Math.random() - 0.5) * 0.4,
-          size: 1.2 + Math.random() * 1.5,
-        });
+    function generateDots() {
+      const spacing = window.innerWidth < 768 ? 42 : window.innerWidth < 1400 ? 36 : 30;
+      dots = [];
+
+      for (let y = 0; y <= height + spacing; y += spacing) {
+        for (let x = 0; x <= width + spacing; x += spacing) {
+          dots.push({
+            x,
+            y,
+            radius: BASE_RADIUS,
+            opacity: BASE_OPACITY,
+          });
+        }
       }
     }
 
-    function handleMouseMove(e) {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
+    function resizeCanvas() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.max(1, Math.round(width * dpr));
+      canvas.height = Math.max(1, Math.round(height * dpr));
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      generateDots();
     }
 
-    function handleMouseOut() {
-      mouse.x = -9999;
-      mouse.y = -9999;
-    }
+    function updateDots(delta) {
+      for (const dot of dots) {
+        let targetRadius = BASE_RADIUS;
+        let targetOpacity = BASE_OPACITY;
 
-    function draw() {
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        if (pointer.active) {
+          const dx = dot.x - pointer.x;
+          const dy = dot.y - pointer.y;
+          const distance = Math.hypot(dx, dy);
 
-      for (const p of particles) {
-        const dx = p.x - mouse.x;
-        const dy = p.y - mouse.y;
-        const dist = Math.hypot(dx, dy);
-
-        if (dist < mouse.radius) {
-          const push = (mouse.radius - dist) / mouse.radius;
-          const nx = dx / (dist || 1);
-          const ny = dy / (dist || 1);
-          const strength = push * push * 5;
-          p.vx += nx * strength * 0.03;
-          p.vy += ny * strength * 0.03;
+          if (distance < INTERACTION_RADIUS) {
+            const influence = 1 - distance / INTERACTION_RADIUS;
+            const eased = influence * influence;
+            targetRadius = lerp(BASE_RADIUS, ACTIVE_RADIUS, eased);
+            targetOpacity = lerp(BASE_OPACITY, ACTIVE_OPACITY, eased);
+          }
         }
 
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.985;
-        p.vy *= 0.985;
-
-        if (p.x < 0 || p.x > window.innerWidth) p.vx *= -1;
-        if (p.y < 0 || p.y > window.innerHeight) p.vy *= -1;
-
-        ctx.fillStyle = "rgba(210,162,76,0.18)";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        const smoothing = reducedMotion ? 0.12 * delta : 0.18 * delta;
+        dot.radius += (targetRadius - dot.radius) * smoothing;
+        dot.opacity += (targetOpacity - dot.opacity) * smoothing;
       }
-
-      animationId = requestAnimationFrame(draw);
     }
 
-    window.addEventListener("resize", resize);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseout", handleMouseOut);
+    function renderFrame(time) {
+      if (!visible) {
+        rafId = 0;
+        return;
+      }
 
-    resize();
-    draw();
+      const delta = clamp((time - (lastTime || time)) / 16.67, 0.5, 1.5);
+      lastTime = time;
+
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#0a0a0a";
+      context.fillRect(0, 0, width, height);
+
+      updateDots(delta);
+
+      for (const dot of dots) {
+        context.beginPath();
+        context.arc(dot.x, dot.y, dot.radius, 0, TAU);
+        context.fillStyle = `rgba(255, 107, 26, ${dot.opacity})`;
+        context.fill();
+      }
+
+      if (!reducedMotion) {
+        rafId = window.requestAnimationFrame(renderFrame);
+      }
+    }
+
+    function handlePointerMove(event) {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
+    }
+
+    function handlePointerLeave() {
+      pointer.active = false;
+    }
+
+    function handleTouchMove(event) {
+      if (!event.touches || !event.touches[0]) return;
+      pointer.x = event.touches[0].clientX;
+      pointer.y = event.touches[0].clientY;
+      pointer.active = true;
+    }
+
+    function handleVisibilityChange() {
+      visible = !document.hidden;
+      if (visible && !rafId && !reducedMotion) {
+        rafId = window.requestAnimationFrame(renderFrame);
+      }
+    }
+
+    resizeCanvas();
+    lastTime = performance.now();
+
+    if (!reducedMotion && visible) {
+      rafId = window.requestAnimationFrame(renderFrame);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("mousemove", handlePointerMove, { passive: true });
+    window.addEventListener("mouseleave", handlePointerLeave);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseout", handleMouseOut);
-      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("mouseleave", handlePointerLeave);
+      window.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, []);
 
@@ -101,7 +165,13 @@ export default function ParticleBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-70"
+      className="pointer-events-none fixed left-0 top-0 block"
+      style={{
+        width: "100vw",
+        height: "100dvh",
+        zIndex: -1,
+        background: "#0a0a0a",
+      }}
     />
   );
 }

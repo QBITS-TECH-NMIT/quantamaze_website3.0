@@ -21,7 +21,7 @@ export const metadata = {
     template: "%s | Quant-A-Maze 3.0",
   },
   description:
-    "Quant-A-Maze 3.0 is a 36-hour national-level hackathon by Q-Bits at Nitte (Deemed to be University), hosted in partnership with KwantumG Research Labs.",
+    "Quant-A-Maze 3.0 is a 36-hour national-level hackathon by Q-Bits at Nitte (Deemed to be University).",
   icons: {
     icon: "/logo.png",
   },

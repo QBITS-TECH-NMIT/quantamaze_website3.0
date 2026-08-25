@@ -37,6 +37,29 @@ body {
   position: relative;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 89, 10, 0.65) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(245, 89, 10, 0.55);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 140, 58, 0.8);
+}
+
 .brochure-section,
 .stats-section,
 .timeline-section {

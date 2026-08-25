@@ -7,15 +7,15 @@ import { Reveal, staggerContainer, staggerItem, easeOut } from "@/components/Mot
 export default function SponsorsPage() {
   const tiers = [
     {
-      category: "RESEARCH & MENTORSHIP PARTNER",
-      name: "KwantumG Research Labs",
-      badge: "Flagship Research Partner",
+      category: "COMMUNITY SUPPORT",
+      name: "Q-Bits Community",
+      badge: "Mentorship Network",
       description:
-        "Providing industry-grade mentorship in quantum computing, quantum machine learning (QML), and post-quantum cryptography (PQC) for Quant-A-Maze 3.0 participants.",
+        "Supporting Quant-A-Maze 3.0 through peer mentoring, community-led learning, and technical guidance for participants across the hackathon experience.",
       points: [
-        "Specialized quantum problem statements",
-        "Technical mentorship & evaluation",
-        "Direct access to quantum research experts",
+        "Hands-on problem-solving mentorship",
+        "Peer guidance and learning support",
+        "Community-driven technical encouragement",
       ],
       featured: true,
     },

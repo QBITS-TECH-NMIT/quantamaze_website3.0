@@ -85,38 +85,6 @@ export default function AboutPage() {
                 </p>
               </motion.div>
 
-              <motion.div variants={aboutRevealItem} className="mt-10 border-t border-white/10 pt-8">
-                <span className="mb-4 block font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[#F5590A]">
-                    In partnership with
-                </span>
-
-                <motion.div
-                  whileHover={{ scale: 1.025 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 transition-all duration-300 hover:border-[#F5590A]/50 hover:bg-white/10"
-                >
-                    <span aria-hidden className="about-partner-logo-dot">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m12 3 1.5 6.5L20 11l-6.5 1.5L12 19l-1.5-6.5L4 11l6.5-1.5L12 3Z" />
-                      </svg>
-                    </span>
-                    <span className="text-sm font-semibold tracking-tight text-[#F2F2F2]">
-                      KwantumG Research Labs
-                    </span>
-                </motion.div>
-
-                <p className="mt-4 max-w-xl text-sm leading-relaxed text-stone-400">
-                    Bringing industry-grade mentorship in quantum computing, quantum
-                    machine learning, and applied research to every participant.
-                </p>
-              </motion.div>
             </motion.div>
 
             <motion.div

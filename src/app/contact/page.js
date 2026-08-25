@@ -22,11 +22,6 @@ export default function ContactPage() {
       label: "Email",
     },
     {
-      icon: "/contact-discord.png",
-      href: "https://www.discord.com/invite/pJB5zKGPZt",
-      label: "Discord",
-    },
-    {
       icon: "/contact-map.png",
       href: "https://www.google.com/maps/place/Nitte+Meenakshi+Institute+of+Technology/@13.1294627,77.5850839,17z/data=!3m1!4b1!4m6!3m5!1s0x3bae170d10bb559b:0x2bb3892a626cf9ba!8m2!3d13.1294627!4d77.5876588!16zL20vMGcxdG13?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3Dhttps://maps.app.goo.gl/pkDx8uXamDoN21jx7",
       label: "Location",
@@ -83,7 +78,7 @@ export default function ContactPage() {
           </motion.div>
 
           <div className="mt-14 border-t border-white/10 pt-8 text-sm font-mono text-stone-500 sm:mt-16">
-            <p>Q-Bits, Quantum Technology Club at NMIT Bangalore</p>
+            <p>Q-Bits, Quantum Technology Club at Nitte (Deemed to be University)</p>
             <p className="mt-2 text-xs">
               Developed by Q-Bits <span className="mx-2 text-[#F5590A]/60">/</span> Copyright 2026
             </p>

@@ -37,6 +37,17 @@ body {
   position: relative;
 }
 
+.brochure-section,
+.stats-section,
+.timeline-section {
+  background-color: rgba(10, 10, 10, 0.72) !important;
+}
+
+.stats-section,
+.timeline-section {
+  background-color: rgba(13, 13, 13, 0.78) !important;
+}
+
 body::before {
   position: fixed;
   inset: 0;

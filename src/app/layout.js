@@ -21,7 +21,7 @@ export const metadata = {
     template: "%s | Quant-A-Maze 3.0",
   },
   description:
-    "Quant-A-Maze 3.0 is a 36-hour national-level hackathon by Q-Bits at NMIT Bangalore, hosted in partnership with KwantumG Research Labs.",
+    "Quant-A-Maze 3.0 is a 36-hour national-level hackathon by Q-Bits at Nitte (Deemed to be University), hosted in partnership with KwantumG Research Labs.",
   icons: {
     icon: "/logo.png",
   },
@@ -40,10 +40,10 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0A0A0A] text-[#F2F2F2]">
+      <body className="isolate min-h-full flex flex-col bg-[#0A0A0A] text-[#F2F2F2]">
         <ParticleBackground />
         <NavBar />
-        <div className="mobile-page-shell flex-1 flex flex-col sm:pb-0">
+        <div className="mobile-page-shell relative z-10 flex-1 flex flex-col sm:pb-0">
           {children}
         </div>
         <MobileTaskbar />

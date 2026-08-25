@@ -3,7 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 const CUBE_SIZE = 2.2;
@@ -156,28 +156,240 @@ function EntanglementNetwork() {
   );
 }
 
-// The qubit layer is a Bloch sphere, two latitude/longitude rings, and a bright state.
-function QubitCore() {
+// A compact, self-contained interaction layer for the central qubit.
+// It keeps all click timing, pulse feedback, instability states, and particle bursts
+// isolated to the Bloch-sphere meshes so orbit controls remain unaffected.
+function QubitInteraction({ onDecoherence, resetKey = 0 }) {
+  const groupRef = useRef();
+  const wireRef = useRef();
+  const ringXRef = useRef();
+  const ringYRef = useRef();
+  const coreRef = useRef();
+  const lightRef = useRef();
+  const instancedRef = useRef();
+  const particleDummy = useMemo(() => new THREE.Object3D(), []);
+  const particleData = useMemo(
+    () =>
+      Array.from({ length: 150 }, () => ({
+        position: new THREE.Vector3(),
+        velocity: new THREE.Vector3(),
+        active: false,
+        life: 1,
+      })),
+    [],
+  );
+
+  const interaction = useRef({
+    lastClick: 0,
+    streak: 0,
+    charge: 0,
+    instability: 0,
+    triggerLocked: false,
+    exploded: false,
+    reforming: false,
+  });
+
+  const resetSimulation = useCallback(() => {
+    const current = interaction.current;
+    current.lastClick = 0;
+    current.streak = 0;
+    current.charge = 0;
+    current.instability = 0;
+    current.exploded = false;
+    current.reforming = false;
+    current.triggerLocked = false;
+
+    if (groupRef.current) {
+      groupRef.current.visible = true;
+      groupRef.current.scale.setScalar(1);
+      groupRef.current.rotation.set(0, 0, 0);
+    }
+
+    particleData.forEach((particle) => {
+      particle.position.set(0, 0, 0);
+      particle.velocity.set(0, 0, 0);
+      particle.active = false;
+      particle.life = 1;
+    });
+  }, [particleData]);
+
+  useEffect(() => {
+    resetSimulation();
+  }, [resetKey, resetSimulation]);
+
+  const triggerExplosion = () => {
+    const current = interaction.current;
+    if (current.triggerLocked || current.exploded) return;
+
+    current.triggerLocked = true;
+    current.exploded = true;
+    current.reforming = false;
+    current.streak = 0;
+    current.charge = 0;
+    current.instability = 1;
+
+    if (groupRef.current) {
+      groupRef.current.visible = false;
+    }
+
+    particleData.forEach((particle) => {
+      const angle = Math.random() * Math.PI * 2;
+      const elevation = Math.acos(2 * Math.random() - 1) - Math.PI / 2;
+      const distance = 0.7 + Math.random() * 1.9;
+      const velocity = new THREE.Vector3(
+        Math.cos(elevation) * Math.cos(angle),
+        Math.sin(elevation),
+        Math.cos(elevation) * Math.sin(angle),
+      ).multiplyScalar(distance * (0.18 + Math.random() * 0.25));
+
+      particle.position.set(0, 0, 0);
+      particle.velocity.copy(velocity);
+      particle.active = true;
+      particle.life = 1;
+    });
+
+    onDecoherence(true);
+
+    window.setTimeout(() => {
+      current.triggerLocked = false;
+      current.reforming = true;
+    }, 200);
+  };
+
+  const handleQubitClick = () => {
+    const now = performance.now();
+    const gap = now - interaction.current.lastClick;
+
+    if (gap > 800) {
+      interaction.current.streak = 0;
+    }
+
+    interaction.current.streak += 1;
+    interaction.current.lastClick = now;
+    interaction.current.charge = Math.min(1, interaction.current.charge + 0.5);
+
+    if (interaction.current.streak >= 5) {
+      triggerExplosion();
+      return;
+    }
+
+    if (groupRef.current) {
+      groupRef.current.scale.setScalar(1.08 + interaction.current.charge * 0.28);
+    }
+  };
+
+  useFrame((state, delta) => {
+    const current = interaction.current;
+    const pulse = Math.max(0, current.charge - delta * 0.95);
+    current.charge = pulse;
+
+    if (groupRef.current) {
+      const targetScale = current.exploded ? 0.0001 : 1 + current.charge * 0.18 + (current.instability || 0) * 0.55;
+      groupRef.current.scale.lerp(
+        new THREE.Vector3(targetScale, targetScale, targetScale),
+        current.exploded ? 0.3 : 0.18,
+      );
+      if (!current.exploded) {
+        groupRef.current.rotation.x += delta * (0.9 + current.charge * 1.2);
+        groupRef.current.rotation.z += delta * (1.2 + current.charge * 1.5);
+      }
+    }
+
+    if (wireRef.current) {
+      wireRef.current.material.opacity = current.exploded
+        ? 0.12 + (Math.sin(state.clock.elapsedTime * 18) + 1) * 0.08
+        : 0.18 + current.charge * 0.22;
+    }
+
+    if (ringXRef.current) {
+      ringXRef.current.rotation.x += delta * (1 + current.charge * 3 + (current.instability || 0) * 5.5);
+      ringYRef.current.rotation.y += delta * (1.3 + current.charge * 2.8 + (current.instability || 0) * 6.5);
+      ringXRef.current.scale.setScalar(1 + (current.instability || 0) * 0.26);
+      ringYRef.current.scale.setScalar(1 + (current.instability || 0) * 0.24);
+    }
+
+    if (coreRef.current) {
+      const brightness = 0.95 + current.charge * 2.8 + (current.instability || 0) * 4.5;
+      coreRef.current.scale.setScalar(1 + current.charge * 0.44 + (current.instability || 0) * 0.45);
+      const material = coreRef.current.material;
+      material.opacity = current.exploded ? 0.05 : 0.9 + current.charge * 0.85;
+      material.color.set(current.exploded ? "#ffffff" : "#fff5d5");
+      if (lightRef.current) {
+        lightRef.current.intensity = 2.2 + brightness;
+      }
+    }
+
+    if (current.instability > 0 && !current.exploded) {
+      current.instability = Math.max(0, current.instability - delta * 0.8);
+    }
+
+    if (current.reforming) {
+      particleData.forEach((particle) => {
+        if (!particle.active) return;
+        particle.velocity.multiplyScalar(0.92);
+        particle.position.addScaledVector(particle.velocity, delta * 0.8);
+        particle.position.multiplyScalar(0.94);
+        if (particle.position.length() < 0.05) {
+          particle.position.set(0, 0, 0);
+          particle.velocity.set(0, 0, 0);
+          particle.active = false;
+        }
+      });
+
+      const activeCount = particleData.filter((particle) => particle.active).length;
+      if (activeCount === 0) {
+        current.reforming = false;
+        current.exploded = false;
+        if (groupRef.current) {
+          groupRef.current.visible = true;
+        }
+      }
+    }
+
+    if (instancedRef.current) {
+      particleData.forEach((particle, index) => {
+        if (!particle.active) {
+          particleDummy.position.set(0, 0, 0);
+          particleDummy.scale.setScalar(0.001);
+        } else {
+          const scale = current.exploded ? 0.09 + (1 - particle.life) * 0.04 : 0.07;
+          particleDummy.position.copy(particle.position);
+          particleDummy.scale.setScalar(scale);
+          particleDummy.updateMatrix();
+          instancedRef.current.setMatrixAt(index, particleDummy.matrix);
+        }
+      });
+      instancedRef.current.instanceMatrix.needsUpdate = true;
+    }
+  });
+
   return (
-    <group>
-      <mesh>
-        <sphereGeometry args={[0.56, 20, 12]} />
+    <group ref={groupRef}>
+      <mesh ref={wireRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(); }} onPointerDown={(event) => { event.stopPropagation(); }}>
+        <sphereGeometry args={[0.56, 24, 18]} />
         <meshBasicMaterial color={ORANGE} transparent opacity={0.13} wireframe depthWrite={false} />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
+
+      <mesh ref={ringXRef} rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.56, 0.008, 6, 64]} />
         <meshBasicMaterial color={AMBER} transparent opacity={0.6} toneMapped={false} />
       </mesh>
-      <mesh rotation={[0, Math.PI / 2, 0]}>
+      <mesh ref={ringYRef} rotation={[0, Math.PI / 2, 0]}>
         <torusGeometry args={[0.56, 0.008, 6, 64]} />
         <meshBasicMaterial color={AMBER} transparent opacity={0.45} toneMapped={false} />
       </mesh>
-      <mesh>
+
+      <mesh ref={coreRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(); }} onPointerDown={(event) => { event.stopPropagation(); }}>
         <sphereGeometry args={[0.17, 16, 16]} />
-        <meshBasicMaterial color="#fff1c0" toneMapped={false} />
+        <meshBasicMaterial color="#fff1c0" transparent opacity={0.9} toneMapped={false} />
       </mesh>
-      <pointLight color={AMBER} intensity={2.5} distance={2.8} />
+      <pointLight ref={lightRef} color={AMBER} intensity={2.5} distance={2.8} />
       <EntanglementNetwork />
+
+      <instancedMesh ref={instancedRef} args={[undefined, undefined, particleData.length]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color={ORANGE} transparent opacity={0.9} toneMapped={false} />
+      </instancedMesh>
     </group>
   );
 }
@@ -209,7 +421,7 @@ function CornerNodes() {
   );
 }
 
-function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = true }) {
+function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = true, onDecoherence, resetKey }) {
   const cubeRef = useRef();
   const edgeGeometry = useMemo(() => new THREE.BoxGeometry(2.28, 2.28, 2.28), []);
 
@@ -257,7 +469,7 @@ function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = 
       </lineSegments>
 
       {showMaze && <MazeFaces />}
-      {showQubit && <QubitCore />}
+      {showQubit && <QubitInteraction onDecoherence={onDecoherence} resetKey={resetKey} />}
       {showCornerNodes && <CornerNodes />}
 
       <pointLight color="#ff8a3d" intensity={14} distance={8} position={[2.6, 1.8, 2.6]} />
@@ -282,8 +494,11 @@ function GroundGlow() {
 }
 
 export default function QuantumCubeScene({ showMaze = true, showQubit = true, showCornerNodes = true }) {
+  const [decoherenceVisible, setDecoherenceVisible] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+
   return (
-    <div className="h-full w-full" aria-hidden="true">
+    <div className="relative h-full w-full">
       <Canvas
         camera={{ position: [0, 0, 6.8], fov: 36, near: 0.1, far: 1000 }}
         dpr={[1, 2]}
@@ -295,13 +510,46 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
         }}
       >
         <ambientLight intensity={0.75} />
-        <QuantumCoreCube showMaze={showMaze} showQubit={showQubit} showCornerNodes={showCornerNodes} />
+        <QuantumCoreCube
+          showMaze={showMaze}
+          showQubit={showQubit}
+          showCornerNodes={showCornerNodes}
+          onDecoherence={setDecoherenceVisible}
+          resetKey={resetKey}
+        />
         <GroundGlow />
         <OrbitControls enablePan={false} enableZoom={false} enableDamping dampingFactor={0.08} autoRotate autoRotateSpeed={0.5} rotateSpeed={0.9} />
         <EffectComposer>
           <Bloom intensity={0.7} mipmapBlur luminanceThreshold={0.22} luminanceSmoothing={0.75} radius={0.8} />
         </EffectComposer>
       </Canvas>
+
+      {decoherenceVisible && (
+        <div className="pointer-events-auto absolute inset-0 z-20 flex items-center justify-center bg-[#08090d]/40 p-6 backdrop-blur-[1px]">
+          <div className="w-full max-w-xs rounded-2xl border border-[#ff8c32]/25 bg-[#0d0d0d]/85 p-4 shadow-[0_0_40px_rgba(255,140,50,0.18)] ring-1 ring-white/5">
+            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-300">
+              <span className="h-2 w-2 rounded-full bg-[#ff8c32] shadow-[0_0_12px_rgba(255,140,50,0.85)]" />
+              <span>Qubit</span>
+            </div>
+            <h3 className="font-mono text-lg font-bold uppercase tracking-[0.08em] text-[#f5f0e8]">
+              QUBIT DECOHERENCE DETECTED
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              Quantum state collapsed. Recalibrating system...
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setDecoherenceVisible(false);
+                setResetKey((value) => value + 1);
+              }}
+              className="mt-4 inline-flex items-center justify-center rounded-full border border-[#ff8c32]/40 bg-[#ff8c32]/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffd7a8] transition hover:border-[#ff8c32]/60 hover:bg-[#ff8c32]/18"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

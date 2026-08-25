@@ -1,10 +1,14 @@
 ﻿"use client";
 
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { Counter, staggerContainer, staggerItem } from "@/components/MotionPrimitives";
 
-const MotionImage = motion(Image);
+const QuantumCubeScene = dynamic(() => import("@/components/QuantumCubeScene"), {
+  ssr: false,
+  loading: () => <div className="h-[300px] w-full rounded-2xl bg-[#0d0d0d] sm:h-[540px]" />,
+});
 
 const aboutReveal = {
   hidden: { opacity: 0, y: 24 },
@@ -34,6 +38,27 @@ export default function AboutPage() {
     spark: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 6.5L20 11l-6.5 1.5L12 19l-1.5-6.5L4 11l6.5-1.5L12 3Z" /></svg>,
     briefcase: <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7.5" width="17" height="12.5" rx="2" /><path d="M8.5 7.5V5.8a1.8 1.8 0 0 1 1.8-1.8h3.4a1.8 1.8 0 0 1 1.8 1.8v1.7M3.5 12.5h17M10 12.5v2h4v-2" /></svg>,
   };
+
+  const containerRef = useRef(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "150px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="relative min-h-screen pt-20 sm:pt-24">
@@ -88,10 +113,11 @@ export default function AboutPage() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              ref={containerRef}
+              initial={{ opacity: 0, y: 24, scale: 0.92 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ scale: 1.015 }}
               className="group relative order-2 transition-shadow duration-400"
             >
@@ -105,14 +131,9 @@ export default function AboutPage() {
                   <span>LAT // 13.1295° N</span>
                 </div>
                 <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                <MotionImage
-                  src="/abt_theme.jpg"
-                  alt="Quantum technology visual for Q-Bits"
-                  width={720}
-                  height={900}
-                  priority
-                  className="h-[300px] w-full object-cover object-[center_28%] sm:h-[540px] sm:object-center"
-                />
+                <div className="h-[300px] w-full sm:h-[540px]">
+                  {isInView ? <QuantumCubeScene /> : <div className="h-full w-full bg-[#0d0d0d]" />}
+                </div>
                 <span className="absolute bottom-4 left-4 z-20 rounded-lg border border-white/10 bg-black/50 px-3 py-1.5 font-mono text-[10px] tracking-wider text-slate-200 backdrop-blur-md sm:text-xs">
                   QUANT-A-MAZE 3.0
                 </span>

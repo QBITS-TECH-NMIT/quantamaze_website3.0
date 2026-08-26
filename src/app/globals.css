@@ -372,6 +372,10 @@ body::before {
   border-left: 3px solid var(--accent);
 }
 
+.home-hero {
+  background-color: transparent !important;
+}
+
 .brochure-section::before {
   position: absolute;
   top: 0;
@@ -381,6 +385,24 @@ body::before {
   background: linear-gradient(90deg, transparent, rgba(245, 89, 10, 0.55), transparent);
   content: "";
   opacity: 0.75;
+}
+
+.qubit-click-hint {
+  display: block;
+  white-space: nowrap;
+  color: rgba(255, 196, 107, 0.78);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 10px rgba(255, 140, 50, 0.7);
+  animation: qubit-hint-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes qubit-hint-pulse {
+  0%,
+  100% { opacity: 0.42; transform: translateY(2px); }
+  50% { opacity: 0.95; transform: translateY(-2px); }
 }
 
 .nav-link::after {

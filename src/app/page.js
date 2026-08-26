@@ -46,7 +46,7 @@ function SectionTransition({ children }) {
       className="relative"
     >
       {children}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-px bg-gradient-to-r from-transparent via-[#F5590A]/30 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-px bg-[#F5590A]/35" />
     </motion.div>
   );
 }
@@ -99,14 +99,14 @@ export default function HomePage() {
           <section
             ref={sectionRef}
             id="home"
-            className="brochure-section relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[#0A0A0A] px-5 pt-28 pb-28 text-[#F2F2F2] sm:min-h-screen sm:px-6 sm:pt-32 sm:pb-24"
+            className="brochure-section home-hero relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-transparent px-5 pt-28 pb-28 text-[#F2F2F2] sm:min-h-screen sm:px-6 sm:pt-32 sm:pb-24"
           >
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.28),rgba(10,10,10,0.62)_62%,rgba(10,10,10,0.82))]"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.18),rgba(10,10,10,0.44)_62%,rgba(10,10,10,0.68))]"
           />
           <div aria-hidden className="pointer-events-none absolute inset-0 quantum-grid opacity-[0.035]" />
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.4)_100%)]" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(0,0,0,0.3)_100%)]" />
 
           {/* Content column */}
           <motion.div
@@ -134,9 +134,9 @@ export default function HomePage() {
                 aria-hidden="true"
                 className="hero-backdrop-version pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none text-center font-sans font-black leading-none tracking-tighter"
                 style={{
-                  color: "rgba(245, 89, 10, 0.14)",
+                  color: "rgba(245, 89, 10, 0.22)",
                   filter:
-                    "drop-shadow(0 0 24px rgba(245, 89, 10, 0.28))",
+                    "drop-shadow(0 0 28px rgba(245, 89, 10, 0.36))",
                   maskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
                   WebkitMaskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
                 }}

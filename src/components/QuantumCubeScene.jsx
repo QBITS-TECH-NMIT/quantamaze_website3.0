@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Html, OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -383,6 +383,9 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
         <sphereGeometry args={[0.17, 16, 16]} />
         <meshBasicMaterial color="#fff1c0" transparent opacity={0.9} toneMapped={false} />
       </mesh>
+      <Html position={[0.48, 0.38, 0]} center distanceFactor={5} style={{ pointerEvents: "none" }}>
+        <span className="qubit-click-hint">CLICK ME IF YOU DARE</span>
+      </Html>
       <pointLight ref={lightRef} color={AMBER} intensity={2.5} distance={2.8} />
       <EntanglementNetwork />
 
@@ -532,21 +535,32 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
               <span>Qubit</span>
             </div>
             <h3 className="font-mono text-lg font-bold uppercase tracking-[0.08em] text-[#f5f0e8]">
-              QUBIT DECOHERENCE DETECTED
+              TRAPPED IN SUPERPOSITION
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-300">
-              Quantum state collapsed. Recalibrating system...
+              You are stuck between states in the quantum maze. Enter Quant-A-Maze 3.0 to collapse the wavefunction.
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setDecoherenceVisible(false);
-                setResetKey((value) => value + 1);
-              }}
-              className="mt-4 inline-flex items-center justify-center rounded-full border border-[#ff8c32]/40 bg-[#ff8c32]/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffd7a8] transition hover:border-[#ff8c32]/60 hover:bg-[#ff8c32]/18"
-            >
-              Reset
-            </button>
+            <div className="mt-4 flex items-center gap-2">
+              {/* Replace REGISTRATION_URL_HERE with the real hackathon registration URL. */}
+              <a
+                href="REGISTRATION_URL_HERE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-[#ff6b1a] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#0d0d0d] transition hover:bg-[#ff8c32]"
+              >
+                Register Now
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setDecoherenceVisible(false);
+                  setResetKey((value) => value + 1);
+                }}
+                className="inline-flex items-center justify-center rounded-full border border-[#ff8c32]/40 bg-[#ff8c32]/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffd7a8] transition hover:border-[#ff8c32]/60 hover:bg-[#ff8c32]/18"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </div>
       )}

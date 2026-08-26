@@ -35,7 +35,7 @@ export default function SponsorsPage() {
   ];
 
   return (
-    <div className="relative min-h-screen pt-20 sm:pt-24">
+    <div className="relative">
       <section
         id="sponsors"
         className="brochure-section relative min-h-screen overflow-hidden bg-[#0A0A0A] py-16 text-[#F2F2F2] sm:py-32"

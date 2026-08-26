@@ -20,6 +20,21 @@ export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
+  function handleNavigation(event, href) {
+    event.preventDefault();
+    const section = document.getElementById(href.slice(1));
+    if (!section) {
+      window.location.assign(href);
+      return;
+    }
+
+    section.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+    window.history.replaceState(null, "", href === "#home" ? "/" : href);
+  }
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     handleScroll();
@@ -36,7 +51,16 @@ export default function NavBar() {
         const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter);
         return !current || distance < current.distance ? { id: section.id, distance } : current;
       }, null);
-      if (closest) setActiveSection(closest.id);
+      if (closest) {
+        setActiveSection(closest.id);
+        const nextUrl = closest.id === "home" ? window.location.pathname : `#${closest.id}`;
+        if (window.location.hash !== (closest.id === "home" ? "" : nextUrl)) {
+          window.history.replaceState(null, "", nextUrl);
+        }
+        window.dispatchEvent(
+          new CustomEvent("qam-section-change", { detail: closest.id }),
+        );
+      }
     };
     const handleSectionScroll = () => {
       if (frameId === undefined) frameId = window.requestAnimationFrame(updateActiveSection);
@@ -122,6 +146,7 @@ export default function NavBar() {
               <a
                 key={link.href}
                 href={link.href}
+                onClick={(event) => handleNavigation(event, link.href)}
                 className={`nav-link relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                     isActive ? "text-[#F5590A]" : "text-stone-300 hover:text-[#FFA94D]"
                 }`}

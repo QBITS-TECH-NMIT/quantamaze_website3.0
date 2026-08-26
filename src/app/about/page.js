@@ -61,7 +61,7 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen pt-20 sm:pt-24">
+    <div className="relative">
       <section
         id="about"
         className="stats-section relative mx-auto w-full max-w-7xl overflow-hidden bg-[#0D0D0D] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:px-20 lg:py-32"

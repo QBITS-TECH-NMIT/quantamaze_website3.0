@@ -70,7 +70,7 @@ export default function TracksPage() {
   const triggerRefs = useRef({});
 
   return (
-    <div className="relative min-h-screen pt-20 sm:pt-24">
+    <div className="relative">
       <section id="tracks" className="brochure-section relative min-h-screen overflow-hidden bg-[#0A0A0A] py-16 text-[#F2F2F2] sm:py-32">
         <div className="mx-auto max-w-6xl">
           <Reveal>

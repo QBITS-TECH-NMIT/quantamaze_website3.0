@@ -76,7 +76,7 @@ export default function TimelinePage() {
   });
 
   return (
-    <div className="relative min-h-screen pt-20 sm:pt-24">
+    <div className="relative">
       <section
         id="timeline"
         className="timeline-section relative min-h-screen overflow-hidden bg-[#0D0D0D] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:px-20 lg:py-32"

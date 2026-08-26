@@ -88,30 +88,21 @@ export default function MobileTaskbar() {
   }
 
   useEffect(() => {
-    const sections = navItems
-      .map(({ href }) => document.querySelector(href))
-      .filter(Boolean);
-    let frameId;
-    const updateActiveSection = () => {
-      frameId = undefined;
-      const viewportCenter = window.innerHeight / 2;
-      const closest = sections.reduce((current, section) => {
-        const rect = section.getBoundingClientRect();
-        const distance = Math.abs(rect.top + rect.height / 2 - viewportCenter);
-        return !current || distance < current.distance ? { id: section.id, distance } : current;
-      }, null);
-      if (closest) setActiveSection(closest.id);
+    const initialSection = window.location.hash.slice(1);
+    const initialFrameId = window.requestAnimationFrame(() => {
+      if (navItems.some(({ href }) => href.slice(1) === initialSection)) {
+        setActiveSection(initialSection);
+      }
+    });
+
+    const handleSectionChange = (event) => {
+      if (typeof event.detail === "string") setActiveSection(event.detail);
     };
-    const handleScroll = () => {
-      if (frameId === undefined) frameId = window.requestAnimationFrame(updateActiveSection);
-    };
-    updateActiveSection();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
+    window.addEventListener("qam-section-change", handleSectionChange);
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-      if (frameId !== undefined) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("qam-section-change", handleSectionChange);
+      window.cancelAnimationFrame(initialFrameId);
     };
   }, []);
 

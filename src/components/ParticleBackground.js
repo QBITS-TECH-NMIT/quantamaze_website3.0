@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import * as THREE from "three";
 
-const TAU = Math.PI * 2;
-const INTERACTION_RADIUS = 150;
-const BASE_RADIUS = 2;
-const ACTIVE_RADIUS = 5.5;
-const BASE_OPACITY = 0.25;
-const ACTIVE_OPACITY = 1;
-
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-const lerp = (start, end, amount) => start + (end - start) * amount;
+const PARTICLE_COUNT = 80;
 
 export default function ParticleBackground() {
   const canvasRef = useRef(null);
@@ -19,146 +12,116 @@ export default function ParticleBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const context = canvas.getContext("2d");
-    if (!context) return;
+    const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
+        camera.position.z = 22;
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const pointer = { x: -9999, y: -9999, active: false };
-    let width = 0;
-    let height = 0;
-    let dots = [];
-    let rafId = 0;
-    let lastTime = 0;
-    let visible = !document.hidden;
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance",
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setClearColor(0x000000, 0);
 
-    function generateDots() {
-      const spacing = window.innerWidth < 768 ? 42 : window.innerWidth < 1400 ? 36 : 30;
-      dots = [];
+        const group = new THREE.Group();
+        const outerSphere = new THREE.Mesh(
+          new THREE.SphereGeometry(12, 28, 28),
+          new THREE.MeshBasicMaterial({
+            color: 0x800020,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.24,
+          }),
+        );
+        const innerSphere = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(7, 2),
+          new THREE.MeshBasicMaterial({
+            color: 0xd97706,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.16,
+          }),
+        );
 
-      for (let y = 0; y <= height + spacing; y += spacing) {
-        for (let x = 0; x <= width + spacing; x += spacing) {
-          dots.push({
-            x,
-            y,
-            radius: BASE_RADIUS,
-            opacity: BASE_OPACITY,
-          });
+        const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+        for (let index = 0; index < particlePositions.length; index += 1) {
+          particlePositions[index] = (Math.random() - 0.5) * 45;
         }
-      }
-    }
 
-    function resizeCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const particles = new THREE.Points(
+          new THREE.BufferGeometry().setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(particlePositions, 3),
+          ),
+          new THREE.PointsMaterial({
+            color: 0xb45309,
+            size: 0.22,
+            transparent: true,
+            opacity: 0.62,
+            sizeAttenuation: true,
+          }),
+        );
 
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      generateDots();
-    }
+        group.add(outerSphere, innerSphere, particles);
+        scene.add(group);
 
-    function updateDots(delta) {
-      for (const dot of dots) {
-        let targetRadius = BASE_RADIUS;
-        let targetOpacity = BASE_OPACITY;
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        let animationFrame = 0;
+        let visible = !document.hidden;
 
-        if (pointer.active) {
-          const dx = dot.x - pointer.x;
-          const dy = dot.y - pointer.y;
-          const distance = Math.hypot(dx, dy);
+        function resize() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height, false);
+        }
 
-          if (distance < INTERACTION_RADIUS) {
-            const influence = 1 - distance / INTERACTION_RADIUS;
-            const eased = influence * influence;
-            targetRadius = lerp(BASE_RADIUS, ACTIVE_RADIUS, eased);
-            targetOpacity = lerp(BASE_OPACITY, ACTIVE_OPACITY, eased);
+        function render() {
+          if (!visible) {
+            animationFrame = 0;
+            return;
+          }
+
+          if (!reducedMotion) {
+            outerSphere.rotation.y += 0.0015;
+            outerSphere.rotation.x += 0.0008;
+            innerSphere.rotation.y -= 0.002;
+            innerSphere.rotation.z += 0.001;
+            particles.rotation.y += 0.0005;
+          }
+
+          renderer.render(scene, camera);
+          animationFrame = window.requestAnimationFrame(render);
+        }
+
+        function handleVisibilityChange() {
+          visible = !document.hidden;
+          if (visible && !animationFrame) {
+            render();
           }
         }
 
-        const smoothing = reducedMotion ? 0.12 * delta : 0.18 * delta;
-        dot.radius += (targetRadius - dot.radius) * smoothing;
-        dot.opacity += (targetOpacity - dot.opacity) * smoothing;
-      }
-    }
+        resize();
+        window.addEventListener("resize", resize);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        render();
 
-    function renderFrame(time) {
-      if (!visible) {
-        rafId = 0;
-        return;
-      }
+        return () => {
+          window.removeEventListener("resize", resize);
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          if (animationFrame) window.cancelAnimationFrame(animationFrame);
 
-      const delta = clamp((time - (lastTime || time)) / 16.67, 0.5, 1.5);
-      lastTime = time;
-
-      context.clearRect(0, 0, width, height);
-      context.fillStyle = "#0a0a0a";
-      context.fillRect(0, 0, width, height);
-
-      updateDots(delta);
-
-      for (const dot of dots) {
-        context.beginPath();
-        context.arc(dot.x, dot.y, dot.radius, 0, TAU);
-        context.fillStyle = `rgba(255, 107, 26, ${dot.opacity})`;
-        context.fill();
-      }
-
-      if (!reducedMotion) {
-        rafId = window.requestAnimationFrame(renderFrame);
-      }
-    }
-
-    function handlePointerMove(event) {
-      pointer.x = event.clientX;
-      pointer.y = event.clientY;
-      pointer.active = true;
-    }
-
-    function handlePointerLeave() {
-      pointer.active = false;
-    }
-
-    function handleTouchMove(event) {
-      if (!event.touches || !event.touches[0]) return;
-      pointer.x = event.touches[0].clientX;
-      pointer.y = event.touches[0].clientY;
-      pointer.active = true;
-    }
-
-    function handleVisibilityChange() {
-      visible = !document.hidden;
-      if (visible && !rafId && !reducedMotion) {
-        rafId = window.requestAnimationFrame(renderFrame);
-      }
-    }
-
-    resizeCanvas();
-    lastTime = performance.now();
-
-    if (!reducedMotion && visible) {
-      rafId = window.requestAnimationFrame(renderFrame);
-    }
-
-    window.addEventListener("resize", resizeCanvas);
-    window.addEventListener("mousemove", handlePointerMove, { passive: true });
-    window.addEventListener("mouseleave", handlePointerLeave);
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      window.removeEventListener("mousemove", handlePointerMove);
-      window.removeEventListener("mouseleave", handlePointerLeave);
-      window.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-    };
+          outerSphere.geometry.dispose();
+          outerSphere.material.dispose();
+          innerSphere.geometry.dispose();
+          innerSphere.material.dispose();
+          particles.geometry.dispose();
+          particles.material.dispose();
+          renderer.dispose();
+        };
   }, []);
 
   return (
@@ -166,12 +129,7 @@ export default function ParticleBackground() {
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none fixed left-0 top-0 block"
-      style={{
-        width: "100vw",
-        height: "100dvh",
-        zIndex: -1,
-        background: "#0a0a0a",
-      }}
+      style={{ width: "100vw", height: "100dvh", zIndex: 0 }}
     />
   );
 }

@@ -29,7 +29,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col justify-between pt-20 sm:pt-24">
+    <div className="relative flex flex-col justify-between">
       <section
         id="contact"
         className="brochure-section relative flex flex-1 items-center justify-center overflow-hidden bg-[#0A0A0A] px-6 py-16 text-[#F2F2F2] sm:py-24 md:px-12 lg:py-32"

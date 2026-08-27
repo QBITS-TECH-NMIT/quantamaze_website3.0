@@ -1108,14 +1108,14 @@ body::before {
 .hero-backdrop-version {
   width: min(96vw, 78rem);
   font-family: var(--font-geist-sans), sans-serif;
-  font-size: clamp(10rem, 38vw, 28rem);
+  font-size: clamp(12.75rem, 48.45vw, 35.7rem);
   line-height: 0.82;
   -webkit-text-stroke: 3px rgba(184, 72, 35, 0.72);
 }
 
 @media (min-width: 640px) {
   .hero-backdrop-version {
-    font-size: clamp(13rem, 29vw, 28rem);
+    font-size: clamp(16.575rem, 36.975vw, 35.7rem);
     -webkit-text-stroke: 4px rgba(184, 72, 35, 0.72);
   }
 }

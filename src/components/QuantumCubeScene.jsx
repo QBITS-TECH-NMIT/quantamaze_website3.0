@@ -5,6 +5,7 @@ import { Html, OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import CosmicExplosionOverlay from "@/components/CosmicExplosionOverlay";
 
 const CUBE_SIZE = 2.2;
 const FACE_SIZE = 1.92;
@@ -159,7 +160,11 @@ function EntanglementNetwork() {
 // A compact, self-contained interaction layer for the central qubit.
 // It keeps all click timing, pulse feedback, instability states, and particle bursts
 // isolated to the Bloch-sphere meshes so orbit controls remain unaffected.
-function QubitInteraction({ onDecoherence, resetKey = 0 }) {
+//
+// overlayActive: when true, ALL clicks are silently ignored — the overlay owns the
+// screen and the qubit must not accept new triggers until it is dismissed.
+// resetKey: bumped by the parent whenever a dismiss/reset occurs; causes resetSimulation().
+function QubitInteraction({ onDecoherence, resetKey = 0, overlayActive = false }) {
   const groupRef = useRef();
   const wireRef = useRef();
   const ringXRef = useRef();
@@ -179,12 +184,18 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
     [],
   );
 
+  // All mutable interaction state lives in a ref so it never triggers re-renders
+  // and is always synchronously readable inside useFrame and event handlers.
   const interaction = useRef({
     lastClick: 0,
     streak: 0,
     charge: 0,
     instability: 0,
+    // triggerLocked: true for the brief 200 ms window immediately after firing to
+    // prevent double-firing from a physical double-tap.
     triggerLocked: false,
+    // exploded: true while the qubit is in its "collapsed" state (invisible, particles
+    // flying outward). Reset to false once particles have fully converged back.
     exploded: false,
     reforming: false,
   });
@@ -213,12 +224,14 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
     });
   }, [particleData]);
 
+  // Reset whenever the parent bumps resetKey (dismiss or reset button pressed).
   useEffect(() => {
     resetSimulation();
   }, [resetKey, resetSimulation]);
 
-  const triggerExplosion = () => {
+  const triggerExplosion = (event) => {
     const current = interaction.current;
+    // Double-fire guard: locked for 200 ms after the first trigger.
     if (current.triggerLocked || current.exploded) return;
 
     current.triggerLocked = true;
@@ -248,33 +261,49 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
       particle.life = 1;
     });
 
-    onDecoherence(true);
+    const nativeEvent = event?.nativeEvent ?? event;
+    onDecoherence({
+      x: nativeEvent?.clientX ?? window.innerWidth / 2,
+      y: nativeEvent?.clientY ?? window.innerHeight / 2,
+    });
 
+    // Release the 200 ms double-tap guard, then start particle convergence.
+    // Particles will reform visually but the overlay is still on screen — the
+    // qubit becomes clickable again only after the overlay is dismissed (resetKey bump).
     window.setTimeout(() => {
       current.triggerLocked = false;
       current.reforming = true;
     }, 200);
   };
 
-  const handleQubitClick = () => {
+  const handleQubitClick = (event) => {
+    // Hard gate: ignore every click while the overlay is on screen.
+    if (overlayActive) return;
+
+    const current = interaction.current;
+
+    // Also ignore if we're still in the exploded / locked state from a previous trigger
+    // that hasn't been reset yet (safety net in case resetKey hasn't propagated).
+    if (current.triggerLocked || current.exploded) return;
+
     const now = performance.now();
-    const gap = now - interaction.current.lastClick;
+    const gap = now - current.lastClick;
 
     if (gap > 800) {
-      interaction.current.streak = 0;
+      current.streak = 0;
     }
 
-    interaction.current.streak += 1;
-    interaction.current.lastClick = now;
-    interaction.current.charge = Math.min(1, interaction.current.charge + 0.5);
+    current.streak += 1;
+    current.lastClick = now;
+    current.charge = Math.min(1, current.charge + 0.5);
 
-    if (interaction.current.streak >= 5) {
-      triggerExplosion();
+    if (current.streak >= 5) {
+      triggerExplosion(event);
       return;
     }
 
     if (groupRef.current) {
-      groupRef.current.scale.setScalar(1.08 + interaction.current.charge * 0.28);
+      groupRef.current.scale.setScalar(1.08 + current.charge * 0.28);
     }
   };
 
@@ -339,9 +368,14 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
       const activeCount = particleData.filter((particle) => particle.active).length;
       if (activeCount === 0) {
         current.reforming = false;
-        current.exploded = false;
-        if (groupRef.current) {
-          groupRef.current.visible = true;
+        // Keep exploded = true and the group invisible while the overlay is still up.
+        // resetSimulation() (via resetKey) is the only thing that revives the qubit.
+        // This prevents any possibility of re-triggering while the reveal card shows.
+        if (!overlayActive) {
+          current.exploded = false;
+          if (groupRef.current) {
+            groupRef.current.visible = true;
+          }
         }
       }
     }
@@ -365,7 +399,7 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
 
   return (
     <group ref={groupRef}>
-      <mesh ref={wireRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(); }} onPointerDown={(event) => { event.stopPropagation(); }}>
+      <mesh ref={wireRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(event); }} onPointerDown={(event) => { event.stopPropagation(); }}>
         <sphereGeometry args={[0.56, 24, 18]} />
         <meshBasicMaterial color={ORANGE} transparent opacity={0.13} wireframe depthWrite={false} />
       </mesh>
@@ -379,7 +413,7 @@ function QubitInteraction({ onDecoherence, resetKey = 0 }) {
         <meshBasicMaterial color={AMBER} transparent opacity={0.45} toneMapped={false} />
       </mesh>
 
-      <mesh ref={coreRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(); }} onPointerDown={(event) => { event.stopPropagation(); }}>
+      <mesh ref={coreRef} onClick={(event) => { event.stopPropagation(); handleQubitClick(event); }} onPointerDown={(event) => { event.stopPropagation(); }}>
         <sphereGeometry args={[0.17, 16, 16]} />
         <meshBasicMaterial color="#fff1c0" transparent opacity={0.9} toneMapped={false} />
       </mesh>
@@ -424,7 +458,7 @@ function CornerNodes() {
   );
 }
 
-function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = true, onDecoherence, resetKey }) {
+function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = true, onDecoherence, resetKey, overlayActive }) {
   const cubeRef = useRef();
   const edgeGeometry = useMemo(() => new THREE.BoxGeometry(2.28, 2.28, 2.28), []);
 
@@ -472,7 +506,13 @@ function QuantumCoreCube({ showMaze = true, showQubit = true, showCornerNodes = 
       </lineSegments>
 
       {showMaze && <MazeFaces />}
-      {showQubit && <QubitInteraction onDecoherence={onDecoherence} resetKey={resetKey} />}
+      {showQubit && (
+        <QubitInteraction
+          onDecoherence={onDecoherence}
+          resetKey={resetKey}
+          overlayActive={overlayActive}
+        />
+      )}
       {showCornerNodes && <CornerNodes />}
 
       <pointLight color="#ff8a3d" intensity={14} distance={8} position={[2.6, 1.8, 2.6]} />
@@ -497,8 +537,60 @@ function GroundGlow() {
 }
 
 export default function QuantumCubeScene({ showMaze = true, showQubit = true, showCornerNodes = true }) {
-  const [decoherenceVisible, setDecoherenceVisible] = useState(false);
+  // animationKey: a monotonically-increasing integer bumped on every explosion trigger.
+  // Used as the overlay's React key so it fully unmounts+remounts each time, guaranteeing
+  // all CSS animations restart from frame 0 and all internal state is fresh — even when
+  // the origin coordinates are identical to the previous trigger.
+  const [animationKey, setAnimationKey] = useState(0);
+  const [explosionOrigin, setExplosionOrigin] = useState({ x: 0, y: 0 });
+
+  // resetKey is bumped on dismiss/reset to tell QubitInteraction to fully reset.
   const [resetKey, setResetKey] = useState(0);
+
+  // isAnimating: true only while the explosion/whiteout sequence is actively playing.
+  // Used to debounce re-triggers from spam-clicks — the cube ignores new triggers while
+  // this is true. Set back to false once the reveal card is shown (animation complete).
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // isRevealed: true once the reveal card is showing. Set back to false on dismiss.
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  // overlayActive: the combined "overlay owns the screen" flag — true during BOTH the
+  // animation phase and the reveal phase. Passed into the Three.js scene to gate clicks.
+  const overlayActive = isAnimating || isRevealed;
+
+  // isAnimating ref: a ref mirror so the handleDecoherence guard can synchronously read
+  // the current value without a stale-closure issue between batched setState calls.
+  const isAnimatingRef = useRef(false);
+
+  // Called by QubitInteraction when the 5-click threshold is reached.
+  // Guard: if animation is already in-flight, ignore this call so spam-clicks can't
+  // double-trigger and overlap animations.
+  const handleDecoherence = useCallback((origin) => {
+    if (isAnimatingRef.current) return; // already animating — ignore
+    isAnimatingRef.current = true;
+    setIsAnimating(true);
+    setIsRevealed(false);
+    setExplosionOrigin(origin);
+    setAnimationKey((n) => n + 1);
+  }, []);
+
+  // Called by CosmicExplosionOverlay once the reveal card is fully shown.
+  // Transitions isAnimating → false, isRevealed → true.
+  const handleAnimationComplete = useCallback(() => {
+    setIsAnimating(false);
+    setIsRevealed(true);
+    // isAnimatingRef stays true while isRevealed is true; we reset it in handleOverlayClose.
+  }, []);
+
+  // Called by the overlay's × close button or Reset button.
+  // Fully resets all state so the next 5 clicks trigger a fresh animation from scratch.
+  const handleOverlayClose = useCallback(() => {
+    isAnimatingRef.current = false;
+    setIsAnimating(false);
+    setIsRevealed(false);
+    setResetKey((n) => n + 1);
+  }, []);
 
   return (
     <div className="relative h-full w-full">
@@ -517,8 +609,9 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
           showMaze={showMaze}
           showQubit={showQubit}
           showCornerNodes={showCornerNodes}
-          onDecoherence={setDecoherenceVisible}
+          onDecoherence={handleDecoherence}
           resetKey={resetKey}
+          overlayActive={overlayActive}
         />
         <GroundGlow />
         <OrbitControls enablePan={false} enableZoom={false} enableDamping dampingFactor={0.08} autoRotate autoRotateSpeed={0.5} rotateSpeed={0.9} />
@@ -527,43 +620,17 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
         </EffectComposer>
       </Canvas>
 
-      {decoherenceVisible && (
-        <div className="pointer-events-auto absolute inset-0 z-20 flex items-center justify-center bg-[#08090d]/40 p-6 backdrop-blur-[1px]">
-          <div className="w-full max-w-xs rounded-2xl border border-[#ff8c32]/25 bg-[#0d0d0d]/85 p-4 shadow-[0_0_40px_rgba(255,140,50,0.18)] ring-1 ring-white/5">
-            <div className="mb-3 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-300">
-              <span className="h-2 w-2 rounded-full bg-[#ff8c32] shadow-[0_0_12px_rgba(255,140,50,0.85)]" />
-              <span>Qubit</span>
-            </div>
-            <h3 className="font-mono text-lg font-bold uppercase tracking-[0.08em] text-[#f5f0e8]">
-              TRAPPED IN SUPERPOSITION
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-300">
-              You are stuck between states in the quantum maze. Enter Quant-A-Maze 3.0 to collapse the wavefunction.
-            </p>
-            <div className="mt-4 flex items-center gap-2">
-              {/* Replace REGISTRATION_URL_HERE with the real hackathon registration URL. */}
-              <a
-                href="REGISTRATION_URL_HERE"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center rounded-full bg-[#ff6b1a] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#0d0d0d] transition hover:bg-[#ff8c32]"
-              >
-                Register Now
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  setDecoherenceVisible(false);
-                  setResetKey((value) => value + 1);
-                }}
-                className="inline-flex items-center justify-center rounded-full border border-[#ff8c32]/40 bg-[#ff8c32]/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#ffd7a8] transition hover:border-[#ff8c32]/60 hover:bg-[#ff8c32]/18"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* animationKey is used as `key` so React unmounts+remounts the overlay on every
+          new trigger, guaranteeing all CSS animations restart from frame 0 and all
+          internal timer/ref state is fresh — even if the origin coordinates are identical. */}
+      <CosmicExplosionOverlay
+        key={animationKey}
+        active={overlayActive}
+        origin={explosionOrigin}
+        onAnimationComplete={handleAnimationComplete}
+        onDismiss={handleOverlayClose}
+        onReset={handleOverlayClose}
+      />
     </div>
   );
 }

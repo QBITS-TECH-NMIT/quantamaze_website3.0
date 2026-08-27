@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import LoadingScreen from "@/components/LoadingScreen";
 import CountdownTimer from "@/components/CountdownTimer";
 import AboutPage from "@/app/about/page";
@@ -115,6 +116,36 @@ export default function HomePage() {
             animate="show"
             className="relative z-10 flex w-full flex-col items-center text-center"
           >
+            <motion.div
+              variants={staggerItem}
+              className="hero-sponsor-row-wrap"
+              aria-label="Collaboration: QpiAI and Q-BITS"
+            >
+              <div className="hero-sponsor-pill hero-sponsor-pill--light">
+                <Image
+                  src="/qpi-logo.avif"
+                  alt="QpiAI logo"
+                  width={280}
+                  height={100}
+                  priority
+                  className="hero-sponsor-logo hero-sponsor-logo--qpiai"
+                />
+              </div>
+              <div className="hero-sponsor-separator" aria-hidden="true">
+                <span className="hero-sponsor-separator-icon">×</span>
+              </div>
+              <div className="hero-sponsor-pill hero-sponsor-pill--dark">
+                <Image
+                  src="/logo.png"
+                  alt="Q-BITS Quantum Tech Club logo"
+                  width={220}
+                  height={80}
+                  priority
+                  className="hero-sponsor-logo hero-sponsor-logo--qbits"
+                />
+              </div>
+            </motion.div>
+
             {/* Layered Title Treatment: "3.0" Background Layer + "QUANT-A-MAZE" Foreground */}
             <motion.div
               variants={staggerItem}
@@ -122,23 +153,23 @@ export default function HomePage() {
             >
               {/* Layer 1: "3.0" Graphic Backdrop Element */}
               <motion.span
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 1, scale: 1 }}
                 animate={{
-                  opacity: [0.78, 1, 0.78],
-                  scale: [1, 1.02, 1],
+                  opacity: [0.88, 1, 0.88],
+                  scale: [1, 1.005, 1],
                 }}
                 transition={{
                   opacity: { duration: 8, repeat: Infinity, ease: "easeInOut" },
                   scale: { duration: 8, repeat: Infinity, ease: "easeInOut" },
                 }}
                 aria-hidden="true"
-                className="hero-backdrop-version pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none text-center font-sans font-black leading-none tracking-tighter"
+                className="hero-backdrop-version pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 select-none text-center font-black leading-none tracking-tighter"
                 style={{
-                  color: "rgba(245, 89, 10, 0.22)",
+                  color: "rgba(24, 15, 12, 0.98)",
                   filter:
-                    "drop-shadow(0 0 28px rgba(245, 89, 10, 0.36))",
-                  maskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
-                  WebkitMaskImage: "radial-gradient(ellipse at center, black 45%, transparent 92%)",
+                    "drop-shadow(0 0 18px rgba(245, 89, 10, 0.18))",
+                  maskImage: "radial-gradient(ellipse at center, black 70%, transparent 100%)",
+                  WebkitMaskImage: "radial-gradient(ellipse at center, black 70%, transparent 100%)",
                 }}
               >
                 3.0

@@ -108,34 +108,24 @@ export default function NavBar() {
           scrolled ? "py-2.5" : "py-3.5 sm:py-4"
         }`}
       >
-        {/* Brand Logo */}
-        <a href="#home" className="group flex items-center gap-2 transition-opacity hover:opacity-90 sm:gap-3">
-          <span className="flex h-8 items-center rounded-sm bg-white px-1.5 py-1 sm:h-9">
-            <Image
-              src="/logo-nitte.png"
-              alt="Nitte Deemed to be University"
-              width={220}
-              height={52}
-              priority
-              className="h-6 w-auto object-contain sm:h-7"
-            />
-          </span>
-          <span aria-hidden className="mx-1 h-7 w-px bg-white/15 sm:mx-2 sm:h-9" />
-          <motion.div
-            whileHover={{ scale: 1.05, filter: "drop-shadow(0 0 12px rgba(245,89,10,0.5))" }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Image
-              src="/logo.png"
-              alt="Q-Bits logo"
-              width={130}
-              height={44}
-              priority
-              className="h-8 w-auto object-contain transition-all duration-200 group-hover:brightness-110 sm:h-9"
-            />
-          </motion.div>
-        </a>
+        {/* Brand Logo Banner */}
+        <motion.a
+          href="#home"
+          whileHover={{ scale: 1.03, filter: "drop-shadow(0 0 14px rgba(245,89,10,0.45))" }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.2 }}
+          className="group flex items-center transition-all"
+          aria-label="Quant-A-Maze 3.0 Home - NITTE and Q-BITS"
+        >
+          <Image
+            src="/navbar-banner.png"
+            alt="NITTE University and Q-BITS Quantum Tech Club"
+            width={280}
+            height={62}
+            priority
+            className="h-10 w-auto object-contain transition-all duration-200 group-hover:brightness-110 sm:h-12"
+          />
+        </motion.a>
 
         {/* Desktop Nav Links */}
         <nav className="hidden items-center gap-1 sm:flex" aria-label="Main Navigation">

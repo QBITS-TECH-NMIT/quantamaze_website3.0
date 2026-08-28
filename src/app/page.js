@@ -118,32 +118,73 @@ export default function HomePage() {
           >
             <motion.div
               variants={staggerItem}
-              className="hero-sponsor-row-wrap"
-              aria-label="Collaboration: QpiAI and Q-BITS"
+              className="hero-collab-section"
+              aria-label="Collaboration: Q-BITS and QpiAI"
             >
-              <div className="hero-sponsor-pill hero-sponsor-pill--light">
-                <Image
-                  src="/qpi-logo.avif"
-                  alt="QpiAI logo"
-                  width={280}
-                  height={100}
-                  priority
-                  className="hero-sponsor-logo hero-sponsor-logo--qpiai"
-                />
+              <div className="hero-collab-panel">
+                {/* Brand 1: Q-BITS */}
+                <div className="hero-collab-brand hero-collab-brand--qbits">
+                  <div className="hero-collab-logo-chip hero-collab-logo-chip--qbits">
+                    <Image
+                      src="/logo.png"
+                      alt="Q-BITS Quantum Tech Club logo"
+                      width={360}
+                      height={100}
+                      priority
+                      className="hero-collab-img hero-collab-img--qbits"
+                    />
+                  </div>
+                </div>
+
+                {/* Stylish Collaboration Cross */}
+                <div className="hero-collab-cross-wrap" aria-hidden="true">
+                  <span className="hero-collab-cross-glow" />
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="hero-collab-cross-icon"
+                  >
+                    <path
+                      d="M5.5 5.5L14.5 14.5M14.5 5.5L5.5 14.5"
+                      stroke="url(#collabCrossGrad)"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                    />
+                    <defs>
+                      <linearGradient id="collabCrossGrad" x1="5.5" y1="5.5" x2="14.5" y2="14.5" gradientUnits="userSpaceOnUse">
+                        <stop stopColor="#38BDF8" />
+                        <stop offset="0.5" stopColor="#FFFFFF" />
+                        <stop offset="1" stopColor="#C084FC" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
+                {/* Brand 2: QpiAI */}
+                <div className="hero-collab-brand hero-collab-brand--qpiai">
+                  <div className="hero-collab-logo-chip hero-collab-logo-chip--qpiai">
+                    <Image
+                      src="/qpi-logo.avif"
+                      alt="QpiAI logo"
+                      width={360}
+                      height={100}
+                      priority
+                      className="hero-collab-img hero-collab-img--qpiai"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="hero-sponsor-separator" aria-hidden="true">
-                <span className="hero-sponsor-separator-icon">×</span>
-              </div>
-              <div className="hero-sponsor-pill hero-sponsor-pill--dark">
-                <Image
-                  src="/logo.png"
-                  alt="Q-BITS Quantum Tech Club logo"
-                  width={220}
-                  height={80}
-                  priority
-                  className="hero-sponsor-logo hero-sponsor-logo--qbits"
-                />
-              </div>
+            </motion.div>
+
+            {/* "Presents" Accent (Beat 2 in reveal) */}
+            <motion.div
+              variants={staggerItem}
+              className="hero-presents-wrapper"
+              aria-label="Presents"
+            >
+              <span className="hero-presents-line hero-presents-line--left" aria-hidden="true" />
+              <span className="hero-presents-text">PRESENTS</span>
+              <span className="hero-presents-line hero-presents-line--right" aria-hidden="true" />
             </motion.div>
 
             {/* Layered Title Treatment: "3.0" Background Layer + "QUANT-A-MAZE" Foreground */}

@@ -1,0 +1,49 @@
+/** biome-ignore-all lint/complexity/noImportantStyles: who cares! */
+.container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.canvas {
+  background-color: #050505;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+.infoPanel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 12px;
+  font-size: 60%;
+  color: #000000;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.controlsPanel {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 10;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 12px;
+  color: #000000;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.stats {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  left: auto !important;
+}

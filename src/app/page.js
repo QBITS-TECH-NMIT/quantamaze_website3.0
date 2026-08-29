@@ -152,9 +152,9 @@ export default function HomePage() {
                     />
                     <defs>
                       <linearGradient id="collabCrossGrad" x1="5.5" y1="5.5" x2="14.5" y2="14.5" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#38BDF8" />
+                        <stop stopColor="#FF8A3D" />
                         <stop offset="0.5" stopColor="#FFFFFF" />
-                        <stop offset="1" stopColor="#C084FC" />
+                        <stop offset="1" stopColor="#FFB703" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -206,20 +206,41 @@ export default function HomePage() {
                 aria-hidden="true"
                 className="hero-backdrop-version pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 select-none text-center font-black leading-none tracking-tighter"
                 style={{
-                  color: "rgba(24, 15, 12, 0.98)",
-                  filter:
-                    "drop-shadow(0 0 18px rgba(245, 89, 10, 0.18))",
                   maskImage: "radial-gradient(ellipse at center, black 70%, transparent 100%)",
                   WebkitMaskImage: "radial-gradient(ellipse at center, black 70%, transparent 100%)",
                 }}
               >
-                3.0
+                <svg viewBox="0 0 1000 360" preserveAspectRatio="xMidYMid meet" className="hero-backdrop-version__svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="heroWatermarkStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#ffb703" />
+                      <stop offset="48%" stopColor="#f5590a" />
+                      <stop offset="100%" stopColor="#f43f5e" />
+                    </linearGradient>
+                  </defs>
+                  <text
+                    x="500"
+                    y="294"
+                    textAnchor="middle"
+                    fontFamily="var(--font-geist-sans), sans-serif"
+                    fontSize="380"
+                    fontWeight="900"
+                    letterSpacing="-14"
+                    fill="#180f0c"
+                    fillOpacity="0.96"
+                    stroke="url(#heroWatermarkStroke)"
+                    strokeWidth="8"
+                    paintOrder="stroke fill"
+                  >
+                    3.0
+                  </text>
+                </svg>
               </motion.span>
 
               {/* Layer 2: "QUANT-A-MAZE" Foreground Heading */}
               <motion.h1
                 variants={titleReveal}
-                className="relative z-10 flex cursor-default text-center text-[clamp(3rem,12vw,4.75rem)] font-black uppercase leading-[0.9] tracking-[-0.055em] sm:text-7xl md:text-8xl lg:text-9xl"
+                className="relative z-10 flex w-full cursor-default justify-center text-center text-[clamp(3rem,12vw,4.75rem)] font-black uppercase leading-[0.9] tracking-[-0.055em] sm:text-7xl md:text-8xl lg:text-9xl"
                 style={{
                   color: "#F5590A",
                   textShadow:

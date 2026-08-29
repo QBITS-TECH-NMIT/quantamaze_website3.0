@@ -43,12 +43,12 @@ export default function QuantumFieldBackground() {
     function getAccentColor() {
       const blend = (sectionBias + 1) / 2;
       const orange = [255, 107, 26];
-      const teal = [42, 217, 201];
+      const amber = [255, 183, 3];
 
       return [
-        Math.round(lerp(orange[0], teal[0], blend)),
-        Math.round(lerp(orange[1], teal[1], blend)),
-        Math.round(lerp(orange[2], teal[2], blend)),
+        Math.round(lerp(orange[0], amber[0], blend)),
+        Math.round(lerp(orange[1], amber[1], blend)),
+        Math.round(lerp(orange[2], amber[2], blend)),
       ];
     }
 
@@ -360,7 +360,7 @@ export default function QuantumFieldBackground() {
         width * 0.7,
       );
       flare.addColorStop(0, "rgba(255, 107, 26, 0.10)");
-      flare.addColorStop(0.45, "rgba(42, 217, 201, 0.06)");
+      flare.addColorStop(0.45, "rgba(255, 183, 3, 0.06)");
       flare.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = flare;
       context.fillRect(0, 0, width, height);

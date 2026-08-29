@@ -1,0 +1,587 @@
+#qam-arcade {
+  position: relative;
+  overflow: hidden;
+  background: #0A0A0A;
+  color: #F2F2F2;
+  padding: 64px 24px;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+  border-bottom: 1px solid rgba(255, 255, 255, .06)
+}
+
+@media(min-width:640px) {
+  #qam-arcade {
+    padding: 96px 24px
+  }
+}
+
+.qam-inner {
+  max-width: 72rem;
+  margin: 0 auto
+}
+
+.qam-kicker {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #F5590A;
+  margin: 0 0 14px
+}
+
+.qam-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  margin: 0 0 14px;
+  background: linear-gradient(90deg, #fff, #c9c9c9 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent
+}
+
+@media(min-width:640px) {
+  .qam-title {
+    font-size: 2.75rem
+  }
+}
+
+.qam-sub {
+  max-width: 42rem;
+  color: #a8a29e;
+  font-size: .95rem;
+  line-height: 1.65;
+  margin: 0 0 40px
+}
+
+.qam-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr
+}
+
+@media(min-width:640px) {
+  .qam-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px
+  }
+}
+
+@media(min-width:1024px) {
+  .qam-grid {
+    grid-template-columns: repeat(4, 1fr)
+  }
+}
+
+.qam-card {
+  position: relative;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: .6rem;
+  padding: 22px;
+  color: inherit;
+  font: inherit;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease
+}
+
+.qam-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245, 89, 10, .55);
+  box-shadow: 0 12px 32px rgba(245, 89, 10, .09)
+}
+
+.qam-card:focus-visible {
+  outline: 2px solid #F5590A;
+  outline-offset: 2px
+}
+
+.qam-corner {
+  position: absolute;
+  font-size: 11px;
+  color: rgba(255, 255, 255, .25);
+  line-height: 1
+}
+
+.qam-corner.tr {
+  top: 10px;
+  right: 12px
+}
+
+.qam-corner.br {
+  bottom: 10px;
+  right: 12px
+}
+
+.qam-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: .3rem;
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: #17171c;
+  font-size: 1.25rem;
+  margin-bottom: 18px
+}
+
+.qam-tag {
+  display: inline-block;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #F5590A;
+  border: 1px solid rgba(245, 89, 10, .2);
+  background: rgba(245, 89, 10, .1);
+  border-radius: .25rem;
+  padding: 4px 8px;
+  margin-bottom: 14px
+}
+
+.qam-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #eeece6;
+  margin: 0 0 8px
+}
+
+.qam-card p {
+  font-size: .85rem;
+  line-height: 1.55;
+  color: #a8a29e;
+  margin: 0 0 16px
+}
+
+.qam-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #F5590A
+}
+
+.qam-play svg {
+  width: 12px;
+  height: 12px;
+  transition: transform .18s ease
+}
+
+.qam-card:hover .qam-play svg {
+  transform: translateX(3px)
+}
+
+/* modal */
+.qam-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 6, 6, .82);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px
+}
+
+.qam-overlay.qam-open {
+  display: flex
+}
+
+.qam-modal {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #0D0D0D;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: .75rem;
+  padding: 26px 22px 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #F2F2F2
+}
+
+@media(min-width:640px) {
+  .qam-modal {
+    padding: 34px 34px 36px
+  }
+}
+
+.qam-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: .35rem;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .03);
+  color: #F2F2F2;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .15s ease, background .15s ease
+}
+
+.qam-modal-close:hover {
+  border-color: rgba(245, 89, 10, .5);
+  background: rgba(245, 89, 10, .08)
+}
+
+.qam-modal-tag {
+  display: inline-block;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #F5590A;
+  border: 1px solid rgba(245, 89, 10, .2);
+  background: rgba(245, 89, 10, .1);
+  border-radius: .25rem;
+  padding: 4px 8px;
+  margin-bottom: 12px
+}
+
+.qam-modal h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #fff
+}
+
+.qam-modal-desc {
+  color: #a8a29e;
+  font-size: .85rem;
+  margin: 0 0 20px;
+  line-height: 1.55
+}
+
+.qam-modal-body {
+  margin-top: 6px
+}
+
+/* shared game bits */
+.qam-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px
+}
+
+.qam-btn {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #0A0A0A;
+  background: #F5590A;
+  border: none;
+  border-radius: .35rem;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: filter .15s ease, transform .15s ease
+}
+
+.qam-btn:hover {
+  filter: brightness(1.08)
+}
+
+.qam-btn:active {
+  transform: translateY(1px)
+}
+
+.qam-btn.qam-btn-ghost {
+  background: transparent;
+  color: #F2F2F2;
+  border: 1px solid rgba(255, 255, 255, .15)
+}
+
+.qam-btn.qam-btn-ghost:hover {
+  border-color: rgba(245, 89, 10, .5);
+  color: #F5590A
+}
+
+.qam-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed
+}
+
+.qam-pill {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: .68rem;
+  color: #a8a29e;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: .3rem;
+  padding: 5px 10px
+}
+
+.qam-status {
+  font-size: .85rem;
+  min-height: 1.3em;
+  margin: 10px 0 4px;
+  color: #a8a29e
+}
+
+.qam-status.qam-good {
+  color: #7fdc8f
+}
+
+.qam-status.qam-bad {
+  color: #f28b6b
+}
+
+/* maze */
+.qam-maze-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px
+}
+
+.qam-maze-canvas {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1/1;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: .4rem;
+  touch-action: none
+}
+
+.qam-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 42px);
+  grid-template-rows: repeat(3, 42px);
+  gap: 6px
+}
+
+.qam-dpad button {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .12);
+  color: #F2F2F2;
+  border-radius: .3rem;
+  font-size: .9rem;
+  cursor: pointer
+}
+
+.qam-dpad button:hover {
+  border-color: rgba(245, 89, 10, .5);
+  color: #F5590A
+}
+
+.qam-dpad .qam-empty {
+  background: transparent;
+  border: none
+}
+
+/* circuit builder */
+.qam-circuit-track {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 52px;
+  padding: 10px;
+  border: 1px dashed rgba(255, 255, 255, .15);
+  border-radius: .4rem;
+  margin-bottom: 16px;
+  align-items: center
+}
+
+.qam-slot-empty {
+  width: 44px;
+  height: 38px;
+  border: 1px dashed rgba(255, 255, 255, .15);
+  border-radius: .3rem
+}
+
+.qam-gate-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 38px;
+  border-radius: .3rem;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  font-size: .8rem;
+  border: 1px solid rgba(245, 89, 10, .4);
+  background: rgba(245, 89, 10, .12);
+  color: #F5590A
+}
+
+.qam-palette {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px
+}
+
+.qam-gate-btn {
+  width: 52px;
+  height: 44px;
+  border-radius: .35rem;
+  border: 1px solid rgba(255, 255, 255, .15);
+  background: rgba(255, 255, 255, .04);
+  color: #F2F2F2;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .15s ease
+}
+
+.qam-gate-btn:hover {
+  border-color: rgba(245, 89, 10, .6);
+  color: #F5590A
+}
+
+.qam-hint {
+  font-size: .78rem;
+  color: #786f68;
+  margin: 0 0 14px;
+  line-height: 1.5
+}
+
+/* cipher */
+.qam-cipher-text {
+  font-family: ui-monospace, monospace;
+  font-size: 1.05rem;
+  letter-spacing: .06em;
+  color: #F5590A;
+  background: rgba(245, 89, 10, .08);
+  border: 1px solid rgba(245, 89, 10, .2);
+  border-radius: .4rem;
+  padding: 14px;
+  text-align: center;
+  margin-bottom: 14px;
+  word-break: break-word
+}
+
+.qam-preview {
+  font-family: ui-monospace, monospace;
+  font-size: .95rem;
+  letter-spacing: .06em;
+  color: #eeece6;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: .4rem;
+  padding: 12px;
+  text-align: center;
+  margin-bottom: 14px;
+  min-height: 1.4em;
+  word-break: break-word
+}
+
+.qam-slider {
+  width: 100%;
+  margin-bottom: 6px;
+  accent-color: #F5590A
+}
+
+.qam-timerbar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 16px
+}
+
+.qam-timerbar-fill {
+  height: 100%;
+  background: #F5590A;
+  width: 100%;
+  transition: width .2s linear
+}
+
+/* chain */
+.qam-chain-pool {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px
+}
+
+.qam-block {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: .35rem;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .04);
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+  font-size: .72rem;
+  color: #cfcac4;
+  transition: border-color .15s ease, background .15s ease
+}
+
+.qam-block:hover {
+  border-color: rgba(245, 89, 10, .5)
+}
+
+.qam-block.qam-block-used {
+  opacity: .3;
+  cursor: not-allowed;
+  pointer-events: none
+}
+
+.qam-chain-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px
+}
+
+.qam-slot {
+  min-height: 44px;
+  border: 1px dashed rgba(255, 255, 255, .18);
+  border-radius: .35rem;
+  display: flex;
+  align-items: center;
+  padding: 0 12px
+}
+
+.qam-slot.qam-slot-filled {
+  border-style: solid
+}
+
+.qam-slot.qam-slot-good {
+  border-color: #7fdc8f;
+  background: rgba(127, 220, 143, .08)
+}
+
+.qam-slot.qam-slot-bad {
+  border-color: #f28b6b;
+  background: rgba(242, 139, 107, .08)
+}
+
+.qam-block-name {
+  color: #eeece6;
+  font-weight: 700
+}
+
+.qam-block-hash {
+  color: #786f68
+}

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Counter } from "@/components/MotionPrimitives";
+import MembersSection from "@/components/MembersSection";
 
 const AtomModel3D = dynamic(() => import("@/components/AtomModel3D"), {
   ssr: false,
@@ -226,8 +228,12 @@ export default function AboutPage() {
   const isCubeInView = isModalOpen;
   const cubeContainerRef = useRef(null);
 
-  // Close modal on Escape key & manage body scroll lock
+  // Close modal on Escape key & manage body scroll lock + navbar hiding
   useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("qam-modal-toggle", { detail: { open: isModalOpen } })
+    );
+
     if (isModalOpen || eventsView === "3d") {
       document.body.style.overflow = "hidden";
     } else {
@@ -296,63 +302,6 @@ export default function AboutPage() {
       desc: "Bi-weekly quantum algorithm puzzles and circuit optimization sprints designed for all skill levels from beginner qubits to advanced Clifford gate compilation.",
       tags: ["#WeeklySprint", "#AlgorithmChallenge", "#PeerReview"],
       status: "Active Series",
-    },
-  ];
-
-  const membersData = [
-    {
-      name: "Dr. Faculty Coordinator",
-      role: "Faculty Advisor",
-      domain: "Dept. of EEE, NMIT",
-      specialty: "Quantum Systems & Power Tech",
-      tag: "Faculty Mentor",
-      initials: "FC",
-      badgeColor: "from-[#FF8A3D] to-[#C2410C]",
-    },
-    {
-      name: "Student President",
-      role: "President & Core Lead",
-      domain: "Quantum Algorithms",
-      specialty: "Variational Solvers & Q-Crypto",
-      tag: "Club Lead",
-      initials: "PL",
-      badgeColor: "from-[#F5590A] to-[#EA580C]",
-    },
-    {
-      name: "Technical Head",
-      role: "Technical & Simulation Lead",
-      domain: "Qiskit & Fullstack",
-      specialty: "Quantum State Sim & Web Architecture",
-      tag: "Core Team",
-      initials: "TH",
-      badgeColor: "from-[#FFB703] to-[#EA580C]",
-    },
-    {
-      name: "Operations & Events Lead",
-      role: "Hackathon Organizer",
-      domain: "Logistics & Outreach",
-      specialty: "Hackathon Execution & Partnerships",
-      tag: "Operations",
-      initials: "EL",
-      badgeColor: "from-emerald-400 to-emerald-600",
-    },
-    {
-      name: "Quantum ML Lead",
-      role: "Research & Development",
-      domain: "Quantum Neural Networks",
-      specialty: "Parameterized Quantum Circuits & QAOA",
-      tag: "Research",
-      initials: "RL",
-      badgeColor: "from-[#FF8A3D] to-[#FB923C]",
-    },
-    {
-      name: "Design & Media Lead",
-      role: "Brand & Visual Architect",
-      domain: "Visual Design & UI/UX",
-      specialty: "Quantum Aesthetic & Motion Design",
-      tag: "Creative",
-      initials: "DL",
-      badgeColor: "from-[#F5590A] to-[#F43F5E]",
     },
   ];
 
@@ -706,36 +655,17 @@ export default function AboutPage() {
                 aria-hidden="true"
               />
 
-              {/* Fixed Top Header (Pinned outside panels) */}
-              <div className="relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between border-b border-white/10 bg-[#090912]/90 px-4 py-3 sm:rounded-2xl sm:border sm:px-6 sm:py-3.5 backdrop-blur-md">
-                <div className="flex items-center gap-3">
-                  <span className="h-2 w-2 rounded-full bg-[#F5590A] shadow-[0_0_8px_#F5590A] animate-pulse" />
-                  <h3 id="about-modal-title" className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#F2F2F2] sm:text-sm">
-                    Q-BITS // {modalPages[activeModalPage].title}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {/* Spatial Panel Index Badge */}
-                  <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[#F5590A]/40 bg-[#F5590A]/10 px-3.5 py-1 font-mono text-[11px] font-bold uppercase tracking-widest text-[#F5590A]">
-                    <span>PANEL {activeModalPage + 1} OF 3</span>
-                    <span>{"//"}</span>
-                    <span className="text-white">{modalPages[activeModalPage].title}</span>
-                  </div>
-
-                  {/* Close Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="about-modal-close-btn flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-slate-300 transition-all duration-200 hover:border-orange-400 hover:bg-orange-400/10 hover:text-white hover:shadow-[0_0_15px_rgba(245,89,10,0.4)]"
-                    aria-label="Close modal"
-                  >
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+              {/* Floating close control; no modal top bar is rendered. */}
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="about-modal-close-btn absolute right-4 top-4 z-40 flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-[#090912]/70 text-slate-300 backdrop-blur-md transition-all duration-200 hover:border-orange-400 hover:bg-orange-400/10 hover:text-white hover:shadow-[0_0_15px_rgba(245,89,10,0.4)] sm:right-6 sm:top-6 sm:h-9 sm:w-9"
+                aria-label="Close panel"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
 
               {/* Spatial Middle Stage: Floating Panel Row Carousel + Floating Chevrons */}
               <div className="relative my-auto flex w-full flex-1 items-center justify-center overflow-hidden py-2 sm:py-4">
@@ -784,7 +714,11 @@ export default function AboutPage() {
                     animate={{
                       transform: shouldReduceMotion
                         ? `translateX(${(1 - activeModalPage) * 100}%)`
-                        : `translateX(calc(${1 - activeModalPage} * (var(--spatial-panel-width) + var(--spatial-tether-width))))`,
+                        : activeModalPage === 0
+                        ? "translateX(calc((var(--panel-std-width) + var(--panel-members-width)) / 2 + var(--spatial-tether-width)))"
+                        : activeModalPage === 1
+                        ? "translateX(calc((var(--panel-members-width) - var(--panel-std-width)) / 2))"
+                        : "translateX(calc(-1 * (var(--panel-std-width) + var(--spatial-tether-width))))",
                     }}
                     transition={{
                       type: "spring",
@@ -794,8 +728,9 @@ export default function AboutPage() {
                     }}
                     className="spatial-panels-row flex items-center cursor-grab active:cursor-grabbing"
                     style={{
-                      "--spatial-panel-width": "min(86vw, 820px)",
-                      "--spatial-tether-width": "clamp(40px, 8vw, 110px)",
+                      "--panel-std-width": "min(86vw, 820px)",
+                      "--panel-members-width": "min(94vw, 1280px)",
+                      "--spatial-tether-width": "clamp(30px, 6vw, 80px)",
                     }}
                   >
                     
@@ -811,7 +746,7 @@ export default function AboutPage() {
                           ? "spatial-card-panel--active border-[#F5590A]/80 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(245,89,10,0.3),0_0_35px_rgba(6,182,212,0.15)]"
                           : "spatial-card-panel--inactive border-white/15 shadow-2xl hover:opacity-75 hover:scale-[0.95] cursor-pointer"
                       }`}
-                      style={{ width: "var(--spatial-panel-width)" }}
+                      style={{ width: "var(--panel-std-width)" }}
                     >
                       {/* Top Corner Registration Marks */}
                       <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
@@ -944,7 +879,7 @@ export default function AboutPage() {
                           ? "spatial-card-panel--active border-[#F5590A]/80 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(245,89,10,0.3),0_0_35px_rgba(6,182,212,0.15)]"
                           : "spatial-card-panel--inactive border-white/15 shadow-2xl hover:opacity-75 hover:scale-[0.95] cursor-pointer"
                       }`}
-                      style={{ width: "var(--spatial-panel-width)" }}
+                      style={{ width: "var(--panel-std-width)" }}
                     >
                       {/* Top Corner Registration Marks */}
                       <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
@@ -1053,63 +988,14 @@ export default function AboutPage() {
                           ? "spatial-card-panel--active border-[#F5590A]/80 shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_50px_rgba(245,89,10,0.3),0_0_35px_rgba(6,182,212,0.15)]"
                           : "spatial-card-panel--inactive border-white/15 shadow-2xl hover:opacity-75 hover:scale-[0.95] cursor-pointer"
                       }`}
-                      style={{ width: "var(--spatial-panel-width)" }}
+                      style={{ width: "var(--panel-members-width)" }}
                     >
                       {/* Top Corner Registration Marks */}
                       <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
                       <span className="comic-corner-bracket comic-corner-bracket--tr" aria-hidden="true" />
 
-                      <div className="custom-modal-scroll max-h-[calc(78vh-100px)] overflow-y-auto pr-1">
-                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-white/10 pb-4 mb-6">
-                          <div>
-                            <span className="font-mono text-xs font-bold uppercase tracking-[0.22em] text-[#FF8A3D]">
-                              The Minds Behind Q-BITS
-                            </span>
-                            <h4 className="mt-1 text-2xl font-extrabold text-white sm:text-3xl">
-                              Leadership, Mentors &amp; Core Team
-                            </h4>
-                          </div>
-                          <span className="font-mono text-[10px] text-slate-400">
-                            [Placeholder profiles — customize anytime]
-                          </span>
-                        </div>
-
-                        {/* Members Grid */}
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                          {membersData.map((member) => (
-                            <div
-                              key={member.name}
-                              className="group relative flex flex-col items-center rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-center backdrop-blur-md transition-all duration-250 hover:border-orange-400/60 hover:bg-white/[0.05] hover:shadow-[0_0_25px_rgba(255,138,61,0.2)]"
-                            >
-                              {/* Avatar Slot with Geometric Fallback Initial */}
-                              <div className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${member.badgeColor} p-0.5 shadow-lg`}>
-                                <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-[#0c0c14]">
-                                  <span className="font-mono text-base font-black tracking-wider text-white">
-                                    {member.initials}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <span className="rounded-full border border-white/10 bg-black/40 px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[#FF8A3D] mb-1">
-                                {member.tag}
-                              </span>
-
-                              <h5 className="text-sm sm:text-base font-bold text-white group-hover:text-orange-300 transition-colors">
-                                {member.name}
-                              </h5>
-                              <span className="font-mono text-xs font-semibold text-[#F5590A]">
-                                {member.role}
-                              </span>
-                              <span className="font-mono text-[10px] text-slate-400">
-                                {member.domain}
-                              </span>
-
-                              <p className="mt-2 text-xs text-slate-300 leading-snug">
-                                {member.specialty}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="custom-modal-scroll max-h-[calc(84vh-70px)] overflow-y-auto pr-1">
+                        <MembersSection showHeader={false} compact={true} />
                       </div>
                     </div>
                   </motion.div>
@@ -1117,7 +1003,7 @@ export default function AboutPage() {
               </div>
 
               {/* Fixed Bottom Controls & Footer Action Row */}
-              <div className="about-modal-dock relative z-30 mx-auto mt-2 flex w-[calc(100%-1rem)] max-w-5xl flex-col items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-[#090912]/85 px-3 py-3 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-5 sm:py-3.5">
+              <div className={`about-modal-dock relative z-30 mx-auto mt-2 flex w-[calc(100%-1rem)] ${activeModalPage === 2 ? "max-w-6xl" : "max-w-5xl"} flex-col items-center gap-3 overflow-hidden rounded-2xl border border-white/10 bg-[#090912]/85 px-3 py-3 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-5 sm:py-3.5 transition-all duration-300`}>
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#F5590A]/70 to-transparent" />
                 <motion.div
                   className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#F5590A]/80 to-transparent"
@@ -1127,9 +1013,17 @@ export default function AboutPage() {
                 />
 
                 <div className="about-modal-dock-inner flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-between">
-                  <span className="font-mono text-[10px] text-slate-300 sm:text-xs">
-                    Quant-A-Maze 3.0 // Ready to participate?
-                  </span>
+                  {/* Brand Logo Lockup */}
+                  <div className="flex items-center shrink-0">
+                    <Image
+                      src="/navbar-banner.png"
+                      alt="NITTE University and Q-BITS Quantum Tech Club"
+                      width={180}
+                      height={40}
+                      priority
+                      className="h-7 w-auto sm:h-8 object-contain brightness-105"
+                    />
+                  </div>
 
                   <div className="relative flex w-full max-w-xl items-center justify-center rounded-full border border-white/10 bg-white/[0.025] p-1.5">
                     <motion.div

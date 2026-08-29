@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
 const easeOut = [0.16, 1, 0.3, 1];
@@ -17,8 +18,10 @@ const navLinks = [
 ];
 
 export default function NavBar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const [modalOpen, setModalOpen] = useState(false);
 
   function handleNavigation(event, href) {
     event.preventDefault();
@@ -39,6 +42,14 @@ export default function NavBar() {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+
+    const handleModalToggle = (event) => {
+      if (typeof event.detail?.open === "boolean") {
+        setModalOpen(event.detail.open);
+      }
+    };
+    window.addEventListener("qam-modal-toggle", handleModalToggle);
+
     const sections = navLinks
       .map(({ href }) => document.querySelector(href))
       .filter(Boolean);
@@ -70,17 +81,23 @@ export default function NavBar() {
     window.addEventListener("resize", handleSectionScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("qam-modal-toggle", handleModalToggle);
       window.removeEventListener("scroll", handleSectionScroll);
       window.removeEventListener("resize", handleSectionScroll);
       if (frameId !== undefined) window.cancelAnimationFrame(frameId);
     };
   }, []);
 
+  const shouldHideNav = modalOpen || pathname === "/members";
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.7, ease: easeOut }}
+      animate={{
+        y: shouldHideNav ? -100 : 0,
+        opacity: shouldHideNav ? 0 : 1,
+      }}
+      transition={{ duration: 0.35, ease: easeOut }}
       style={{
         backgroundColor: scrolled ? "rgba(10, 10, 10, 0.84)" : "rgba(10, 10, 10, 0.62)",
         backdropFilter: "blur(16px)",
@@ -88,6 +105,7 @@ export default function NavBar() {
         boxShadow: scrolled
           ? "0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 89, 10, 0.06)"
           : "none",
+        pointerEvents: shouldHideNav ? "none" : "auto",
       }}
       className="fixed left-0 right-0 top-0 z-50 border-b border-white/[0.08] transition-all duration-300"
     >
@@ -138,7 +156,7 @@ export default function NavBar() {
                 href={link.href}
                 onClick={(event) => handleNavigation(event, link.href)}
                 className={`nav-link relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                    isActive ? "text-[#F5590A]" : "text-stone-300 hover:text-[#FFA94D]"
+                  isActive ? "text-[#F5590A]" : "text-stone-300 hover:text-[#FFA94D]"
                 }`}
               >
                 {link.label}

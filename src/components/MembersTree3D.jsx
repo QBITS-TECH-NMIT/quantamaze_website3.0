@@ -221,9 +221,173 @@ function NetworkNode({ position, size, color, level, muted = false, active = fal
 // Global texture cache to prevent duplicate canvas/image memory overhead
 const textureCache = new Map();
 
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, width, height, radius);
+  } else {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+  }
+  ctx.closePath();
+}
+
+function renderMemberCardToCanvas(image, isPlaceholder = false) {
+  const canvas = document.createElement("canvas");
+  canvas.width = PORTRAIT_WIDTH;
+  canvas.height = PORTRAIT_HEIGHT;
+  const ctx = canvas.getContext("2d");
+
+  // 1. Clip canvas to rounded rectangle
+  drawRoundedRect(ctx, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, 32);
+  ctx.clip();
+
+  // 2. Base dark background
+  ctx.fillStyle = "#07080E";
+  ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+  const naturalW = image ? image.naturalWidth || image.width || 0 : 0;
+  const naturalH = image ? image.naturalHeight || image.height || 0 : 0;
+
+  if (image && naturalW > 0 && naturalH > 0 && !isPlaceholder) {
+    // 3. Ambient background fill: Soft blurred & dimmed copy of photo for letterbox/pillarbox areas
+    ctx.save();
+    if (typeof ctx.filter !== "undefined") {
+      ctx.filter = "blur(26px) brightness(0.28) saturate(1.25)";
+    }
+    ctx.drawImage(image, -24, -24, PORTRAIT_WIDTH + 48, PORTRAIT_HEIGHT + 48);
+    ctx.restore();
+
+    // Dark gradient overlay on top of blurred background to ensure great contrast
+    const bgOverlay = ctx.createLinearGradient(0, 0, 0, PORTRAIT_HEIGHT);
+    bgOverlay.addColorStop(0, "rgba(7, 8, 14, 0.7)");
+    bgOverlay.addColorStop(0.5, "rgba(7, 8, 14, 0.35)");
+    bgOverlay.addColorStop(1, "rgba(7, 8, 14, 0.85)");
+    ctx.fillStyle = bgOverlay;
+    ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+    // Subtle warm bottom glow
+    const bottomGlow = ctx.createRadialGradient(
+      PORTRAIT_WIDTH / 2,
+      PORTRAIT_HEIGHT,
+      10,
+      PORTRAIT_WIDTH / 2,
+      PORTRAIT_HEIGHT,
+      PORTRAIT_WIDTH * 0.85
+    );
+    bottomGlow.addColorStop(0, "rgba(245, 89, 10, 0.16)");
+    bottomGlow.addColorStop(1, "transparent");
+    ctx.fillStyle = bottomGlow;
+    ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+    // 4. Foreground: Exact "object-fit: contain" (100% of face/image visible, zero crop)
+    const padding = 10;
+    const availW = PORTRAIT_WIDTH - padding * 2;
+    const availH = PORTRAIT_HEIGHT - padding * 2;
+    const imageAspect = naturalW / naturalH;
+    const targetAspect = availW / availH;
+
+    let destW, destH, destX, destY;
+    if (imageAspect > targetAspect) {
+      // Landscape: full width, letterbox top and bottom
+      destW = availW;
+      destH = availW / imageAspect;
+      destX = padding;
+      destY = padding + (availH - destH) / 2;
+    } else {
+      // Portrait or square: full height, pillarbox sides
+      destH = availH;
+      destW = availH * imageAspect;
+      destX = padding + (availW - destW) / 2;
+      destY = padding + (availH - destH) / 2;
+    }
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4;
+    ctx.drawImage(image, 0, 0, naturalW, naturalH, destX, destY, destW, destH);
+    ctx.restore();
+  } else {
+    // Placeholder / fallback styling
+    const placeholderGrad = ctx.createLinearGradient(0, 0, 0, PORTRAIT_HEIGHT);
+    placeholderGrad.addColorStop(0, "#0E0F1A");
+    placeholderGrad.addColorStop(1, "#07080E");
+    ctx.fillStyle = placeholderGrad;
+    ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+    // Draw placeholder avatar icon
+    ctx.save();
+    ctx.strokeStyle = "rgba(245, 89, 10, 0.5)";
+    ctx.fillStyle = "rgba(245, 89, 10, 0.12)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT * 0.42, 54, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#FF8A3D";
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("Q-BITS", PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT * 0.68);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "14px monospace";
+    ctx.fillText("PHOTO PENDING", PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT * 0.74);
+    ctx.restore();
+  }
+
+  // 5. Card Border & Highlight
+  ctx.save();
+  drawRoundedRect(
+    ctx,
+    1.5,
+    1.5,
+    PORTRAIT_WIDTH - 3,
+    PORTRAIT_HEIGHT - 3,
+    30
+  );
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Top accent specular line
+  const topSheen = ctx.createLinearGradient(0, 0, PORTRAIT_WIDTH, 0);
+  topSheen.addColorStop(0, "transparent");
+  topSheen.addColorStop(0.3, "rgba(255, 255, 255, 0.4)");
+  topSheen.addColorStop(0.5, "rgba(245, 89, 10, 0.75)");
+  topSheen.addColorStop(0.7, "rgba(255, 255, 255, 0.4)");
+  topSheen.addColorStop(1, "transparent");
+  ctx.strokeStyle = topSheen;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(34, 1.5);
+  ctx.lineTo(PORTRAIT_WIDTH - 34, 1.5);
+  ctx.stroke();
+  ctx.restore();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  texture.needsUpdate = true;
+
+  return texture;
+}
+
 function getOrLoadFaceSafeTexture(url, onLoaded, onError) {
   if (!url) {
-    onError?.();
+    const fallbackTex = renderMemberCardToCanvas(null, true);
+    onLoaded(fallbackTex);
     return () => {};
   }
 
@@ -236,74 +400,32 @@ function getOrLoadFaceSafeTexture(url, onLoaded, onError) {
   }
 
   let cancelled = false;
+  const isSvgPlaceholder =
+    url === PLACEHOLDER_PHOTO_URL || url.startsWith("data:image/svg+xml");
+
   const image = new window.Image();
   image.crossOrigin = "anonymous";
 
   image.onload = () => {
     if (cancelled) return;
     try {
-      const naturalW = image.naturalWidth || image.width || PORTRAIT_WIDTH;
-      const naturalH = image.naturalHeight || image.height || PORTRAIT_HEIGHT;
-
-      const targetAspect = PORTRAIT_WIDTH / PORTRAIT_HEIGHT;
-      const imageAspect = naturalW / naturalH;
-
-      let sourceWidth, sourceHeight, sourceX, sourceY;
-
-      if (imageAspect > targetAspect) {
-        // Image is wider than target portrait frame
-        sourceHeight = naturalH;
-        sourceWidth = naturalH * targetAspect;
-        sourceX = (naturalW - sourceWidth) / 2;
-        sourceY = 0;
-      } else {
-        // Image is taller than target portrait frame -> top-weight crop for faces (upper 18%)
-        sourceWidth = naturalW;
-        sourceHeight = naturalW / targetAspect;
-        sourceX = 0;
-        sourceY = Math.max(0, (naturalH - sourceHeight) * 0.18);
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = PORTRAIT_WIDTH;
-      canvas.height = PORTRAIT_HEIGHT;
-      const ctx = canvas.getContext("2d");
-
-      // Draw dark background first
-      ctx.fillStyle = "#08080E";
-      ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-
-      ctx.drawImage(
-        image,
-        sourceX,
-        sourceY,
-        sourceWidth,
-        sourceHeight,
-        0,
-        0,
-        PORTRAIT_WIDTH,
-        PORTRAIT_HEIGHT
-      );
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.generateMipmaps = false;
-      texture.needsUpdate = true;
-
+      const texture = renderMemberCardToCanvas(image, isSvgPlaceholder);
       textureCache.set(url, texture);
       onLoaded(texture);
     } catch (err) {
       console.warn("Failed to process 3D texture for:", url, err);
-      onError?.(err);
+      const fallbackTex = renderMemberCardToCanvas(null, true);
+      textureCache.set(url, fallbackTex);
+      onLoaded(fallbackTex);
     }
   };
 
   image.onerror = (err) => {
     if (cancelled) return;
     console.warn("Image load error for 3D node:", url);
-    onError?.(err);
+    const fallbackTex = renderMemberCardToCanvas(null, true);
+    textureCache.set(url, fallbackTex);
+    onLoaded(fallbackTex);
   };
 
   image.src = url;
@@ -313,7 +435,16 @@ function getOrLoadFaceSafeTexture(url, onLoaded, onError) {
   };
 }
 
-function PhotoNode({ member, position, size, color, muted = false, active = false, onClick, onHoverChange }) {
+function PhotoNode({
+  member,
+  position,
+  size,
+  color,
+  muted = false,
+  active = false,
+  onClick,
+  onHoverChange,
+}) {
   const nodeRef = useRef();
   const auraRef = useRef();
   const borderMaterialRef = useRef();
@@ -334,7 +465,6 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
         }
       },
       () => {
-        // In case of error, retry with placeholder
         if (photoUrl !== PLACEHOLDER_PHOTO_URL) {
           getOrLoadFaceSafeTexture(PLACEHOLDER_PHOTO_URL, (placeholderTex) => {
             setTexture(placeholderTex);
@@ -366,23 +496,43 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
     }
   }, [texture]);
 
-  const photoWidth = size * 2;
-  const photoHeight = photoWidth * (PORTRAIT_HEIGHT / PORTRAIT_WIDTH);
+  const cardWidth = size * 2;
+  const cardHeight = cardWidth * (PORTRAIT_HEIGHT / PORTRAIT_WIDTH);
 
   useFrame(({ clock }) => {
     if (!nodeRef.current) return;
     nodeRef.current.position.lerp(position, 0.12);
     const emphasis = active || hovered ? 1.14 : muted ? 0.84 : 1;
-    const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, emphasis, 0.14);
+    const scale = THREE.MathUtils.lerp(
+      nodeRef.current.scale.x,
+      emphasis,
+      0.14
+    );
     nodeRef.current.scale.setScalar(scale);
 
-    const targetOpacity = texture ? (muted ? 0.35 : 1) : (muted ? 0.2 : 0.75);
+    const targetOpacity = texture ? (muted ? 0.35 : 1) : muted ? 0.2 : 0.75;
     if (photoMaterialRef.current) {
-      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(photoMaterialRef.current.opacity, targetOpacity, 0.16);
+      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(
+        photoMaterialRef.current.opacity,
+        targetOpacity,
+        0.16
+      );
     }
-    if (auraRef.current) auraRef.current.material.opacity = muted ? 0.018 : hovered || active ? 0.2 : 0.08;
-    if (borderMaterialRef.current) borderMaterialRef.current.opacity = muted ? 0.15 : hovered || active ? 0.95 : 0.65;
-    if (nodeRef.current) nodeRef.current.rotation.z = Math.sin(clock.elapsedTime * 0.35 + position.x) * 0.012;
+    if (auraRef.current)
+      auraRef.current.material.opacity = muted
+        ? 0.018
+        : hovered || active
+        ? 0.22
+        : 0.08;
+    if (borderMaterialRef.current)
+      borderMaterialRef.current.opacity = muted
+        ? 0.15
+        : hovered || active
+        ? 0.95
+        : 0.65;
+    if (nodeRef.current)
+      nodeRef.current.rotation.z =
+        Math.sin(clock.elapsedTime * 0.35 + position.x) * 0.012;
   });
 
   const handlePointerOver = (event) => {
@@ -402,18 +552,36 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
     <group ref={nodeRef} position={position}>
       <mesh ref={auraRef} scale={size * 2.5} renderOrder={0}>
         <sphereGeometry args={[1, 10, 10]} />
-        <meshBasicMaterial color={color} transparent opacity={0.08} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.08}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        {/* Outer glowing border card */}
-        <RoundedBox args={[photoWidth + size * 0.12, photoHeight + size * 0.12, 0.16]} radius={size * 0.25} smoothness={1} position={[0, 0, -0.012]} renderOrder={1}>
-          <meshBasicMaterial ref={borderMaterialRef} color={color} transparent opacity={0.65} depthWrite={false} toneMapped={false} />
-        </RoundedBox>
-        {/* Inner photo card */}
+        {/* Outer glowing accent frame */}
         <RoundedBox
-          args={[photoWidth, photoHeight, 0.08]}
-          radius={size * 0.12}
-          smoothness={1}
+          args={[cardWidth + size * 0.14, cardHeight + size * 0.14, 0.04]}
+          radius={size * 0.18}
+          smoothness={2}
+          position={[0, 0, -0.01]}
+          renderOrder={1}
+        >
+          <meshBasicMaterial
+            ref={borderMaterialRef}
+            color={color}
+            transparent
+            opacity={0.65}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </RoundedBox>
+
+        {/* Inner photo plane - with contain-fit texture */}
+        <mesh
+          position={[0, 0, 0]}
           onClick={(event) => {
             event.stopPropagation();
             onClick?.();
@@ -422,6 +590,7 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
           onPointerOut={handlePointerOut}
           renderOrder={2}
         >
+          <planeGeometry args={[cardWidth, cardHeight]} />
           <meshBasicMaterial
             ref={photoMaterialRef}
             map={texture || null}
@@ -430,8 +599,9 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
             opacity={texture ? 1 : 0.75}
             depthWrite={false}
             toneMapped={false}
+            side={THREE.DoubleSide}
           />
-        </RoundedBox>
+        </mesh>
       </Billboard>
     </group>
   );
@@ -537,17 +707,17 @@ function MemberNode({ member, position, color, state, showLabel, onSelect }) {
       />
       {(true || hovered) && (
         <SceneLabel
-          position={position.clone().add(new THREE.Vector3(0, 0.42, 0))}
+          position={position.clone().add(new THREE.Vector3(0, 0.52, 0))}
           title={member.name}
           subtitle={member.role}
           color={color}
-          size={0.16}
+          size={0.15}
           muted={muted}
-          maxWidth={2.4}
+          maxWidth={2.5}
         />
       )}
       {hovered && !muted && (
-        <Html position={position.clone().add(new THREE.Vector3(0, 0.7, 0))} center distanceFactor={10} style={{ pointerEvents: "none" }}>
+        <Html position={position.clone().add(new THREE.Vector3(0, 0.82, 0))} center distanceFactor={10} style={{ pointerEvents: "none" }}>
           <MemberTooltip member={member} color={color} />
         </Html>
       )}

@@ -32,8 +32,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "TC-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/tc_01.jpg",
+        "photoUrl": "/team-photos/tc_01.jpg"
       },
       {
         "name": "Janvika Malapati",
@@ -560,8 +560,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "SM-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/sm_01.jpg",
+        "photoUrl": "/team-photos/sm_01.jpg"
       },
       {
         "name": "Lingala Hasini Reddy",

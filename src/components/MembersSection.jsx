@@ -298,7 +298,7 @@ export function MemberCard({ member }) {
               src={member.photo || member.photoUrl}
               alt={member.name}
               style={{
-                objectPosition: member.code === "DS-06" ? "50% 42%" : member.code === "EV-02" ? "38% 68%" : member.code === "MK-06" ? "50% 55%" : member.code === "OP-06" ? "50% 40%" : member.code === "OP-05" ? "50% 35%" : member.code === "OP-04" ? "50% 75%" : member.code === "SM-03" ? "50% 68%" : member.code === "RD-07" ? "50% 68%" : "50% 20%",
+                objectPosition: member.code === "DS-06" ? "50% 42%" : member.code === "EV-02" ? "38% 68%" : member.code === "MK-06" ? "50% 55%" : member.code === "OP-06" ? "50% 40%" : member.code === "OP-05" ? "50% 35%" : member.code === "OP-04" ? "50% 75%" : member.code === "SM-03" ? "50% 68%" : member.code === "RD-07" ? "50% 68%" : "50% 35%",
                 transform: member.code === "EV-02" ? "translateX(18%) scale(1.55)" : member.code === "OP-05" ? "translateY(14%) scale(1.35)" : member.code === "OP-04" ? "translateY(-18%) scale(1.15)" : member.code === "SM-03" ? "translateY(-8%) scale(1.18)" : member.code === "RD-07" ? "translateY(-5%) scale(1.1)" : undefined,
               }}
               className={`h-full w-full bg-[#08080E] object-cover transition-transform duration-500 ${member.code === "EV-02" ? "group-hover:scale-[1.6]" : member.code === "OP-05" ? "group-hover:scale-[1.4]" : member.code === "OP-04" ? "group-hover:scale-[1.2]" : "group-hover:scale-105"}`}

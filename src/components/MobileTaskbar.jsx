@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 
 const navItems = [
@@ -70,41 +71,83 @@ const navItems = [
 ];
 
 export default function MobileTaskbar() {
+  const pathname = usePathname();
   const [activeSection, setActiveSection] = useState("home");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  function handleNavigation(event, href) {
-    event.preventDefault();
-    const section = document.getElementById(href.slice(1));
-    if (!section) {
-      window.location.assign(href);
-      return;
-    }
+  const handleNavigation = useCallback(
+    (event, href) => {
+      if (event) event.preventDefault();
 
-    section.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      block: "start",
-    });
-    window.history.replaceState(null, "", href);
-  }
+      if (pathname !== "/") {
+        window.location.assign("/" + href);
+        return;
+      }
+
+      const targetId = href.slice(1);
+      if (targetId === "home") {
+        window.scrollTo({
+          top: 0,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+        });
+        setActiveSection("home");
+        window.history.replaceState(null, "", window.location.pathname);
+        window.dispatchEvent(
+          new CustomEvent("qam-section-change", { detail: "home" })
+        );
+        return;
+      }
+
+      const section = document.getElementById(targetId);
+      if (!section) {
+        window.location.assign("/" + href);
+        return;
+      }
+
+      const navHeight = 70;
+      const targetTop =
+        section.getBoundingClientRect().top + window.scrollY - navHeight;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
+      setActiveSection(targetId);
+      window.history.replaceState(null, "", href);
+      window.dispatchEvent(
+        new CustomEvent("qam-section-change", { detail: targetId })
+      );
+    },
+    [pathname]
+  );
 
   useEffect(() => {
-    const initialSection = window.location.hash.slice(1);
-    const initialFrameId = window.requestAnimationFrame(() => {
-      if (navItems.some(({ href }) => href.slice(1) === initialSection)) {
-        setActiveSection(initialSection);
+    const handleModalToggle = (event) => {
+      if (typeof event.detail?.open === "boolean") {
+        setModalOpen(event.detail.open);
       }
-    });
+    };
+    window.addEventListener("qam-modal-toggle", handleModalToggle);
 
     const handleSectionChange = (event) => {
-      if (typeof event.detail === "string") setActiveSection(event.detail);
+      if (typeof event.detail === "string") {
+        setActiveSection(event.detail);
+      }
     };
     window.addEventListener("qam-section-change", handleSectionChange);
 
     return () => {
+      window.removeEventListener("qam-modal-toggle", handleModalToggle);
       window.removeEventListener("qam-section-change", handleSectionChange);
-      window.cancelAnimationFrame(initialFrameId);
     };
   }, []);
+
+  const shouldHide = modalOpen || pathname === "/members";
+  if (shouldHide) return null;
 
   return (
     <nav
@@ -121,7 +164,9 @@ export default function MobileTaskbar() {
               href={item.href}
               onClick={(event) => handleNavigation(event, item.href)}
               aria-current={isActive ? "page" : undefined}
-              className={`mobile-taskbar-item ${isActive ? "is-active text-[#F5590A]" : "text-stone-400"}`}
+              className={`mobile-taskbar-item cursor-pointer ${
+                isActive ? "is-active text-[#F5590A]" : "text-stone-400"
+              }`}
             >
               {isActive && (
                 <motion.div
@@ -139,7 +184,9 @@ export default function MobileTaskbar() {
                 {item.icon}
               </span>
 
-              <span className="mobile-taskbar-label relative z-10">{item.label}</span>
+              <span className="mobile-taskbar-label relative z-10">
+                {item.label}
+              </span>
               <span aria-hidden className="mobile-taskbar-dot" />
             </a>
           );

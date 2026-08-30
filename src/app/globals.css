@@ -3687,3 +3687,178 @@ body::before {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Sponsors page — logo tile sheen + misc sponsor styles
+───────────────────────────────────────────────────────────── */
+
+.sponsor-logo-tile {
+  position: relative;
+  overflow: hidden;
+}
+.sponsor-logo-sheen {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent,
+    rgba(255, 90, 31, 0.28),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+  pointer-events: none;
+}
+a:hover .sponsor-logo-sheen {
+  left: 130%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sponsor-logo-sheen {
+    display: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Electric Border — Silver/Metallic Theme for Platinum Sponsor
+───────────────────────────────────────────────────────────── */
+
+:root {
+  --electric-border-color: #b0b8c4;
+  --electric-light-color: #e2e8f0;
+  --gradient-color: rgba(226, 232, 240, 0.12);
+  --color-neutral-900: #0c0d10;
+}
+
+.electric-card-container {
+  padding: 2px;
+  border-radius: 24px;
+  position: relative;
+  background: linear-gradient(
+      -30deg,
+      var(--gradient-color),
+      transparent,
+      var(--gradient-color)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--color-neutral-900),
+      var(--color-neutral-900)
+    );
+  transition: transform 0.25s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.electric-inner-container {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  pointer-events: none;
+}
+
+.electric-canvas-container {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.electric-border-canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Glow effects */
+.glow-layer-1 {
+  border: 2px solid rgba(192, 197, 208, 0.45);
+  border-radius: 24px;
+  position: absolute;
+  inset: 0;
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.glow-layer-2 {
+  border: 2px solid var(--electric-light-color);
+  border-radius: 24px;
+  position: absolute;
+  inset: 0;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Overlay effects */
+.overlay-1 {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  opacity: 0.75;
+  mix-blend-mode: overlay;
+  transform: scale(1.04);
+  filter: blur(16px);
+  background: linear-gradient(
+    -30deg,
+    rgba(255, 255, 255, 0.85),
+    transparent 30%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.85)
+  );
+  pointer-events: none;
+}
+
+.overlay-2 {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  transform: scale(1.04);
+  filter: blur(16px);
+  background: linear-gradient(
+    -30deg,
+    rgba(255, 255, 255, 0.85),
+    transparent 30%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.85)
+  );
+  pointer-events: none;
+}
+
+.background-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  filter: blur(32px);
+  transform: scale(1.05);
+  opacity: 0.3;
+  z-index: 0;
+  background: linear-gradient(
+    -30deg,
+    var(--electric-light-color),
+    transparent,
+    var(--electric-border-color)
+  );
+  pointer-events: none;
+}
+
+.electric-content-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  border-radius: 22px;
+  background: radial-gradient(
+      ellipse at top,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 70%
+    ),
+    #0c0d10;
+}

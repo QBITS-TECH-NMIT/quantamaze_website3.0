@@ -9,7 +9,7 @@ import * as THREE from "three";
 const ROOT_COLOR = "#ff8a3d";
 const DOMAIN_COLORS = ["#22d3ee", "#a855f7", "#ff8a3d", "#38bdf8", "#c084fc"];
 const ROOT_POSITION = new THREE.Vector3(0, 6.1, 0);
-const PLACEHOLDER_PHOTO_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' fill='%23090a10'/%3E%3Ccircle cx='128' cy='101' r='48' fill='%23ffb36e' fill-opacity='.9'/%3E%3Cpath d='M42 256c6-62 40-91 86-91s80 29 86 91' fill='%23f5590a' fill-opacity='.85'/%3E%3Cpath d='M64 101h128' stroke='%23fff7ed' stroke-opacity='.48' stroke-width='5'/%3E%3C/svg%3E";
+const PLACEHOLDER_PHOTO_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' fill='%2308080e'/%3E%3Ccircle cx='128' cy='120' r='60' stroke='%23f5590a' stroke-opacity='.35' stroke-width='2' stroke-dasharray='6 4' fill='none'/%3E%3Cpath d='M108 108h-6a3 3 0 0 0-3 3v24a3 3 0 0 0 3 3h52a3 3 0 0 0 3-3v-24a3 3 0 0 0-3-3h-6l-5-6h-15l-5 6Z' stroke='%23f5590a' stroke-opacity='.5' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3Ccircle cx='128' cy='123' r='8' stroke='%23f5590a' stroke-opacity='.5' stroke-width='2' fill='none'/%3E%3Ctext x='128' y='168' font-family='monospace' font-size='11' font-weight='bold' fill='%23f5590a' fill-opacity='.4' text-anchor='middle' letter-spacing='1.5'%3EPHOTO PENDING%3C/text%3E%3C/svg%3E";
 const PORTRAIT_WIDTH = 204;
 const PORTRAIT_HEIGHT = 256;
 

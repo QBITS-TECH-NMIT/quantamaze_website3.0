@@ -226,75 +226,28 @@ const viewTransitionVariants = {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// HIGH-IMPACT CIRCULAR AVATAR SILHOUETTE SVG (Large Prominent Head)
+// PHOTO PENDING PLACEHOLDER (clean dim circle — shown when no photo matched)
 // ─────────────────────────────────────────────────────────────────
 
 export function PlaceholderSilhouette({ code = "Q-01" }) {
   return (
-    <svg
-      viewBox="0 0 240 240"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-full w-full select-none"
-      aria-hidden="true"
-    >
-      <defs>
-        {/* Radial Orange Ambient Glow */}
-        <radialGradient id="meshGlowCircle" cx="50%" cy="40%" r="65%">
-          <stop offset="0%" stopColor="rgba(245, 89, 10, 0.3)" />
-          <stop offset="55%" stopColor="rgba(255, 138, 61, 0.12)" />
-          <stop offset="100%" stopColor="transparent" />
-        </radialGradient>
-
-        {/* Head and Body Gradient */}
-        <linearGradient id="avatarBodyGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-          <stop offset="0%" stopColor="rgba(255, 255, 255, 0.26)" />
-          <stop offset="50%" stopColor="rgba(245, 89, 10, 0.18)" />
-          <stop offset="100%" stopColor="rgba(15, 15, 24, 0.85)" />
-        </linearGradient>
-
-        {/* Fine Matrix Pattern */}
-        <pattern id="avatarGridPattern" width="16" height="16" patternUnits="userSpaceOnUse">
-          <path d="M 16 0 L 0 0 0 16" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.75" />
-          <circle cx="8" cy="8" r="0.75" fill="rgba(245,89,10,0.25)" />
-        </pattern>
-      </defs>
-
-      {/* Titanium Dark Background */}
-      <circle cx="120" cy="120" r="120" fill="#08080E" />
-      <circle cx="120" cy="120" r="120" fill="url(#avatarGridPattern)" />
-      <circle cx="120" cy="120" r="120" fill="url(#meshGlowCircle)" />
-
-      {/* Concentric Radar Rings */}
-      <circle cx="120" cy="98" r="70" stroke="rgba(245,89,10,0.18)" strokeWidth="1" strokeDasharray="4 4" />
-      <circle cx="120" cy="98" r="54" stroke="rgba(255,138,61,0.22)" strokeWidth="1" />
-
-      {/* Significantly Bigger Silhouette Head (Clearly Visible Face Area) */}
-      <circle
-        cx="120"
-        cy="96"
-        r="48"
-        fill="url(#avatarBodyGrad)"
-        stroke="rgba(245,89,10,0.4)"
-        strokeWidth="1.75"
-      />
-
-      {/* Cybernetic Visor Light Beam */}
-      <path d="M 90 94 L 150 94" stroke="#F5590A" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="120" cy="94" r="4.5" fill="#FF8A3D" shadow="0 0 8px #FF8A3D" />
-
-      {/* Broad Torso & Shoulders */}
-      <path
-        d="M 24 240 C 24 175, 70 156, 120 156 C 170 156, 216 175, 216 240 Z"
-        fill="url(#avatarBodyGrad)"
-        stroke="rgba(245,89,10,0.3)"
-        strokeWidth="1.5"
-      />
-
-      {/* Cyber Circuit Spine Line */}
-      <path d="M 120 156 L 120 230" stroke="rgba(245,89,10,0.5)" strokeWidth="2" strokeDasharray="6 4" />
-      <path d="M 85 205 L 120 216 L 155 205" stroke="rgba(255,138,61,0.35)" strokeWidth="1.25" fill="none" />
-    </svg>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[#08080E] select-none" aria-hidden="true">
+      {/* Camera / photo icon */}
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 opacity-25">
+        <circle cx="24" cy="24" r="23" stroke="rgba(245,89,10,0.5)" strokeWidth="1.5" strokeDasharray="5 3" />
+        <path
+          d="M17 20h-2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V22a2 2 0 0 0-2-2h-2l-2-3h-8l-2 3Z"
+          stroke="rgba(245,89,10,0.6)"
+          strokeWidth="1.5"
+          fill="none"
+          strokeLinejoin="round"
+        />
+        <circle cx="24" cy="27" r="4" stroke="rgba(245,89,10,0.6)" strokeWidth="1.5" fill="none" />
+      </svg>
+      <span className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#F5590A]/35">
+        Photo Pending
+      </span>
+    </div>
   );
 }
 
@@ -340,9 +293,9 @@ export function MemberCard({ member }) {
 
         {/* Circular Avatar Container */}
         <div className="relative h-44 w-44 sm:h-48 sm:w-48 md:h-52 md:w-52 lg:h-56 lg:w-56 overflow-hidden rounded-full border-2 border-[#F5590A]/50 bg-[#08080E] shadow-[0_0_25px_rgba(245,89,10,0.25)] transition-all duration-300 group-hover:border-[#F5590A] group-hover:shadow-[0_0_40px_rgba(245,89,10,0.5)] group-hover:scale-[1.03]">
-          {member.photo ? (
+          {member.photo || member.photoUrl ? (
             <img
-              src={member.photo}
+              src={member.photo || member.photoUrl}
               alt={member.name}
               className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             />

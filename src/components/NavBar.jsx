@@ -12,9 +12,11 @@ const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Tracks", href: "#tracks" },
+  { label: "Games", href: "#games" },
   { label: "Timeline", href: "#timeline" },
   { label: "Sponsors", href: "#sponsors" },
-  { label: "Contact", href: "#contact" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Contact", href: "#footer" },
 ];
 
 export default function NavBar() {
@@ -108,14 +110,14 @@ export default function NavBar() {
         return;
       }
 
-      // 2. Near the bottom of page is Contact
+      // 2. Near the bottom of page is the footer
       if (scrollY + clientHeight >= scrollHeight - 60) {
-        setActiveSection("contact");
-        if (window.location.hash !== "#contact") {
-          window.history.replaceState(null, "", "#contact");
+        setActiveSection("footer");
+        if (window.location.hash !== "#footer") {
+          window.history.replaceState(null, "", "#footer");
         }
         window.dispatchEvent(
-          new CustomEvent("qam-section-change", { detail: "contact" })
+          new CustomEvent("qam-section-change", { detail: "footer" })
         );
         return;
       }
@@ -125,9 +127,11 @@ export default function NavBar() {
         "home",
         "about",
         "tracks",
+        "games",
         "timeline",
         "sponsors",
-        "contact",
+        "faq",
+        "footer",
       ];
       const headerOffset = 140;
       let currentSection = "";

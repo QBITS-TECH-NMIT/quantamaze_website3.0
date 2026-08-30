@@ -140,6 +140,8 @@ function EnergyEdge({ from, to, color, phase, state, showPulse }) {
   const muted = state === "muted";
   const active = state === "active";
 
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
   return (
     <group>
       <line geometry={geometry}>
@@ -678,7 +680,7 @@ function MemberTooltip({ member, color }) {
     <div className="pointer-events-none w-44 overflow-hidden rounded-xl border border-white/15 bg-[#090A10]/95 p-2.5 shadow-[0_14px_35px_rgba(0,0,0,0.72),0_0_24px_rgba(34,211,238,0.13)] backdrop-blur-xl">
       <div className="flex items-center gap-2.5">
         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border bg-[#120d0a]" style={{ borderColor: color }}>
-          <img src={member.photoUrl} alt="" style={{ objectPosition: "50% 20%" }} className="h-full w-full object-cover" />
+          <img src={member.photoUrl} alt="" style={{ objectPosition: "50% 20%" }} className="h-full w-full bg-[#08080E] object-contain" />
         </div>
         <div className="min-w-0">
           <p className="truncate font-mono text-[10px] font-black uppercase tracking-wide text-white">{member.name}</p>
@@ -870,7 +872,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
         zoomSpeed={0.58}
         screenSpacePanning
         zoomToCursor
-        autoRotate
+        autoRotate={!reducedQuality}
         autoRotateSpeed={0.16}
         minDistance={7.5}
         maxDistance={34}
@@ -895,7 +897,7 @@ function MemberDetailPanel({ member, onClose }) {
       </button>
       <div className="flex items-center gap-3 pr-5">
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#F5590A]/55 bg-[#120d0a] shadow-[0_0_18px_rgba(245,89,10,0.25)]">
-          <img src={member.photoUrl} alt={`${member.name} portrait`} style={{ objectPosition: "50% 20%" }} className="h-full w-full object-cover" />
+          <img src={member.photoUrl} alt={`${member.name} portrait`} style={{ objectPosition: "50% 20%" }} className="h-full w-full bg-[#08080E] object-contain" />
         </div>
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF8A3D]">{member.code || "Q-BIT"}</p>
@@ -916,6 +918,11 @@ export default function MembersTree3D({ leadership = [], faculty = [], domains =
   const [selectedMember, setSelectedMember] = useState(null);
   const [focusRequest, setFocusRequest] = useState({ id: null, version: 0 });
   const [showInstructions, setShowInstructions] = useState(true);
+
+  useEffect(() => () => {
+    textureCache.forEach((texture) => texture.dispose());
+    textureCache.clear();
+  }, []);
 
   useEffect(() => {
     const viewport = viewportRef.current;

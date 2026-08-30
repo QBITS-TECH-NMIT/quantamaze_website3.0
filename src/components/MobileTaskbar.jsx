@@ -38,6 +38,16 @@ const navItems = [
     ),
   },
   {
+    label: "Games",
+    href: "#games",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+        <rect x="3" y="6" width="18" height="12" rx="3" />
+        <path d="M8 12h4M10 10v4M16 11h.01M18 13h.01" />
+      </svg>
+    ),
+  },
+  {
     label: "Timeline",
     href: "#timeline",
     icon: (
@@ -59,8 +69,19 @@ const navItems = [
     ),
   },
   {
+    label: "FAQ",
+    href: "#faq",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+  },
+  {
     label: "Contact",
-    href: "#contact",
+    href: "#footer",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
         <rect width="20" height="16" x="2" y="4" rx="2" />

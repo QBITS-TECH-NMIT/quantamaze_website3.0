@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:coin": "node scripts/check-quantum-coin.mjs",
     "generate:event-photos": "node scripts/generate-event-photos.mjs",
     "generate:team-members": "node scripts/generate-team-members.mjs",
     "predev": "npm run generate:team-members",

@@ -83,6 +83,12 @@ body::before {
   mix-blend-mode: soft-light;
 }
 
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  body::before {
+    display: none;
+  }
+}
+
 ::selection {
   background: rgba(245, 89, 10, 0.35);
   color: #f2f2f2;
@@ -91,6 +97,281 @@ body::before {
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
+}
+
+.game-primary-button,
+.game-ghost-button,
+.game-control-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 0.55rem;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.game-primary-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #0a0a0a;
+}
+
+.game-primary-button:hover {
+  background: #ff7b3f;
+  box-shadow: 0 0 22px rgba(245, 89, 10, 0.3);
+  transform: translateY(-1px);
+}
+
+.game-ghost-button,
+.game-control-button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d6d3d1;
+}
+
+.game-ghost-button:hover,
+.game-control-button:hover {
+  border-color: rgba(245, 89, 10, 0.65);
+  color: #ffb347;
+}
+
+.game-preview {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0b111b;
+}
+
+.game-preview--maze {
+  background-color: #0b111b;
+  background-image: linear-gradient(rgba(103, 232, 249, 0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(103, 232, 249, 0.18) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.game-preview--maze::after {
+  position: absolute;
+  inset: 18px;
+  border: 2px solid rgba(103, 232, 249, 0.5);
+  content: "";
+  clip-path: polygon(0 0, 70% 0, 70% 20%, 100% 20%, 100% 100%, 0 100%);
+}
+
+.game-preview-qubit,
+.game-preview-exit {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  border-radius: 999px;
+}
+
+.game-preview-qubit {
+  top: 32px;
+  left: 32px;
+  height: 22px;
+  width: 22px;
+  background: #ffb347;
+  box-shadow: 0 0 24px 8px rgba(255, 179, 71, 0.45);
+}
+
+.game-preview-exit {
+  right: 34px;
+  bottom: 32px;
+  height: 28px;
+  width: 28px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 20px rgba(245, 89, 10, 0.65);
+}
+
+.game-preview--coin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 55%), #0b111b;
+}
+
+.game-preview--coin span {
+  z-index: 1;
+  display: flex;
+  height: 86px;
+  width: 86px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffb347;
+  border-radius: 50%;
+  color: #ffb347;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 0 34px rgba(255, 179, 71, 0.3), inset 0 0 20px rgba(34, 211, 238, 0.18);
+}
+
+.game-preview--coin i {
+  position: absolute;
+  height: 150px;
+  width: 150px;
+  border: 1px dashed rgba(103, 232, 249, 0.38);
+  border-radius: 50%;
+  transform: rotate(55deg) scaleX(0.35);
+}
+
+.game-preview--coin i:nth-of-type(2) { transform: rotate(-55deg) scaleX(0.35); }
+.game-preview--coin i:nth-of-type(3) { height: 125px; width: 125px; transform: rotate(90deg) scaleX(0.28); }
+
+.game-preview--core {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(245, 89, 10, 0.16), transparent 46%), #111218;
+}
+
+.game-core-ring {
+  position: absolute;
+  height: 112px;
+  width: 112px;
+  border: 1px solid rgba(255, 179, 71, 0.65);
+  border-radius: 50%;
+  box-shadow: 0 0 28px rgba(245, 89, 10, 0.24);
+  transform: rotate(35deg) scaleX(0.4);
+}
+
+.game-core-orb {
+  z-index: 1;
+  color: #ffb347;
+  font-size: 2.5rem;
+  text-shadow: 0 0 20px rgba(255, 179, 71, 0.8);
+}
+
+.game-preview--core b {
+  position: absolute;
+  color: rgba(103, 232, 249, 0.65);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+}
+
+.game-preview--core b:nth-of-type(1) { top: 24px; left: 28%; }
+.game-preview--core b:nth-of-type(2) { right: 23%; bottom: 30px; }
+.game-preview--core b:nth-of-type(3) { bottom: 22px; left: 24%; }
+
+.quantum-coin {
+  position: relative;
+  perspective: 900px;
+  display: flex;
+  height: 132px;
+  width: 132px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffb347;
+  border-radius: 50%;
+  color: #ffb347;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 2.5rem;
+  font-weight: 800;
+  box-shadow: 0 0 35px rgba(255, 179, 71, 0.28), inset 0 0 25px rgba(34, 211, 238, 0.14);
+}
+
+.quantum-coin-face,
+.quantum-coin-label {
+  position: absolute;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backface-visibility: hidden;
+}
+
+.quantum-coin-face {
+  background: radial-gradient(circle at 35% 30%, rgba(255, 207, 138, 0.25), transparent 42%), #17202a;
+}
+
+.quantum-coin-face--back {
+  transform: rotateY(180deg);
+}
+
+.quantum-coin-face--both {
+  gap: 0.4rem;
+  opacity: 0;
+  transform: rotateY(180deg);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.quantum-coin-face--both i {
+  height: 62%;
+  width: 2px;
+  background: #f5590a;
+  box-shadow: 0 0 12px rgba(245, 89, 10, 0.9);
+}
+
+.quantum-coin--both .quantum-coin-face--front,
+.quantum-coin--both .quantum-coin-face--back {
+  opacity: 0;
+}
+
+.quantum-coin--both .quantum-coin-face--both {
+  opacity: 1;
+  transform: rotateY(0);
+}
+
+.quantum-coin--tails .quantum-coin-face--front {
+  transform: rotateY(180deg);
+}
+
+.quantum-coin--tails .quantum-coin-face--back {
+  transform: rotateY(0);
+}
+
+.quantum-coin-label {
+  color: #67e8f9;
+  background: #111a25;
+}
+
+.quantum-coin--flipping {
+  animation: quantum-coin-flip 1.2s ease-in-out 1;
+  transform-style: preserve-3d;
+}
+
+.quantum-coin--settled {
+  border-color: #67e8f9;
+  color: #67e8f9;
+  box-shadow: 0 0 35px rgba(103, 232, 249, 0.35);
+}
+
+.quantum-coin-burst {
+  position: absolute;
+  inset: -20px;
+  border: 2px solid rgba(245, 89, 10, 0.75);
+  border-radius: 50%;
+  animation: quantum-coin-burst 500ms ease-out both;
+  pointer-events: none;
+}
+
+.quantum-superposition-orb {
+  animation: quantum-superposition-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes quantum-coin-flip {
+  0% { transform: rotateY(0) scaleX(1); }
+  45% { transform: rotateY(900deg) scaleX(0.24); }
+  100% { transform: rotateY(1800deg) scaleX(1); }
+}
+
+@keyframes quantum-coin-burst {
+  from { opacity: 0.9; transform: scale(0.7); }
+  to { opacity: 0; transform: scale(1.25); }
+}
+
+@keyframes quantum-superposition-shimmer {
+  0%, 100% { filter: blur(0); transform: rotate(-2deg) scale(1); }
+  50% { filter: blur(1.5px); transform: rotate(2deg) scale(1.05); }
 }
 
 .quantum-grid {

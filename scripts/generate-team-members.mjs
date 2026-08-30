@@ -176,6 +176,7 @@ const DOMAINS_DATA = [
       { name: 'Nanditha', role: 'Member', code: 'RD-07' },
       { name: 'A S Harish', role: 'Member', code: 'RD-08' },
       { name: 'Shreeya Attri', role: 'Member', code: 'RD-09' },
+      { name: 'Kunal Kulkarni', role: 'Member', code: 'RD-10' },
     ],
   },
   {

@@ -328,8 +328,8 @@ export const DOMAINS_DATA = [
         "name": "Akshay",
         "role": "Member",
         "code": "HS-02",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/hs_02.jpg",
+        "photoUrl": "/team-photos/hs_02.jpg"
       },
       {
         "name": "Harshith D Raj",
@@ -358,8 +358,8 @@ export const DOMAINS_DATA = [
         "name": "Rishiman Dadwal",
         "role": "Member",
         "code": "MK-02",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/mk_02.png",
+        "photoUrl": "/team-photos/mk_02.png"
       },
       {
         "name": "T Lokeshwar Reddy",
@@ -372,8 +372,8 @@ export const DOMAINS_DATA = [
         "name": "Varsha Sanjay",
         "role": "Member",
         "code": "MK-04",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/mk_04.jpg",
+        "photoUrl": "/team-photos/mk_04.jpg"
       },
       {
         "name": "Baibhav Kumar",
@@ -437,8 +437,8 @@ export const DOMAINS_DATA = [
         "name": "Sri Charan",
         "role": "Member",
         "code": "OP-04",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/op_04.jpg",
+        "photoUrl": "/team-photos/op_04.jpg"
       },
       {
         "name": "Mohammed Sohail Hussain",
@@ -539,6 +539,13 @@ export const DOMAINS_DATA = [
         "code": "RD-09",
         "photo": "/team-photos/rd_09.jpg",
         "photoUrl": "/team-photos/rd_09.jpg"
+      },
+      {
+        "name": "Kunal Kulkarni",
+        "role": "Member",
+        "code": "RD-10",
+        "photo": "/team-photos/rd_10.jpg",
+        "photoUrl": "/team-photos/rd_10.jpg"
       }
     ]
   },

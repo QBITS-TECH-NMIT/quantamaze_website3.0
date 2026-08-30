@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ParticleBackground from "@/components/ParticleBackground";
 import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
 import MobileTaskbar from "@/components/MobileTaskbar";
 
 const geistSans = Geist({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }) {
         <div className="mobile-page-shell relative z-10 flex-1 flex flex-col sm:pb-0">
           {children}
         </div>
+        <Footer />
         <MobileTaskbar />
       </body>
     </html>

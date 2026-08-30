@@ -19,10 +19,11 @@ export default function ParticleBackground() {
         const renderer = new THREE.WebGLRenderer({
           canvas,
           alpha: true,
-          antialias: true,
+          antialias: !window.matchMedia("(pointer: coarse)").matches,
           powerPreference: "high-performance",
         });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const maxPixelRatio = window.matchMedia("(pointer: coarse)").matches ? 1 : 1.5;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
         renderer.setClearColor(0x000000, 0);
 
         const group = new THREE.Group();
@@ -94,7 +95,7 @@ export default function ParticleBackground() {
           }
 
           renderer.render(scene, camera);
-          animationFrame = window.requestAnimationFrame(render);
+          if (!reducedMotion) animationFrame = window.requestAnimationFrame(render);
         }
 
         function handleVisibilityChange() {

@@ -9,7 +9,8 @@ import AboutPage from "@/app/about/page";
 import TracksPage from "@/app/tracks/page";
 import TimelinePage from "@/app/timeline/page";
 import SponsorsPage from "@/app/sponsors/page";
-import ContactPage from "@/app/contact/page";
+import FAQPage from "@/app/faq/page";
+import GamesSection from "@/components/GamesSection";
 import { Reveal, staggerContainer, staggerItem, easeOut } from "@/components/MotionPrimitives";
 import { motion, useScroll, useTransform } from "framer-motion";
 
@@ -293,10 +294,10 @@ export default function HomePage() {
               />
             </motion.div>
 
-            {/* Register CTA linking to /contact route */}
+            {/* Register CTA linking to the global contact footer */}
             <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
-                href="#contact"
+                href="#footer"
                 className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"
               >
                 <span>Register Now</span>
@@ -311,9 +312,10 @@ export default function HomePage() {
 
         <SectionTransition><AboutPage /></SectionTransition>
         <SectionTransition><TracksPage /></SectionTransition>
+        <SectionTransition><GamesSection /></SectionTransition>
         <SectionTransition><TimelinePage /></SectionTransition>
         <SectionTransition><SponsorsPage /></SectionTransition>
-        <SectionTransition><ContactPage /></SectionTransition>
+        <SectionTransition><FAQPage /></SectionTransition>
 
       </main>
     </div>

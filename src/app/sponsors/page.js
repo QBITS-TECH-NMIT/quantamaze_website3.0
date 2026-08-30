@@ -436,7 +436,7 @@ export default function SponsorsPage() {
                 </div>
 
                 <Link
-                  href="#contact"
+                  href="#footer"
                   className="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition hover:bg-[#ff7b3f] hover:shadow-[0_0_24px_rgba(245,89,10,0.4)] active:scale-95 sm:w-auto"
                 >
                   <span>Get in Touch</span>

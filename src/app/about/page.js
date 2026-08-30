@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Counter } from "@/components/MotionPrimitives";
 import MembersSection from "@/components/MembersSection";
+import { eventPhotos } from "@/lib/eventPhotos";
 
 const AtomModel3D = dynamic(() => import("@/components/AtomModel3D"), {
   ssr: false,
@@ -225,6 +226,7 @@ export default function AboutPage() {
   const shouldReduceMotion = useReducedMotion();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventsView, setEventsView] = useState("2d");
+  const [showAllEventPhotos, setShowAllEventPhotos] = useState(false);
   const isCubeInView = isModalOpen;
   const cubeContainerRef = useRef(null);
 
@@ -260,48 +262,14 @@ export default function AboutPage() {
 
   const eventsData = [
     {
-      id: "quant-a-maze-3",
+      id: "quant-a-maze-2",
       badge: "FLAGSHIP",
       badgeColor: "border-[#F5590A] text-[#F5590A] bg-[#F5590A]/10",
-      title: "QUANT-A-MAZE 3.0",
-      date: "September 2026",
+      title: "QUANT-A-MAZE 2.0",
+      date: "14-16 November 2024",
       track: "National Hackathon",
-      desc: "36-hour flagship quantum hackathon hosted in collaboration with QpiAI. 4 build tracks spanning quantum algorithms, hybrid QML, post-quantum security, and industrial simulations.",
-      tags: ["#36hHackathon", "#QpiAI", "#HardwareAndSoftware"],
-      status: "Upcoming Flagship",
-    },
-    {
-      id: "qiskit-fall-fest",
-      badge: "WORKSHOP",
-      badgeColor: "border-[#FF8A3D] text-[#FF8A3D] bg-[#FF8A3D]/10",
-      title: "Qiskit Fall Fest & Quantum Lab",
-      date: "November 2025",
-      track: "Hands-on Workshop",
-      desc: "Deep dive into superconducting qubit gates, quantum teleportation circuits, and IBM Quantum Composer tooling with student-led interactive coding sessions.",
-      tags: ["#IBMQuantum", "#Qiskit", "#CircuitSynthesis"],
-      status: "Completed",
-    },
-    {
-      id: "frontiers-talk",
-      badge: "SPEAKER",
-      badgeColor: "border-[#FFB703] text-[#FFB703] bg-[#FFB703]/10",
-      title: "Frontiers in Quantum Hardware",
-      date: "August 2025",
-      track: "Expert Tech Talk",
-      desc: "Keynote exploration into cryo-CMOS controllers, neutral-atom qubits, and industrial scaling bottlenecks with visiting quantum research fellows.",
-      tags: ["#CryoCMOS", "#NeutralAtoms", "#ResearchKeynote"],
-      status: "Completed",
-    },
-    {
-      id: "code-sprint-series",
-      badge: "INITIATIVE",
-      badgeColor: "border-emerald-400 text-emerald-400 bg-emerald-400/10",
-      title: "Quantum Code Sprint Series",
-      date: "Ongoing // Bi-Weekly",
-      track: "Club Challenge",
-      desc: "Bi-weekly quantum algorithm puzzles and circuit optimization sprints designed for all skill levels from beginner qubits to advanced Clifford gate compilation.",
-      tags: ["#WeeklySprint", "#AlgorithmChallenge", "#PeerReview"],
-      status: "Active Series",
+      desc: "Quant-A-Maze 2.0 brought students together for a national-level quantum technology hackathon, combining rapid prototyping, problem-solving, and hands-on exploration across emerging computing frontiers.",
+      tags: ["#QuantAMaze2", "#QuantumComputing", "#NationalHackathon"],
     },
   ];
 
@@ -873,6 +841,7 @@ export default function AboutPage() {
 
                     {/* ================= PANEL 2: OUR EVENTS (NEW) ================= */}
                     <div
+                      id="events"
                       onClick={() => activeModalPage !== 1 && goToModalPage(1)}
                       className={`spatial-card-panel shrink-0 relative flex flex-col justify-between overflow-hidden rounded-3xl border-2 bg-[#0C0C14]/98 p-5 text-left transition-all duration-400 sm:p-8 md:p-10 ${
                         activeModalPage === 1
@@ -924,41 +893,86 @@ export default function AboutPage() {
                           </div>
                         </div>
 
-                        {/* Events Grid */}
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        {/* Featured event card and archive gallery */}
+                        <div className="grid gap-5">
                           {eventsData.map((ev) => (
                             <div
                               key={ev.id}
-                              className="group relative flex flex-col justify-between rounded-2xl border border-white/10 bg-white/[0.025] p-5 backdrop-blur-md transition-all duration-250 hover:border-[#F5590A]/60 hover:bg-white/[0.05] hover:shadow-[0_0_25px_rgba(245,89,10,0.2)]"
+                              className="group relative rounded-2xl border border-white/10 bg-white/[0.025] p-5 backdrop-blur-md transition-all duration-250 hover:border-[#F5590A]/60 hover:bg-white/[0.05] hover:shadow-[0_0_25px_rgba(245,89,10,0.2)] sm:p-6"
                             >
-                              <div>
-                                <div className="flex items-center justify-between gap-2 mb-3">
-                                  <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider ${ev.badgeColor}`}>
-                                    {ev.badge}
+                              <div className="grid gap-6 lg:grid-cols-[minmax(15rem,0.75fr)_minmax(0,1.25fr)] lg:items-start lg:gap-8">
+                                <div>
+                                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                    <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider ${ev.badgeColor}`}>
+                                      {ev.badge}
+                                    </span>
+                                    <span className="font-mono text-[11px] font-semibold text-slate-300">
+                                      {ev.date}
+                                    </span>
+                                  </div>
+
+                                  <h5 className="text-xl font-bold text-white transition-colors group-hover:text-[#F5590A] sm:text-2xl">
+                                    {ev.title}
+                                  </h5>
+                                  <span className="mb-3 mt-1 block font-mono text-xs text-orange-300">
+                                    {ev.track}
                                   </span>
-                                  <span className="font-mono text-[11px] font-semibold text-slate-300">
-                                    {ev.date}
-                                  </span>
+
+                                  <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">
+                                    {ev.desc}
+                                  </p>
+
+                                  <div className="mt-5 flex flex-wrap gap-1.5 border-t border-white/5 pt-4">
+                                    {ev.tags.map((tag) => (
+                                      <span key={tag} className="rounded bg-black/40 px-2 py-0.5 font-mono text-[9px] text-slate-400">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
                                 </div>
 
-                                <h5 className="text-base sm:text-lg font-bold text-white group-hover:text-[#F5590A] transition-colors">
-                                  {ev.title}
-                                </h5>
-                                <span className="block font-mono text-xs text-orange-300 mt-0.5 mb-2">
-                                  {ev.track}
-                                </span>
-
-                                <p className="text-xs leading-relaxed text-slate-300">
-                                  {ev.desc}
-                                </p>
-                              </div>
-
-                              <div className="mt-4 flex flex-wrap gap-1.5 border-t border-white/5 pt-3">
-                                {ev.tags.map((tag) => (
-                                  <span key={tag} className="rounded bg-black/40 px-2 py-0.5 font-mono text-[9px] text-slate-400">
-                                    {tag}
-                                  </span>
-                                ))}
+                                <div>
+                                  <div className="mb-3 flex items-center justify-between gap-3">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#FF8A3D]">
+                                      Event archive // {eventPhotos.length} photos
+                                    </span>
+                                    <span className="text-[10px] text-slate-500">
+                                      {showAllEventPhotos ? "Full archive" : "Highlights"}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                    {eventPhotos.slice(0, showAllEventPhotos ? eventPhotos.length : 12).map((photo) => (
+                                      <a
+                                        key={photo.id}
+                                        href={photo.originalSrc}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="group/photo relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/30"
+                                        aria-label={`Open ${photo.alt}`}
+                                      >
+                                        <Image
+                                          src={photo.src}
+                                          alt={photo.alt}
+                                          fill
+                                          sizes="(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 18vw"
+                                          loading="lazy"
+                                          className="object-cover transition duration-300 group-hover/photo:scale-105 group-hover/photo:brightness-110"
+                                        />
+                                      </a>
+                                    ))}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setShowAllEventPhotos((visible) => !visible);
+                                    }}
+                                    className="mt-3 inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#FFB703] transition-colors hover:text-white"
+                                  >
+                                    <span>{showAllEventPhotos ? "Show highlights" : `View all ${eventPhotos.length} photos`}</span>
+                                    <span aria-hidden="true">{showAllEventPhotos ? "↑" : "→"}</span>
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}

@@ -276,9 +276,12 @@ export default function HomePage() {
               <p className="text-center font-mono text-2xl font-bold tracking-wider text-[#F5590A] drop-shadow-[0_0_20px_rgba(255,107,26,0.25)] sm:text-4xl md:text-5xl">
                 07 <span className="text-[#F5590A]/50">{"//"}</span> SEPTEMBER
               </p>
-              <p className="mt-2 flex max-w-[18rem] items-center justify-center gap-2 text-center text-sm leading-relaxed text-gray-300 sm:max-w-none sm:text-base">
+              <p className="mt-2 flex max-w-[19rem] items-start justify-center gap-2 text-center text-sm leading-relaxed text-gray-300 sm:max-w-none sm:text-base">
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#F5590A]" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>
-                Nitte (Deemed to be University)
+                <span className="flex flex-col gap-0.5">
+                  <span>Nitte (Deemed to be University), Bangalore</span>
+                  <span className="text-xs text-gray-400 sm:text-sm">Nitte Meenakshi Institute of Technology (NMIT), Bangalore</span>
+                </span>
               </p>
             </motion.div>
 

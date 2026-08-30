@@ -176,8 +176,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "DS-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/ds_01.jpg",
+        "photoUrl": "/team-photos/ds_01.jpg"
       },
       {
         "name": "Vaibhavi",
@@ -444,8 +444,8 @@ export const DOMAINS_DATA = [
         "name": "Mohammed Sohail Hussain",
         "role": "Member",
         "code": "OP-05",
-        "photo": "/team-photos/op_05.jpg",
-        "photoUrl": "/team-photos/op_05.jpg"
+        "photo": "/team-photos/op_05.jpeg",
+        "photoUrl": "/team-photos/op_05.jpeg"
       },
       {
         "name": "Manas Reddy",

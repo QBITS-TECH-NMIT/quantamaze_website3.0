@@ -365,8 +365,8 @@ export const DOMAINS_DATA = [
         "name": "T Lokeshwar Reddy",
         "role": "Member",
         "code": "MK-03",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/mk_03.png",
+        "photoUrl": "/team-photos/mk_03.png"
       },
       {
         "name": "Varsha Sanjay",
@@ -430,8 +430,8 @@ export const DOMAINS_DATA = [
         "name": "Sanjana N",
         "role": "Member",
         "code": "OP-03",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/op_03.png",
+        "photoUrl": "/team-photos/op_03.png"
       },
       {
         "name": "Sri Charan",

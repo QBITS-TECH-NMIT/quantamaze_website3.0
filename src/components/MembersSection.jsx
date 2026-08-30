@@ -297,7 +297,9 @@ export function MemberCard({ member }) {
             <img
               src={member.photo || member.photoUrl}
               alt={member.name}
-              className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              style={{ objectPosition: "50% 20%" }}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
             />
           ) : (
             <div className="h-full w-full">

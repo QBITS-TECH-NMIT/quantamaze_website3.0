@@ -218,6 +218,101 @@ function NetworkNode({ position, size, color, level, muted = false, active = fal
   );
 }
 
+// Global texture cache to prevent duplicate canvas/image memory overhead
+const textureCache = new Map();
+
+function getOrLoadFaceSafeTexture(url, onLoaded, onError) {
+  if (!url) {
+    onError?.();
+    return () => {};
+  }
+
+  if (textureCache.has(url)) {
+    const cached = textureCache.get(url);
+    if (cached instanceof THREE.Texture) {
+      onLoaded(cached);
+      return () => {};
+    }
+  }
+
+  let cancelled = false;
+  const image = new window.Image();
+  image.crossOrigin = "anonymous";
+
+  image.onload = () => {
+    if (cancelled) return;
+    try {
+      const naturalW = image.naturalWidth || image.width || PORTRAIT_WIDTH;
+      const naturalH = image.naturalHeight || image.height || PORTRAIT_HEIGHT;
+
+      const targetAspect = PORTRAIT_WIDTH / PORTRAIT_HEIGHT;
+      const imageAspect = naturalW / naturalH;
+
+      let sourceWidth, sourceHeight, sourceX, sourceY;
+
+      if (imageAspect > targetAspect) {
+        // Image is wider than target portrait frame
+        sourceHeight = naturalH;
+        sourceWidth = naturalH * targetAspect;
+        sourceX = (naturalW - sourceWidth) / 2;
+        sourceY = 0;
+      } else {
+        // Image is taller than target portrait frame -> top-weight crop for faces (upper 18%)
+        sourceWidth = naturalW;
+        sourceHeight = naturalW / targetAspect;
+        sourceX = 0;
+        sourceY = Math.max(0, (naturalH - sourceHeight) * 0.18);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = PORTRAIT_WIDTH;
+      canvas.height = PORTRAIT_HEIGHT;
+      const ctx = canvas.getContext("2d");
+
+      // Draw dark background first
+      ctx.fillStyle = "#08080E";
+      ctx.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+      ctx.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        PORTRAIT_WIDTH,
+        PORTRAIT_HEIGHT
+      );
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.needsUpdate = true;
+
+      textureCache.set(url, texture);
+      onLoaded(texture);
+    } catch (err) {
+      console.warn("Failed to process 3D texture for:", url, err);
+      onError?.(err);
+    }
+  };
+
+  image.onerror = (err) => {
+    if (cancelled) return;
+    console.warn("Image load error for 3D node:", url);
+    onError?.(err);
+  };
+
+  image.src = url;
+
+  return () => {
+    cancelled = true;
+  };
+}
+
 function PhotoNode({ member, position, size, color, muted = false, active = false, onClick, onHoverChange }) {
   const nodeRef = useRef();
   const auraRef = useRef();
@@ -226,38 +321,50 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
   const [texture, setTexture] = useState(null);
   const [hovered, setHovered] = useState(false);
 
+  const photoUrl = member.photoUrl || member.photo || PLACEHOLDER_PHOTO_URL;
+
   useEffect(() => {
-    let cancelled = false;
-    let nextTexture;
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => {
-      const sourceAspect = PORTRAIT_WIDTH / PORTRAIT_HEIGHT;
-      const imageAspect = image.naturalWidth / image.naturalHeight;
-      const sourceWidth = imageAspect > sourceAspect ? image.naturalHeight * sourceAspect : image.naturalWidth;
-      const sourceHeight = imageAspect > sourceAspect ? image.naturalHeight : image.naturalWidth / sourceAspect;
-      const sourceX = (image.naturalWidth - sourceWidth) / 2;
-      const sourceY = (image.naturalHeight - sourceHeight) / 2;
-      const canvas = document.createElement("canvas");
-      canvas.width = PORTRAIT_WIDTH;
-      canvas.height = PORTRAIT_HEIGHT;
-      canvas.getContext("2d").drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-      nextTexture = new THREE.CanvasTexture(canvas);
-      nextTexture.colorSpace = THREE.SRGBColorSpace;
-      nextTexture.needsUpdate = true;
-      if (cancelled) {
-        nextTexture.dispose();
-        return;
+    let activeCleanup = getOrLoadFaceSafeTexture(
+      photoUrl,
+      (loadedTexture) => {
+        setTexture(loadedTexture);
+        if (photoMaterialRef.current) {
+          photoMaterialRef.current.map = loadedTexture;
+          photoMaterialRef.current.needsUpdate = true;
+        }
+      },
+      () => {
+        // In case of error, retry with placeholder
+        if (photoUrl !== PLACEHOLDER_PHOTO_URL) {
+          getOrLoadFaceSafeTexture(PLACEHOLDER_PHOTO_URL, (placeholderTex) => {
+            setTexture(placeholderTex);
+            if (photoMaterialRef.current) {
+              photoMaterialRef.current.map = placeholderTex;
+              photoMaterialRef.current.needsUpdate = true;
+            }
+          });
+        }
       }
-      setTexture(nextTexture);
-    };
-    image.src = member.photoUrl;
+    );
 
     return () => {
-      cancelled = true;
-      nextTexture?.dispose();
+      activeCleanup?.();
     };
-  }, [member.photoUrl]);
+  }, [photoUrl]);
+
+  // Keep material map in sync with state
+  useEffect(() => {
+    if (photoMaterialRef.current) {
+      if (texture) {
+        photoMaterialRef.current.map = texture;
+        photoMaterialRef.current.color.set("#ffffff");
+      } else {
+        photoMaterialRef.current.map = null;
+        photoMaterialRef.current.color.set("#0c0d16");
+      }
+      photoMaterialRef.current.needsUpdate = true;
+    }
+  }, [texture]);
 
   const photoWidth = size * 2;
   const photoHeight = photoWidth * (PORTRAIT_HEIGHT / PORTRAIT_WIDTH);
@@ -265,15 +372,16 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
   useFrame(({ clock }) => {
     if (!nodeRef.current) return;
     nodeRef.current.position.lerp(position, 0.12);
-    const emphasis = active || hovered ? 1.12 : muted ? 0.84 : 1;
+    const emphasis = active || hovered ? 1.14 : muted ? 0.84 : 1;
     const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, emphasis, 0.14);
     nodeRef.current.scale.setScalar(scale);
-    const targetOpacity = texture ? (muted ? 0.22 : 1) : 0;
+
+    const targetOpacity = texture ? (muted ? 0.35 : 1) : (muted ? 0.2 : 0.75);
     if (photoMaterialRef.current) {
-      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(photoMaterialRef.current.opacity, targetOpacity, 0.14);
+      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(photoMaterialRef.current.opacity, targetOpacity, 0.16);
     }
-    if (auraRef.current) auraRef.current.material.opacity = muted ? 0.018 : hovered || active ? 0.16 : 0.075;
-    if (borderMaterialRef.current) borderMaterialRef.current.opacity = muted ? 0.12 : hovered || active ? 0.92 : 0.58;
+    if (auraRef.current) auraRef.current.material.opacity = muted ? 0.018 : hovered || active ? 0.2 : 0.08;
+    if (borderMaterialRef.current) borderMaterialRef.current.opacity = muted ? 0.15 : hovered || active ? 0.95 : 0.65;
     if (nodeRef.current) nodeRef.current.rotation.z = Math.sin(clock.elapsedTime * 0.35 + position.x) * 0.012;
   });
 
@@ -281,6 +389,7 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
     event.stopPropagation();
     setHovered(true);
     onHoverChange?.(true);
+    document.body.style.cursor = "pointer";
   };
 
   const handlePointerOut = () => {
@@ -293,12 +402,14 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
     <group ref={nodeRef} position={position}>
       <mesh ref={auraRef} scale={size * 2.5} renderOrder={0}>
         <sphereGeometry args={[1, 10, 10]} />
-        <meshBasicMaterial color={color} transparent opacity={0.075} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color={color} transparent opacity={0.08} depthWrite={false} toneMapped={false} />
       </mesh>
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        {/* Outer glowing border card */}
         <RoundedBox args={[photoWidth + size * 0.12, photoHeight + size * 0.12, 0.16]} radius={size * 0.25} smoothness={1} position={[0, 0, -0.012]} renderOrder={1}>
-          <meshBasicMaterial ref={borderMaterialRef} color={color} transparent opacity={0.58} depthWrite={false} toneMapped={false} />
+          <meshBasicMaterial ref={borderMaterialRef} color={color} transparent opacity={0.65} depthWrite={false} toneMapped={false} />
         </RoundedBox>
+        {/* Inner photo card */}
         <RoundedBox
           args={[photoWidth, photoHeight, 0.08]}
           radius={size * 0.12}
@@ -311,7 +422,15 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
           onPointerOut={handlePointerOut}
           renderOrder={2}
         >
-          <meshBasicMaterial ref={photoMaterialRef} map={texture} color="#ffffff" transparent opacity={0} depthWrite={false} toneMapped={false} />
+          <meshBasicMaterial
+            ref={photoMaterialRef}
+            map={texture || null}
+            color={texture ? "#ffffff" : "#0c0d16"}
+            transparent
+            opacity={texture ? 1 : 0.75}
+            depthWrite={false}
+            toneMapped={false}
+          />
         </RoundedBox>
       </Billboard>
     </group>
@@ -389,7 +508,7 @@ function MemberTooltip({ member, color }) {
     <div className="pointer-events-none w-44 overflow-hidden rounded-xl border border-white/15 bg-[#090A10]/95 p-2.5 shadow-[0_14px_35px_rgba(0,0,0,0.72),0_0_24px_rgba(34,211,238,0.13)] backdrop-blur-xl">
       <div className="flex items-center gap-2.5">
         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border bg-[#120d0a]" style={{ borderColor: color }}>
-          <img src={member.photoUrl} alt="" className="h-full w-full object-cover" />
+          <img src={member.photoUrl} alt="" style={{ objectPosition: "50% 20%" }} className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0">
           <p className="truncate font-mono text-[10px] font-black uppercase tracking-wide text-white">{member.name}</p>
@@ -606,7 +725,7 @@ function MemberDetailPanel({ member, onClose }) {
       </button>
       <div className="flex items-center gap-3 pr-5">
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-[#F5590A]/55 bg-[#120d0a] shadow-[0_0_18px_rgba(245,89,10,0.25)]">
-          <img src={member.photoUrl} alt={`${member.name} portrait`} className="h-full w-full object-cover" />
+          <img src={member.photoUrl} alt={`${member.name} portrait`} style={{ objectPosition: "50% 20%" }} className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF8A3D]">{member.code || "Q-BIT"}</p>

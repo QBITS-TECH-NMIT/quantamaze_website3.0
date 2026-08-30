@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:event-photos": "node scripts/generate-event-photos.mjs"
+    "generate:event-photos": "node scripts/generate-event-photos.mjs",
+    "generate:team-members": "node scripts/generate-team-members.mjs",
+    "predev": "npm run generate:team-members",
+    "prebuild": "npm run generate:team-members"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

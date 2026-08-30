@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { eventPhotos } from "@/lib/eventPhotos";
 import { InfiniteCanvasScene } from "./InfiniteCanvas/reference/infinite-canvas/scene";
 
 export default function InfiniteCanvasView({ onClose }) {
+  const overlayRef = useRef(null);
   const media = useMemo(
     () => eventPhotos.map((photo) => ({ url: photo.src, width: photo.width, height: photo.height })),
     []
@@ -21,8 +22,23 @@ export default function InfiniteCanvasView({ onClose }) {
     };
   }, [onClose]);
 
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay || !document.fullscreenEnabled || !overlay.requestFullscreen) return undefined;
+
+    overlay.requestFullscreen().catch(() => {
+      // The fixed-overlay fallback remains active when fullscreen is unavailable.
+    });
+
+    return () => {
+      if (document.fullscreenElement === overlay && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }, []);
+
   return (
-    <div className="infinite-canvas-overlay" role="dialog" aria-modal="true" aria-label="3D events canvas">
+    <div ref={overlayRef} className="infinite-canvas-overlay" role="dialog" aria-modal="true" aria-label="3D events canvas">
       <InfiniteCanvasScene
         media={media}
         backgroundColor="#050505"

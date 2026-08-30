@@ -13,9 +13,9 @@ const PLACEHOLDER_PHOTO_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.or
 const PORTRAIT_WIDTH = 204;
 const PORTRAIT_HEIGHT = 256;
 
-const sharedCoreGeometry = new THREE.SphereGeometry(1, 24, 24);
-const sharedShellGeometry = new THREE.SphereGeometry(1, 12, 12);
-const sharedPulseGeometry = new THREE.SphereGeometry(0.075, 10, 10);
+const sharedCoreGeometry = new THREE.SphereGeometry(1, 16, 16);
+const sharedShellGeometry = new THREE.SphereGeometry(1, 10, 10);
+const sharedPulseGeometry = new THREE.SphereGeometry(0.075, 6, 6);
 
 function useReducedSceneQuality() {
   const [reduced, setReduced] = useState(() =>
@@ -37,11 +37,17 @@ function useReducedSceneQuality() {
  * The renderer works from this root → domain → member hierarchy only. Roster records
  * can therefore be replaced later without changing the 3D scene or interactions.
  */
-export function createMembersTreeData(faculty, domains) {
+export function createMembersTreeData(leadership = [], faculty = [], domains = []) {
   return {
     id: "q-bits",
     name: "Q-BITS",
     children: [
+      {
+        id: "leadership",
+        name: "Leadership",
+        tagline: "Presidency & Executive Leadership",
+        members: leadership.map((member) => ({ ...member, photoUrl: member.photoUrl || member.photo || PLACEHOLDER_PHOTO_URL })),
+      },
       {
         id: "faculty",
         name: "Faculty",
@@ -116,7 +122,7 @@ function EnergyPulse({ curve, color, phase, muted }) {
     if (!pulseRef.current) return;
     const progress = (clock.elapsedTime * 0.105 + phase) % 1;
     pulseRef.current.position.copy(curve.getPoint(progress));
-    const scale = muted ? 0.46 : 0.72 + Math.sin(clock.elapsedTime * 5 + phase * 9) * 0.12;
+    const scale = muted ? 0.46 : 0.72 + Math.sin(clock.elapsedTime * 4.5 + phase * 9) * 0.12;
     pulseRef.current.scale.setScalar(scale);
   });
 
@@ -155,10 +161,10 @@ function NetworkNode({ position, size, color, level, muted = false, active = fal
 
   useFrame(({ clock }) => {
     if (!nodeRef.current) return;
-    nodeRef.current.position.lerp(position, 0.085);
+    nodeRef.current.position.lerp(position, 0.12);
     const pulse = 1 + Math.sin(clock.elapsedTime * (level === "root" ? 2.1 : 1.7) + position.x) * (level === "member" ? 0.035 : 0.055);
     const emphasis = active ? 1.16 : hovered ? 1.1 : muted ? 0.84 : 1;
-    const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, pulse * emphasis, 0.12);
+    const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, pulse * emphasis, 0.14);
     nodeRef.current.scale.setScalar(scale);
     if (shellRef.current) shellRef.current.rotation.y = clock.elapsedTime * (level === "root" ? 0.32 : 0.16);
     if (auraRef.current) auraRef.current.material.opacity = muted ? 0.018 : active ? 0.15 : level === "root" ? 0.14 : 0.075;
@@ -180,7 +186,7 @@ function NetworkNode({ position, size, color, level, muted = false, active = fal
   return (
     <group ref={nodeRef} position={position}>
       <mesh ref={auraRef} scale={size * 2.5} renderOrder={0}>
-        <sphereGeometry args={[1, 20, 20]} />
+        <sphereGeometry args={[1, 10, 10]} />
         <meshBasicMaterial color={color} transparent opacity={0.08} depthWrite={false} toneMapped={false} />
       </mesh>
       <mesh
@@ -258,13 +264,13 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
 
   useFrame(({ clock }) => {
     if (!nodeRef.current) return;
-    nodeRef.current.position.lerp(position, 0.085);
+    nodeRef.current.position.lerp(position, 0.12);
     const emphasis = active || hovered ? 1.12 : muted ? 0.84 : 1;
-    const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, emphasis, 0.12);
+    const scale = THREE.MathUtils.lerp(nodeRef.current.scale.x, emphasis, 0.14);
     nodeRef.current.scale.setScalar(scale);
     const targetOpacity = texture ? (muted ? 0.22 : 1) : 0;
     if (photoMaterialRef.current) {
-      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(photoMaterialRef.current.opacity, targetOpacity, 0.12);
+      photoMaterialRef.current.opacity = THREE.MathUtils.lerp(photoMaterialRef.current.opacity, targetOpacity, 0.14);
     }
     if (auraRef.current) auraRef.current.material.opacity = muted ? 0.018 : hovered || active ? 0.16 : 0.075;
     if (borderMaterialRef.current) borderMaterialRef.current.opacity = muted ? 0.12 : hovered || active ? 0.92 : 0.58;
@@ -286,17 +292,17 @@ function PhotoNode({ member, position, size, color, muted = false, active = fals
   return (
     <group ref={nodeRef} position={position}>
       <mesh ref={auraRef} scale={size * 2.5} renderOrder={0}>
-        <sphereGeometry args={[1, 20, 20]} />
+        <sphereGeometry args={[1, 10, 10]} />
         <meshBasicMaterial color={color} transparent opacity={0.075} depthWrite={false} toneMapped={false} />
       </mesh>
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <RoundedBox args={[photoWidth + size * 0.12, photoHeight + size * 0.12, 0.16]} radius={size * 0.25} smoothness={3} position={[0, 0, -0.012]} renderOrder={1}>
+        <RoundedBox args={[photoWidth + size * 0.12, photoHeight + size * 0.12, 0.16]} radius={size * 0.25} smoothness={1} position={[0, 0, -0.012]} renderOrder={1}>
           <meshBasicMaterial ref={borderMaterialRef} color={color} transparent opacity={0.58} depthWrite={false} toneMapped={false} />
         </RoundedBox>
         <RoundedBox
           args={[photoWidth, photoHeight, 0.08]}
           radius={size * 0.12}
-          smoothness={3}
+          smoothness={1}
           onClick={(event) => {
             event.stopPropagation();
             onClick?.();
@@ -410,15 +416,15 @@ function MemberNode({ member, position, color, state, showLabel, onSelect }) {
         onClick={() => onSelect(member)}
         onHoverChange={setHovered}
       />
-      {(showLabel || hovered) && (
+      {(true || hovered) && (
         <SceneLabel
-          position={position.clone().add(new THREE.Vector3(0, 0.33, 0))}
+          position={position.clone().add(new THREE.Vector3(0, 0.42, 0))}
           title={member.name}
           subtitle={member.role}
           color={color}
-          size={0.13}
+          size={0.16}
           muted={muted}
-          maxWidth={1.9}
+          maxWidth={2.4}
         />
       )}
       {hovered && !muted && (
@@ -445,7 +451,7 @@ function Starfield({ count }) {
   }, [count]);
 
   useFrame(({ clock }) => {
-    if (pointsRef.current) pointsRef.current.rotation.y = clock.elapsedTime * 0.0035;
+    if (pointsRef.current) pointsRef.current.rotation.y = clock.elapsedTime * 0.0025;
   });
 
   return (
@@ -501,9 +507,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
       <fog attach="fog" args={["#06070c", 17, 35]} />
       <ambientLight intensity={0.38} />
       <directionalLight position={[0, 8, 8]} intensity={0.9} color="#d9faff" />
-      <pointLight position={ROOT_POSITION} color={ROOT_COLOR} intensity={2.8} distance={12} />
-      <Starfield count={reducedQuality ? 70 : 180} />
-      <RootNode />
+      <Starfield count={reducedQuality ? 50 : 120} />
 
       {tree.children.map((domain, domainIndex) => {
         const domainPosition = layout.domains.get(domain.id);
@@ -555,7 +559,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
                     position={memberPosition}
                     color={color}
                     state={state}
-                    showLabel={activeDomain === domain.id}
+                    showLabel={true}
                     onSelect={onMemberSelect}
                   />
                 </group>
@@ -615,13 +619,14 @@ function MemberDetailPanel({ member, onClose }) {
   );
 }
 
-export default function MembersTree3D({ faculty, domains, view, onViewChange }) {
-  const tree = useMemo(() => createMembersTreeData(faculty, domains), [faculty, domains]);
+export default function MembersTree3D({ leadership = [], faculty = [], domains = [], view, onViewChange }) {
+  const tree = useMemo(() => createMembersTreeData(leadership, faculty, domains), [leadership, faculty, domains]);
   const reducedQuality = useReducedSceneQuality();
   const viewportRef = useRef(null);
   const [activeDomain, setActiveDomain] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
   const [focusRequest, setFocusRequest] = useState({ id: null, version: 0 });
+  const [showInstructions, setShowInstructions] = useState(true);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -669,8 +674,8 @@ export default function MembersTree3D({ faculty, domains, view, onViewChange }) 
           className="h-full w-full"
           resize={{ scroll: false, debounce: 0 }}
           camera={{ position: [0, 0.75, 24], fov: 40, near: 0.1, far: 100 }}
-          dpr={reducedQuality ? [1, 1] : [1, 1.6]}
-          gl={{ antialias: !reducedQuality, alpha: false, powerPreference: "high-performance" }}
+          dpr={reducedQuality ? [1, 1] : [1, 1.2]}
+          gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
             gl.toneMapping = THREE.ACESFilmicToneMapping;
             gl.toneMappingExposure = 1.04;
@@ -691,20 +696,30 @@ export default function MembersTree3D({ faculty, domains, view, onViewChange }) 
 
       <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_50%_42%,transparent_25%,rgba(1,2,6,0.2)_64%,rgba(1,2,6,0.82)_100%),radial-gradient(circle_at_50%_0%,rgba(245,89,10,0.12),transparent_36%),radial-gradient(circle_at_50%_72%,rgba(34,211,238,0.07),transparent_48%)]" />
 
-      <div className="pointer-events-none absolute left-4 top-4 z-10 max-w-[18rem] rounded-xl border border-white/10 bg-[#090A10]/72 px-3.5 py-3 shadow-[0_12px_35px_rgba(0,0,0,0.42)] backdrop-blur-md sm:left-6 sm:top-6">
-        <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
-        <span className="comic-corner-bracket comic-corner-bracket--br" aria-hidden="true" />
-        <p className="mb-2 font-mono text-sm font-black uppercase tracking-[0.14em] text-white">Our Members</p>
-        <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A3D]">Q-BITS // neural roster</p>
-        <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-stone-400">
-          <span className="block">Mouse: Drag to pan · Right-click drag to orbit · Scroll to zoom</span>
-          <span className="block">Touch: Two-finger drag to pan · Two-finger twist to rotate · Pinch to zoom</span>
-        </p>
-        <button type="button" onClick={resetView} className="pointer-events-auto mt-3 inline-flex items-center gap-2 rounded-lg border border-white/15 bg-[#090A10]/85 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-stone-200 shadow-[0_0_20px_rgba(0,0,0,0.38)] backdrop-blur-md transition hover:border-[#F5590A]/80 hover:bg-[#F5590A]/15 hover:text-white">
-          <span className="text-[#FF8A3D]" aria-hidden="true">⌁</span>
-          Reset view
-        </button>
-      </div>
+      {showInstructions && (
+        <div className="pointer-events-auto absolute left-4 top-4 z-10 max-w-[18rem] rounded-xl border border-white/10 bg-[#090A10]/72 px-3.5 py-3 shadow-[0_12px_35px_rgba(0,0,0,0.42)] backdrop-blur-md sm:left-6 sm:top-6">
+          <button
+            type="button"
+            onClick={() => setShowInstructions(false)}
+            className="absolute right-2.5 top-2.5 rounded-full px-1.5 py-0.5 font-mono text-xs text-stone-400 transition hover:bg-white/10 hover:text-white"
+            aria-label="Close how-to-use panel"
+          >
+            ×
+          </button>
+          <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
+          <span className="comic-corner-bracket comic-corner-bracket--br" aria-hidden="true" />
+          <p className="mb-2 pr-6 font-mono text-sm font-black uppercase tracking-[0.14em] text-white">Our Members</p>
+          <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A3D]">Q-BITS // neural roster</p>
+          <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-stone-400">
+            <span className="block">Mouse: Drag to pan · Right-click drag to orbit · Scroll to zoom</span>
+            <span className="block">Touch: Two-finger drag to pan · Two-finger twist to rotate · Pinch to zoom</span>
+          </p>
+          <button type="button" onClick={resetView} className="pointer-events-auto mt-3 inline-flex items-center gap-2 rounded-lg border border-white/15 bg-[#090A10]/85 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-stone-200 shadow-[0_0_20px_rgba(0,0,0,0.38)] backdrop-blur-md transition hover:border-[#F5590A]/80 hover:bg-[#F5590A]/15 hover:text-white">
+            <span className="text-[#FF8A3D]" aria-hidden="true">⌁</span>
+            Reset view
+          </button>
+        </div>
+      )}
 
       <div className="pointer-events-none absolute right-4 top-4 z-10 flex flex-col items-end gap-2 sm:right-6 sm:top-6">
         <div className="pointer-events-auto">

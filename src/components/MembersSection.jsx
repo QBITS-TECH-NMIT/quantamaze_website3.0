@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import {
+  FACULTY_DATA as GENERATED_FACULTY_DATA,
+  LEADERSHIP_DATA as GENERATED_LEADERSHIP_DATA,
+  DOMAINS_DATA as GENERATED_DOMAINS_DATA,
+} from "@/lib/teamMembers";
 
 const MembersTree3D = dynamic(() => import("@/components/MembersTree3D"), {
   ssr: false,
@@ -13,131 +18,160 @@ const MembersTree3D = dynamic(() => import("@/components/MembersTree3D"), {
 // MEMBER DATA STRUCTURE
 // ─────────────────────────────────────────────────────────────────
 
-export const FACULTY_DATA = [
-  { name: "Faculty Name", role: "Faculty Advisor", photo: null, code: "FAC-01" },
-  { name: "Faculty Name", role: "Faculty Advisor", photo: null, code: "FAC-02" },
-  { name: "Faculty Name", role: "Faculty Advisor", photo: null, code: "FAC-03" },
-];
+export const FACULTY_DATA = Array.isArray(GENERATED_FACULTY_DATA) ? GENERATED_FACULTY_DATA : [];
 
-export const DOMAINS_DATA = [
-  {
-    id: "core",
-    index: "01",
-    name: "Core",
-    tagline: "Executive Leadership & General Club Management",
-    members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "CR-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "CR-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "CR-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "CR-04" },
-    ],
-  },
+export const LEADERSHIP_DATA = Array.isArray(GENERATED_LEADERSHIP_DATA) && GENERATED_LEADERSHIP_DATA.length
+  ? GENERATED_LEADERSHIP_DATA
+  : [
+      { name: "ML Shikhar", role: "President", photo: null, photoUrl: null, code: "LE-01", isTopLeadership: true },
+      { name: "Shreya Rotti", role: "Vice President", photo: null, photoUrl: null, code: "LE-02", isTopLeadership: true },
+    ];
+
+export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_DOMAINS_DATA.length
+  ? GENERATED_DOMAINS_DATA
+  : [
   {
     id: "technical",
-    index: "02",
+    index: "01",
     name: "Technical",
     tagline: "Architecture, Systems & Quantum Computing",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "TC-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "TC-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "TC-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "TC-04" },
+      { name: "Syed Maaz", role: "Head", photo: null, photoUrl: null, code: "TC-01", isHead: true },
+      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
+      { name: "Prisha Ruturaj C", role: "Member", photo: null, photoUrl: null, code: "TC-03" },
+      { name: "Vemala Prajwal", role: "Member", photo: null, photoUrl: null, code: "TC-04" },
+      { name: "Haripriya Katabathina", role: "Member", photo: null, photoUrl: null, code: "TC-05" },
+      { name: "Hiranmayi", role: "Member", photo: null, photoUrl: null, code: "TC-06" },
+      { name: "Pranav Rohan", role: "Member", photo: null, photoUrl: null, code: "TC-07" },
+      { name: "Farhan Akhtar", role: "Member", photo: null, photoUrl: null, code: "TC-08" },
+      { name: "Jadyn", role: "Member", photo: null, photoUrl: null, code: "TC-09" },
+      { name: "Arnav Raj Karn", role: "Member", photo: null, photoUrl: null, code: "TC-10" },
     ],
   },
   {
     id: "administration",
-    index: "03",
+    index: "02",
     name: "Administration",
     tagline: "Governance, Strategy & Internal Operations",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "AD-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "AD-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "AD-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "AD-04" },
+      { name: "Haseena Tawfeeqa", role: "Head", photo: null, photoUrl: null, code: "AD-01", isHead: true },
+      { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
+      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-03" },
+      { name: "Abhianv Deo", role: "Member", photo: null, photoUrl: null, code: "AD-04" },
+      { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
+      { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
+      { name: "D Ganesh", role: "Member", photo: null, photoUrl: null, code: "AD-07" },
+      { name: "Raksha P", role: "Member", photo: null, photoUrl: null, code: "AD-08" },
     ],
   },
   {
     id: "design",
-    index: "04",
+    index: "03",
     name: "Design",
     tagline: "Visual Identity, UI/UX & Creative Media",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "DS-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "DS-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "DS-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "DS-04" },
+      { name: "Maaz", role: "Head", photo: null, photoUrl: null, code: "DS-01", isHead: true },
+      { name: "Vaibhavi", role: "Head", photo: null, photoUrl: null, code: "DS-02", isHead: true },
+      { name: "Melisha Dsouza", role: "Member", photo: null, photoUrl: null, code: "DS-03" },
+      { name: "Anupriya Kumari", role: "Member", photo: null, photoUrl: null, code: "DS-04" },
+      { name: "Swasti Jain", role: "Member", photo: null, photoUrl: null, code: "DS-05" },
+      { name: "Shanmukhi Vytlaa", role: "Member", photo: null, photoUrl: null, code: "DS-06" },
+      { name: "Dheshna M", role: "Member", photo: null, photoUrl: null, code: "DS-07" },
+      { name: "Adhya", role: "Member", photo: null, photoUrl: null, code: "DS-08" },
+      { name: "Kulsum", role: "Member", photo: null, photoUrl: null, code: "DS-09" },
+      { name: "Arpita Thakur", role: "Member", photo: null, photoUrl: null, code: "DS-10" },
     ],
   },
   {
     id: "events",
-    index: "05",
+    index: "04",
     name: "Events",
     tagline: "Hackathon Execution, Logistics & Stage Management",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "EV-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "EV-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "EV-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "EV-04" },
+      { name: "Akshata Choudi", role: "Head", photo: null, photoUrl: null, code: "EV-01", isHead: true },
+      { name: "Soham N Jain", role: "Member", photo: null, photoUrl: null, code: "EV-02" },
+      { name: "Shreyas S Patil", role: "Member", photo: null, photoUrl: null, code: "EV-03" },
+      { name: "Keerthana", role: "Member", photo: null, photoUrl: null, code: "EV-04" },
+      { name: "Anya Miryam Camoens", role: "Member", photo: null, photoUrl: null, code: "EV-05" },
+      { name: "M Hemanth Reddy", role: "Member", photo: null, photoUrl: null, code: "EV-06" },
+      { name: "V Jayanth", role: "Member", photo: null, photoUrl: null, code: "EV-07" },
+      { name: "Raksha Jagadeesha", role: "Member", photo: null, photoUrl: null, code: "EV-08" },
     ],
   },
   {
     id: "hospitality",
-    index: "06",
+    index: "05",
     name: "Hospitality",
     tagline: "Guest Relations, Accommodations & VIP Care",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "HS-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "HS-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "HS-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "HS-04" },
+      { name: "Deepthi M", role: "Head", photo: null, photoUrl: null, code: "HS-01", isHead: true },
+      { name: "Akshay", role: "Member", photo: null, photoUrl: null, code: "HS-02" },
+      { name: "Harshith D Raj", role: "Member", photo: null, photoUrl: null, code: "HS-03" },
     ],
   },
   {
     id: "marketing-and-sponsorship",
-    index: "07",
+    index: "06",
     name: "Marketing And Sponsorship",
     tagline: "Corporate Partnerships, Outreach & Brand Growth",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "MK-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "MK-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "MK-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "MK-04" },
+      { name: "Kotresh", role: "Head", photo: null, photoUrl: null, code: "MK-01", isHead: true },
+      { name: "Rishiman Dadwal", role: "Member", photo: null, photoUrl: null, code: "MK-02" },
+      { name: "T Lokeshwar Reddy", role: "Member", photo: null, photoUrl: null, code: "MK-03" },
+      { name: "Varsha Sanjay", role: "Member", photo: null, photoUrl: null, code: "MK-04" },
+      { name: "Baibhav Kumar", role: "Member", photo: null, photoUrl: null, code: "MK-05" },
+      { name: "Ankit", role: "Member", photo: null, photoUrl: null, code: "MK-06" },
+      { name: "Veeksha Reddy", role: "Member", photo: null, photoUrl: null, code: "MK-07" },
+      { name: "Zainaba", role: "Member", photo: null, photoUrl: null, code: "MK-08" },
     ],
   },
   {
     id: "operations",
-    index: "08",
+    index: "07",
     name: "Operations",
     tagline: "Resource Planning, Security & Venue Setup",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "OP-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "OP-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "OP-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "OP-04" },
+      { name: "Vaibhavi L", role: "Head", photo: null, photoUrl: null, code: "OP-01", isHead: true },
+      { name: "Dhruvisha", role: "Member", photo: null, photoUrl: null, code: "OP-02" },
+      { name: "Sanjana N", role: "Member", photo: null, photoUrl: null, code: "OP-03" },
+      { name: "Sri Charan", role: "Member", photo: null, photoUrl: null, code: "OP-04" },
+      { name: "Mohammed Sohail Hussain", role: "Member", photo: null, photoUrl: null, code: "OP-05" },
+      { name: "Manas Reddy", role: "Member", photo: null, photoUrl: null, code: "OP-06" },
+      { name: "Aditi", role: "Member", photo: null, photoUrl: null, code: "OP-07" },
+      { name: "Ritik Kumar Tiwary", role: "Member", photo: null, photoUrl: null, code: "OP-08" },
     ],
   },
   {
     id: "rnd",
-    index: "09",
+    index: "08",
     name: "R&D",
     tagline: "Quantum Research, Whitepapers & Experimental Circuits",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "RD-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "RD-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "RD-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "RD-04" },
+      { name: "Hari Narayan", role: "Head", photo: null, photoUrl: null, code: "RD-01", isHead: true },
+      { name: "Dhruvajyoti Malik", role: "Member", photo: null, photoUrl: null, code: "RD-02" },
+      { name: "Samarth Harapanahalli", role: "Member", photo: null, photoUrl: null, code: "RD-03" },
+      { name: "Hana Fathima Ameen", role: "Member", photo: null, photoUrl: null, code: "RD-04" },
+      { name: "Neha", role: "Member", photo: null, photoUrl: null, code: "RD-05" },
+      { name: "Sharanya", role: "Member", photo: null, photoUrl: null, code: "RD-06" },
+      { name: "Nanditha", role: "Member", photo: null, photoUrl: null, code: "RD-07" },
+      { name: "A S Harish", role: "Member", photo: null, photoUrl: null, code: "RD-08" },
+      { name: "Shreeya Attri", role: "Member", photo: null, photoUrl: null, code: "RD-09" },
     ],
   },
   {
     id: "social-media",
-    index: "10",
+    index: "09",
     name: "Social Media",
     tagline: "Digital Campaigns, Content Creation & Community",
     members: [
-      { name: "Member Name", role: "Domain Head", photo: null, code: "SM-01" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "SM-02" },
-      { name: "Member Name", role: "Core Member", photo: null, code: "SM-03" },
-      { name: "Member Name", role: "Member", photo: null, code: "SM-04" },
+      { name: "Harshitha S", role: "Head", photo: null, photoUrl: null, code: "SM-01", isHead: true },
+      { name: "Lingala Hasini Reddy", role: "Member", photo: null, photoUrl: null, code: "SM-02" },
+      { name: "Haniel K Joseph", role: "Member", photo: null, photoUrl: null, code: "SM-03" },
+      { name: "Varun Sharma", role: "Member", photo: null, photoUrl: null, code: "SM-04" },
+      { name: "Tejas S Reddy", role: "Member", photo: null, photoUrl: null, code: "SM-05" },
+      { name: "Mradul", role: "Member", photo: null, photoUrl: null, code: "SM-06" },
+      { name: "Varsha R", role: "Member", photo: null, photoUrl: null, code: "SM-07" },
+      { name: "Gayatri", role: "Member", photo: null, photoUrl: null, code: "SM-08" },
     ],
   },
 ];
@@ -413,10 +447,27 @@ export function MemberGrid({ members }) {
 // 2D VIEW (11 Stacked Sections in Exact Specified Order)
 // ─────────────────────────────────────────────────────────────────
 
-export function View2D({ faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
+export function View2D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
   return (
     <div className="space-y-24 sm:space-y-32 lg:space-y-36">
-      {/* 1. Faculty Section */}
+      <motion.section
+        id="section-leadership"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.06 }}
+        aria-label="Leadership"
+        className="scroll-mt-32"
+      >
+        <SectionHeading
+          index="00"
+          title="Leadership"
+          subtitle="Presidency & Executive Leadership"
+          memberCount={leadership.length}
+        />
+        <MemberGrid members={leadership} />
+      </motion.section>
+
       <motion.section
         id="section-faculty"
         variants={sectionVariants}
@@ -427,7 +478,7 @@ export function View2D({ faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
         className="scroll-mt-32"
       >
         <SectionHeading
-          index="00"
+          index="01"
           title="Faculty"
           subtitle="Mentors, Advisors & Academic Guidance"
           memberCount={faculty.length}
@@ -435,7 +486,6 @@ export function View2D({ faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
         <MemberGrid members={faculty} />
       </motion.section>
 
-      {/* 2 to 11. 10 Domain Sections in Exact Specified Order */}
       {domains.map((domain) => (
         <motion.section
           key={domain.id}
@@ -464,9 +514,10 @@ export function View2D({ faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
 // 3D INTERACTIVE NETWORK VIEW
 // ─────────────────────────────────────────────────────────────────
 
-export function View3D({ faculty = FACULTY_DATA, domains = DOMAINS_DATA, view, onViewChange }) {
+export function View3D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, domains = DOMAINS_DATA, view, onViewChange }) {
+  const domainsFor3D = domains.filter((d) => d.id !== "core");
   return (
-    <MembersTree3D faculty={faculty} domains={domains} view={view} onViewChange={onViewChange} />
+    <MembersTree3D leadership={leadership} faculty={faculty} domains={domainsFor3D} view={view} onViewChange={onViewChange} />
   );
 }
 

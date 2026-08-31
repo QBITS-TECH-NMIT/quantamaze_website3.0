@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function Footer() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLinkClick = (e, href) => {
     if (href.startsWith("#")) {
@@ -35,6 +36,31 @@ export default function Footer() {
             : "smooth",
         });
         window.history.replaceState(null, "", href);
+      }
+      return;
+    }
+
+    if (href.includes("#")) {
+      const [route, hash] = href.split("#");
+      e.preventDefault();
+
+      if (route && route !== pathname) {
+        window.location.assign(`${route}#${hash}`);
+        return;
+      }
+
+      if (hash) {
+        const el = document.getElementById(hash);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 70;
+          window.scrollTo({
+            top: Math.max(0, top),
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "auto"
+              : "smooth",
+          });
+          window.history.replaceState(null, "", href);
+        }
       }
     }
   };
@@ -179,8 +205,8 @@ export default function Footer() {
                   <Link
                     href={link.href}
                     onClick={(e) => {
-                      if (link.href.startsWith("/#")) {
-                        handleLinkClick(e, link.href.replace("/", ""));
+                      if (link.href.startsWith("/#") || link.href.includes("#")) {
+                        handleLinkClick(e, link.href);
                       }
                     }}
                     className="group inline-flex items-center gap-2 text-xs font-medium text-stone-400 transition-colors duration-200 hover:text-[#FFA94D] sm:text-sm"
@@ -278,7 +304,76 @@ export default function Footer() {
             </button>
           </div>
         </div>
+
+        <div className="mt-4 border-t border-transparent pt-4">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-[#5eead4]/60 via-[#8b5cf6]/70 to-[#F5590A]/60" />
+          <div className="flex items-center justify-center py-5 text-center font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-stone-400 sm:text-xs">
+            <span className="qbits-footer-line flex items-center justify-center gap-1">
+              <span className="text-stone-300">Made with</span>
+              <span className="qbits-footer-heart" aria-hidden="true">♥️</span>
+              <span className="text-stone-300">by</span>
+              <span className="qbits-footer-brand ml-1" aria-label="Q-Bits">Q-Bits</span>
+            </span>
+          </div>
+        </div>
       </div>
+
+      <style jsx>{`
+        .qbits-footer-line {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+
+        .qbits-footer-heart {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          top: -1px;
+          font-size: 0.92em;
+          line-height: 1;
+          filter: drop-shadow(0 0 8px rgba(94, 234, 212, 0.7));
+          animation: qbits-heart-pulse 2.6s ease-in-out infinite;
+        }
+
+        .qbits-footer-brand {
+          position: relative;
+          display: inline-block;
+          background: linear-gradient(90deg, #67e8f9 0%, #a78bfa 40%, #f59e0b 100%);
+          background-size: 180% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          text-shadow: 0 0 14px rgba(103, 232, 249, 0.22);
+          transition: text-shadow 0.3s ease, filter 0.3s ease;
+        }
+
+        .qbits-footer-brand:hover {
+          filter: brightness(1.16);
+          text-shadow: 0 0 18px rgba(168, 85, 247, 0.38), 0 0 22px rgba(103, 232, 249, 0.28);
+        }
+
+        @keyframes qbits-heart-pulse {
+          0%, 100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 8px rgba(94, 234, 212, 0.5));
+          }
+          20% {
+            transform: scale(1.12);
+            filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.7));
+          }
+          40% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 10px rgba(94, 234, 212, 0.75));
+          }
+          60% {
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 16px rgba(103, 232, 249, 0.85));
+          }
+        }
+      `}</style>
     </footer>
   );
 }

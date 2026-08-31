@@ -43,8 +43,8 @@ export const LEADERSHIP_DATA = [
     "role": "President",
     "code": "LE-01",
     "isTopLeadership": true,
-    "photo": null,
-    "photoUrl": null
+    "photo": "/team-photos/le_01.jpg",
+    "photoUrl": "/team-photos/le_01.jpg"
   },
   {
     "name": "Shreya Rotti",
@@ -358,8 +358,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "HS-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/hs_01.jpg",
+        "photoUrl": "/team-photos/hs_01.jpg"
       },
       {
         "name": "Akshay",

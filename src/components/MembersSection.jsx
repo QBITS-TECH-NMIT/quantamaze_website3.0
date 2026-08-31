@@ -429,24 +429,6 @@ export function View2D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, d
   return (
     <div className="space-y-24 sm:space-y-32 lg:space-y-36">
       <motion.section
-        id="section-leadership"
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.06 }}
-        aria-label="Leadership"
-        className="scroll-mt-32"
-      >
-        <SectionHeading
-          index="00"
-          title="Leadership"
-          subtitle="Presidency & Executive Leadership"
-          memberCount={leadership.length}
-        />
-        <MemberGrid members={leadership} />
-      </motion.section>
-
-      <motion.section
         id="section-faculty"
         variants={sectionVariants}
         initial="hidden"
@@ -456,12 +438,30 @@ export function View2D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, d
         className="scroll-mt-32"
       >
         <SectionHeading
-          index="01"
+          index="00"
           title="Faculty"
           subtitle="Mentors, Advisors & Academic Guidance"
           memberCount={faculty.length}
         />
         <MemberGrid members={faculty} />
+      </motion.section>
+
+      <motion.section
+        id="section-leadership"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.06 }}
+        aria-label="Leadership"
+        className="scroll-mt-32"
+      >
+        <SectionHeading
+          index="01"
+          title="Leadership"
+          subtitle="Presidency & Executive Leadership"
+          memberCount={leadership.length}
+        />
+        <MemberGrid members={leadership} />
       </motion.section>
 
       {domains.map((domain) => (

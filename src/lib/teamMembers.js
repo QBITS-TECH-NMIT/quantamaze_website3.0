@@ -1,18 +1,18 @@
 // This file is generated dynamically by scripts/generate-team-members.mjs. Do not edit manually.
 export const FACULTY_DATA = [
   {
-    "name": "Dr Lakshmanan M",
-    "role": "Faculty",
-    "code": "FA-01",
-    "photo": "/team-photos/fa_01.jpg",
-    "photoUrl": "/team-photos/fa_01.jpg"
-  },
-  {
     "name": "Dr N Samanvita",
     "role": "Faculty",
     "code": "FA-02",
     "photo": "/team-photos/fa_02.jpg",
     "photoUrl": "/team-photos/fa_02.jpg"
+  },
+  {
+    "name": "Dr Lakshmanan M",
+    "role": "Faculty",
+    "code": "FA-01",
+    "photo": "/team-photos/fa_01.jpg",
+    "photoUrl": "/team-photos/fa_01.jpg"
   },
   {
     "name": "Dr Amruth Ramesh",

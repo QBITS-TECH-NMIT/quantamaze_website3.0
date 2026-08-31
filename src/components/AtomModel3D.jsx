@@ -141,6 +141,7 @@ function AtomScene({ rotation, shouldReduceMotion }) {
 export default function AtomModel3D({ rotation = { x: -16, y: 32 }, shouldReduceMotion = false }) {
   return (
     <Canvas
+      frameloop="demand"
       camera={{ position: [0, 0, 5.2], fov: 44 }}
       dpr={[1, 1.5]}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}

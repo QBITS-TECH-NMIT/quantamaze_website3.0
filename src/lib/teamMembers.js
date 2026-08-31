@@ -161,6 +161,7 @@ export const DOMAINS_DATA = [
         "name": "LD Sai Charan",
         "role": "Member",
         "code": "AD-03",
+        "imagePosition": "50% 18%",
         "photo": "/team-photos/ad_03.jpg",
         "photoUrl": "/team-photos/ad_03.jpg"
       },
@@ -220,8 +221,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "DS-02",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/ds_02.jpg",
+        "photoUrl": "/team-photos/ds_02.jpg"
       },
       {
         "name": "Melisha Dsouza",
@@ -526,13 +527,6 @@ export const DOMAINS_DATA = [
         "code": "RD-02",
         "photo": "/team-photos/rd_02.jpg",
         "photoUrl": "/team-photos/rd_02.jpg"
-      },
-      {
-        "name": "Samarth Harapanahalli",
-        "role": "Member",
-        "code": "RD-03",
-        "photo": null,
-        "photoUrl": null
       },
       {
         "name": "Hana Fathima Ameen",

@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Billboard, Html, OrbitControls, RoundedBox, Text } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, memo } from "react";
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 
@@ -155,6 +155,8 @@ function EnergyEdge({ from, to, color, phase, state, showPulse }) {
   );
 }
 
+const MemoEnergyEdge = memo(EnergyEdge);
+
 function NetworkNode({ position, size, color, level, muted = false, active = false, onClick, onHoverChange }) {
   const nodeRef = useRef();
   const shellRef = useRef();
@@ -219,6 +221,8 @@ function NetworkNode({ position, size, color, level, muted = false, active = fal
     </group>
   );
 }
+
+const MemoNetworkNode = memo(NetworkNode);
 
 // Global texture cache to prevent duplicate canvas/image memory overhead
 const textureCache = new Map();
@@ -609,6 +613,8 @@ function PhotoNode({
   );
 }
 
+const MemoPhotoNode = memo(PhotoNode);
+
 function SceneLabel({ position, title, subtitle, color, size = 0.22, emphasis = false, muted = false, maxWidth = 3.3 }) {
   return (
     <Billboard position={position} follow lockX={false} lockY={false} lockZ={false}>
@@ -651,7 +657,7 @@ function SceneLabel({ position, title, subtitle, color, size = 0.22, emphasis = 
 function RootNode() {
   return (
     <>
-      <NetworkNode position={ROOT_POSITION} size={0.74} color={ROOT_COLOR} level="root" />
+      <MemoNetworkNode position={ROOT_POSITION} size={0.74} color={ROOT_COLOR} level="root" />
       <SceneLabel
         position={ROOT_POSITION.clone().add(new THREE.Vector3(0, 1.32, 0))}
         title="Q-BITS"
@@ -697,7 +703,7 @@ function MemberNode({ member, position, color, state, showLabel, onSelect }) {
 
   return (
     <>
-      <PhotoNode
+      <MemoPhotoNode
         member={member}
         position={position}
         size={0.24}
@@ -791,7 +797,13 @@ function CameraRig({ controlsRef, focusRequest, domainPositions }) {
 
 function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRequest, reducedQuality }) {
   const controlsRef = useRef();
+  const { invalidate } = useThree();
   const layout = useMemo(() => createTreeLayout(tree, activeDomain), [tree, activeDomain]);
+
+  // Continuously invalidate frames while animations are happening
+  useFrame(() => {
+    invalidate();
+  });
 
   return (
     <>
@@ -806,7 +818,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
         const state = activeDomain ? (activeDomain === domain.id ? "active" : "muted") : "default";
         return (
           <group key={domain.id}>
-            <EnergyEdge
+            <MemoEnergyEdge
               from={ROOT_POSITION}
               to={domainPosition}
               color={color}
@@ -814,7 +826,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
               state={state}
               showPulse={!reducedQuality && (state === "active" || domainIndex % 2 === 0)}
             />
-            <NetworkNode
+            <MemoNetworkNode
               position={domainPosition}
               size={0.43}
               color={color}
@@ -837,7 +849,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
               const memberPosition = layout.members.get(`${domain.id}-${memberIndex}`);
               return (
                 <group key={`${domain.id}-${member.code || memberIndex}`}>
-                  <EnergyEdge
+                  <MemoEnergyEdge
                     from={domainPosition}
                     to={memberPosition}
                     color={color}
@@ -968,6 +980,7 @@ export default function MembersTree3D({ leadership = [], faculty = [], domains =
       <div className="members-3d-canvas absolute inset-0 z-0 h-full w-full bg-[#06070c]">
         <Canvas
           className="h-full w-full"
+          frameloop="demand"
           resize={{ scroll: false, debounce: 0 }}
           camera={{ position: [0, 0.75, 24], fov: 40, near: 0.1, far: 100 }}
           dpr={reducedQuality ? [1, 1] : [1, 1.2]}

@@ -149,13 +149,13 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     members: [
       { name: "Hari Narayan", role: "Head", photo: null, photoUrl: null, code: "RD-01", isHead: true },
       { name: "Dhruvajyoti Malik", role: "Member", photo: null, photoUrl: null, code: "RD-02" },
-      { name: "Samarth Harapanahalli", role: "Member", photo: null, photoUrl: null, code: "RD-03" },
       { name: "Hana Fathima Ameen", role: "Member", photo: null, photoUrl: null, code: "RD-04" },
       { name: "Neha", role: "Member", photo: null, photoUrl: null, code: "RD-05" },
       { name: "Sharanya", role: "Member", photo: null, photoUrl: null, code: "RD-06" },
       { name: "Nanditha", role: "Member", photo: null, photoUrl: null, code: "RD-07" },
       { name: "A S Harish", role: "Member", photo: null, photoUrl: null, code: "RD-08" },
       { name: "Shreeya Attri", role: "Member", photo: null, photoUrl: null, code: "RD-09" },
+      { name: "Kunal Kulkarni", role: "Member", photo: null, photoUrl: null, code: "RD-10" },
     ],
   },
   {

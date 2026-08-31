@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -536,6 +536,12 @@ function GroundGlow() {
   );
 }
 
+function ContinuousRender() {
+  const { invalidate } = useThree();
+  useFrame(() => invalidate());
+  return null;
+}
+
 export default function QuantumCubeScene({ showMaze = true, showQubit = true, showCornerNodes = true }) {
   // animationKey: a monotonically-increasing integer bumped on every explosion trigger.
   // Used as the overlay's React key so it fully unmounts+remounts each time, guaranteeing
@@ -595,6 +601,7 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
   return (
     <div className="relative h-full w-full">
       <Canvas
+        frameloop="demand"
         camera={{ position: [0, 0, 6.8], fov: 36, near: 0.1, far: 1000 }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
@@ -604,6 +611,7 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
           gl.outputColorSpace = THREE.SRGBColorSpace;
         }}
       >
+        <ContinuousRender />
         <ambientLight intensity={0.75} />
         <QuantumCoreCube
           showMaze={showMaze}
@@ -616,7 +624,7 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
         <GroundGlow />
         <OrbitControls enablePan={false} enableZoom={false} enableDamping dampingFactor={0.08} autoRotate autoRotateSpeed={0.5} rotateSpeed={0.9} />
         <EffectComposer>
-          <Bloom intensity={0.7} mipmapBlur luminanceThreshold={0.22} luminanceSmoothing={0.75} radius={0.8} />
+          <Bloom intensity={0.7} mipmapBlur luminanceThreshold={0.22} luminanceSmoothing={0.75} radius={0.8} resolutionScale={0.5} />
         </EffectComposer>
       </Canvas>
 

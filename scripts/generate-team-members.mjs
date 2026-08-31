@@ -175,7 +175,6 @@ const DOMAINS_DATA = [
     members: [
       { name: 'Hari Narayan', role: 'Head', code: 'RD-01', isHead: true },
       { name: 'Dhruvajyoti Malik', role: 'Member', code: 'RD-02' },
-      { name: 'Samarth Harapanahalli', role: 'Member', code: 'RD-03' },
       { name: 'Hana Fathima Ameen', role: 'Member', code: 'RD-04' },
       { name: 'Neha', role: 'Member', code: 'RD-05' },
       { name: 'Sharanya', role: 'Member', code: 'RD-06' },

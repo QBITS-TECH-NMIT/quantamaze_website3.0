@@ -34,7 +34,13 @@ const MATCH_THRESHOLD = 0.65;
 // OFFICIAL ROSTER DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FACULTY_DATA = [];
+const FACULTY_DATA = [
+  { name: 'Dr Lakshmanan M', role: 'Faculty', code: 'FA-01' },
+  { name: 'Dr N Samanvita', role: 'Faculty', code: 'FA-02' },
+  { name: 'Dr Amruth Ramesh', role: 'Faculty', code: 'FA-03' },
+  { name: 'Mr Melam Thirupathaiah', role: 'Faculty', code: 'FA-04' },
+  { name: 'Mrs Meghana A', role: 'Faculty', code: 'FA-05' },
+];
 
 const LEADERSHIP_DATA = [
   { name: 'ML Shikhar', role: 'President', code: 'LE-01', isTopLeadership: true },
@@ -70,7 +76,7 @@ const DOMAINS_DATA = [
     members: [
       { name: 'Haseena Tawfeeqa', role: 'Head', code: 'AD-01', isHead: true },
       { name: 'Rifa Anjum', role: 'Member', code: 'AD-02' },
-      { name: 'LD Sai Charan', role: 'Member', code: 'AD-03' },
+      { name: 'LD Sai Charan', role: 'Member', code: 'AD-03', imagePosition: '50% 18%' },
       { name: 'Abhianv Deo', role: 'Member', code: 'AD-04' },
       { name: 'Karthik S Rao', role: 'Member', code: 'AD-05' },
       { name: 'Keerthana Bhat', role: 'Member', code: 'AD-06' },
@@ -188,7 +194,7 @@ const DOMAINS_DATA = [
     members: [
       { name: 'Harshitha S', role: 'Head', code: 'SM-01', isHead: true },
       { name: 'Lingala Hasini Reddy', role: 'Member', code: 'SM-02' },
-      { name: 'Haniel K Joseph', role: 'Member', code: 'SM-03' },
+      { name: 'Haniel J Josephus', role: 'Member', code: 'SM-03' },
       { name: 'Varun Sharma', role: 'Member', code: 'SM-04' },
       { name: 'Tejas S Reddy', role: 'Member', code: 'SM-05' },
       { name: 'Mradul', role: 'Member', code: 'SM-06' },
@@ -517,8 +523,25 @@ function runPhotoMatching() {
       }
     }
 
-    // Sort candidate matches by highest score first to resolve any duplicate matches
-    candidateMatches.sort((a, b) => b.score - a.score);
+    const extensionPriority = {
+      '.png': 4,
+      '.webp': 3,
+      '.jpg': 2,
+      '.jpeg': 2,
+      '.gif': 1,
+      '.avif': 1,
+    };
+
+    // Sort candidate matches by highest score first, then prefer higher-quality formats
+    // for exact same-name duplicates (e.g. Syed_Maaz_Tech.jpg vs Syed_Maaz_tech.png).
+    candidateMatches.sort((a, b) => {
+      const scoreDiff = b.score - a.score;
+      if (scoreDiff !== 0) return scoreDiff;
+
+      const aPriority = extensionPriority[path.extname(a.file).toLowerCase()] ?? 0;
+      const bPriority = extensionPriority[path.extname(b.file).toLowerCase()] ?? 0;
+      return bPriority - aPriority;
+    });
 
     for (const match of candidateMatches) {
       if (claimedIndices.has(match.memberIndex)) {

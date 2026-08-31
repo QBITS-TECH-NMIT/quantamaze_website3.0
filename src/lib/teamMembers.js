@@ -1,5 +1,41 @@
 // This file is generated dynamically by scripts/generate-team-members.mjs. Do not edit manually.
-export const FACULTY_DATA = [];
+export const FACULTY_DATA = [
+  {
+    "name": "Dr Lakshmanan M",
+    "role": "Faculty",
+    "code": "FA-01",
+    "photo": "/team-photos/fa_01.jpg",
+    "photoUrl": "/team-photos/fa_01.jpg"
+  },
+  {
+    "name": "Dr N Samanvita",
+    "role": "Faculty",
+    "code": "FA-02",
+    "photo": "/team-photos/fa_02.jpg",
+    "photoUrl": "/team-photos/fa_02.jpg"
+  },
+  {
+    "name": "Dr Amruth Ramesh",
+    "role": "Faculty",
+    "code": "FA-03",
+    "photo": "/team-photos/fa_03.jpg",
+    "photoUrl": "/team-photos/fa_03.jpg"
+  },
+  {
+    "name": "Mr Melam Thirupathaiah",
+    "role": "Faculty",
+    "code": "FA-04",
+    "photo": "/team-photos/fa_04.jpg",
+    "photoUrl": "/team-photos/fa_04.jpg"
+  },
+  {
+    "name": "Mrs Meghana A",
+    "role": "Faculty",
+    "code": "FA-05",
+    "photo": "/team-photos/fa_05.jpg",
+    "photoUrl": "/team-photos/fa_05.jpg"
+  }
+];
 
 export const LEADERSHIP_DATA = [
   {
@@ -15,8 +51,8 @@ export const LEADERSHIP_DATA = [
     "role": "Vice President",
     "code": "LE-02",
     "isTopLeadership": true,
-    "photo": null,
-    "photoUrl": null
+    "photo": "/team-photos/le_02.jpg",
+    "photoUrl": "/team-photos/le_02.jpg"
   }
 ];
 
@@ -32,8 +68,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "TC-01",
         "isHead": true,
-        "photo": "/team-photos/tc_01.jpg",
-        "photoUrl": "/team-photos/tc_01.jpg"
+        "photo": "/team-photos/tc_01.png",
+        "photoUrl": "/team-photos/tc_01.png"
       },
       {
         "name": "Janvika Malapati",
@@ -88,8 +124,8 @@ export const DOMAINS_DATA = [
         "name": "Jadyn",
         "role": "Member",
         "code": "TC-09",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/tc_09.jpg",
+        "photoUrl": "/team-photos/tc_09.jpg"
       },
       {
         "name": "Arnav Raj Karn",
@@ -111,8 +147,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "AD-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/ad_01.jpg",
+        "photoUrl": "/team-photos/ad_01.jpg"
       },
       {
         "name": "Rifa Anjum",
@@ -176,8 +212,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "DS-01",
         "isHead": true,
-        "photo": "/team-photos/ds_01.jpg",
-        "photoUrl": "/team-photos/ds_01.jpg"
+        "photo": "/team-photos/ds_01.png",
+        "photoUrl": "/team-photos/ds_01.png"
       },
       {
         "name": "Vaibhavi",
@@ -256,8 +292,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "EV-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/ev_01.jpg",
+        "photoUrl": "/team-photos/ev_01.jpg"
       },
       {
         "name": "Soham N Jain",
@@ -335,8 +371,8 @@ export const DOMAINS_DATA = [
         "name": "Harshith D Raj",
         "role": "Member",
         "code": "HS-03",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/hs_03.jpeg",
+        "photoUrl": "/team-photos/hs_03.jpeg"
       }
     ]
   },
@@ -416,8 +452,8 @@ export const DOMAINS_DATA = [
         "role": "Head",
         "code": "OP-01",
         "isHead": true,
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/op_01.jpg",
+        "photoUrl": "/team-photos/op_01.jpg"
       },
       {
         "name": "Dhruvisha",
@@ -516,8 +552,8 @@ export const DOMAINS_DATA = [
         "name": "Sharanya",
         "role": "Member",
         "code": "RD-06",
-        "photo": null,
-        "photoUrl": null
+        "photo": "/team-photos/rd_06.jpg",
+        "photoUrl": "/team-photos/rd_06.jpg"
       },
       {
         "name": "Nanditha",
@@ -571,7 +607,7 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/sm_02.jpg"
       },
       {
-        "name": "Haniel K Joseph",
+        "name": "Haniel J Josephus",
         "role": "Member",
         "code": "SM-03",
         "photo": "/team-photos/sm_03.jpg",

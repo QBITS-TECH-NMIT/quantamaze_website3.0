@@ -56,7 +56,7 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     members: [
       { name: "Haseena Tawfeeqa", role: "Head", photo: null, photoUrl: null, code: "AD-01", isHead: true },
       { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
-      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-03" },
+      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-03", imagePosition: "50% 18%" },
       { name: "Abhianv Deo", role: "Member", photo: null, photoUrl: null, code: "AD-04" },
       { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
       { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
@@ -166,7 +166,7 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     members: [
       { name: "Harshitha S", role: "Head", photo: null, photoUrl: null, code: "SM-01", isHead: true },
       { name: "Lingala Hasini Reddy", role: "Member", photo: null, photoUrl: null, code: "SM-02" },
-      { name: "Haniel K Joseph", role: "Member", photo: null, photoUrl: null, code: "SM-03" },
+      { name: "Haniel J Josephus", role: "Member", photo: null, photoUrl: null, code: "SM-03" },
       { name: "Varun Sharma", role: "Member", photo: null, photoUrl: null, code: "SM-04" },
       { name: "Tejas S Reddy", role: "Member", photo: null, photoUrl: null, code: "SM-05" },
       { name: "Mradul", role: "Member", photo: null, photoUrl: null, code: "SM-06" },
@@ -256,6 +256,26 @@ export function PlaceholderSilhouette({ code = "Q-01" }) {
 // ─────────────────────────────────────────────────────────────────
 
 export function MemberCard({ member }) {
+  const imagePosition =
+    member.imagePosition ||
+    (member.code === "DS-06"
+      ? "50% 42%"
+      : member.code === "EV-02"
+        ? "38% 68%"
+        : member.code === "MK-06"
+          ? "50% 55%"
+          : member.code === "OP-06"
+            ? "50% 40%"
+            : member.code === "OP-05"
+              ? "50% 35%"
+              : member.code === "OP-04"
+                ? "50% 75%"
+                : member.code === "SM-03"
+                  ? "50% 68%"
+                  : member.code === "RD-07"
+                    ? "50% 68%"
+                    : "50% 50%");
+
   return (
     <motion.div
       variants={cardVariants}
@@ -298,8 +318,8 @@ export function MemberCard({ member }) {
               src={member.photo || member.photoUrl}
               alt={member.name}
               style={{
-                objectPosition: member.code === "DS-06" ? "50% 42%" : member.code === "EV-02" ? "38% 68%" : member.code === "MK-06" ? "50% 55%" : member.code === "OP-06" ? "50% 40%" : member.code === "OP-05" ? "50% 35%" : member.code === "OP-04" ? "50% 75%" : member.code === "SM-03" ? "50% 68%" : member.code === "RD-07" ? "50% 68%" : "50% 35%",
-                transform: member.code === "EV-02" ? "translateX(18%) scale(1.55)" : member.code === "OP-05" ? "translateY(14%) scale(1.35)" : member.code === "OP-04" ? "translateY(-18%) scale(1.15)" : member.code === "SM-03" ? "translateY(-8%) scale(1.18)" : member.code === "RD-07" ? "translateY(-5%) scale(1.1)" : undefined,
+                objectPosition: member.code === "AD-03" ? "52% 22%" : member.code === "DS-06" ? "50% 42%" : member.code === "EV-02" ? "38% 68%" : member.code === "MK-06" ? "50% 55%" : member.code === "OP-06" ? "50% 40%" : member.code === "OP-05" ? "50% 35%" : member.code === "OP-04" ? "50% 75%" : member.code === "SM-03" ? "50% 68%" : member.code === "RD-07" ? "50% 68%" : "50% 35%",
+                transform: member.code === "AD-03" ? "translateX(2%) scale(1.18)" : member.code === "EV-02" ? "translateX(18%) scale(1.55)" : member.code === "OP-05" ? "translateY(14%) scale(1.35)" : member.code === "OP-04" ? "translateY(-18%) scale(1.15)" : member.code === "SM-03" ? "translateY(-8%) scale(1.18)" : member.code === "RD-07" ? "translateY(-5%) scale(1.1)" : undefined,
               }}
               className={`h-full w-full bg-[#08080E] object-cover transition-transform duration-500 ${member.code === "EV-02" ? "group-hover:scale-[1.6]" : member.code === "OP-05" ? "group-hover:scale-[1.4]" : member.code === "OP-04" ? "group-hover:scale-[1.2]" : "group-hover:scale-105"}`}
               loading="lazy"
@@ -486,7 +506,7 @@ export function View3D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, d
 export function ViewToggle({ view, onChange }) {
   return (
     <div
-      className="inline-flex items-center rounded-full border border-[#F5590A]/35 bg-[#08080E]/90 p-1.5 backdrop-blur-xl shadow-[0_0_25px_rgba(245,89,10,0.18)]"
+      className="inline-flex w-full max-w-[26rem] items-center gap-1 rounded-full border border-[#F5590A]/35 bg-[#08080E]/90 p-1.5 shadow-[0_0_25px_rgba(245,89,10,0.18)] backdrop-blur-xl sm:w-auto"
       role="group"
       aria-label="Select view mode"
     >
@@ -494,26 +514,26 @@ export function ViewToggle({ view, onChange }) {
         type="button"
         onClick={() => onChange("2d")}
         aria-pressed={view === "2d"}
-        className={`relative flex items-center gap-2 rounded-full px-6 py-2 font-mono text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+        className={`relative flex flex-1 items-center justify-center rounded-full px-5 py-2.5 font-mono text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 sm:px-8 ${
           view === "2d"
             ? "border border-[#F5590A]/60 bg-gradient-to-r from-[#F5590A] via-[#FF8A3D] to-[#EA580C] text-[#0A0A0A] shadow-[0_0_20px_rgba(245,89,10,0.6)]"
             : "text-stone-400 hover:text-white"
         }`}
       >
-        <span>2D Mode</span>
+        2D Mode
       </button>
-      
+
       <button
         type="button"
         onClick={() => onChange("3d")}
         aria-pressed={view === "3d"}
-        className={`relative flex items-center gap-2 rounded-full px-6 py-2 font-mono text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+        className={`relative flex flex-1 items-center justify-center rounded-full px-5 py-2.5 font-mono text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 sm:px-8 ${
           view === "3d"
             ? "border border-[#F5590A]/60 bg-gradient-to-r from-[#F5590A] via-[#FF8A3D] to-[#EA580C] text-[#0A0A0A] shadow-[0_0_20px_rgba(245,89,10,0.6)]"
             : "text-stone-400 hover:text-white"
         }`}
       >
-        <span>3D Mode</span>
+        3D Mode
       </button>
     </div>
   );

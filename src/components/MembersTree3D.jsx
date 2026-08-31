@@ -1018,9 +1018,31 @@ export default function MembersTree3D({ leadership = [], faculty = [], domains =
       )}
 
       <div className="pointer-events-none absolute right-4 top-4 z-10 flex flex-col items-end gap-2 sm:right-6 sm:top-6">
-        <div className="pointer-events-auto">
-          <button type="button" onClick={closeView} className="rounded-l-full border border-r-0 border-[#F5590A]/45 bg-[#08080E]/90 px-3 py-2 font-mono text-[10px] font-black uppercase tracking-wider text-stone-400 backdrop-blur-xl transition hover:text-white">2D</button>
-          <button type="button" onClick={() => onViewChange?.("3d")} aria-pressed={view === "3d"} className="rounded-r-full border border-[#F5590A]/60 bg-[#F5590A] px-3 py-2 font-mono text-[10px] font-black uppercase tracking-wider text-[#0A0A0A] shadow-[0_0_20px_rgba(245,89,10,0.45)]">3D</button>
+        <div className="pointer-events-auto inline-flex items-center overflow-hidden rounded-full border border-[#F5590A]/35 bg-[#08080E]/90 p-1 backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={closeView}
+            aria-pressed={view === "2d"}
+            className={`rounded-full px-3 py-2 font-mono text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+              view === "2d"
+                ? "bg-gradient-to-r from-[#F5590A] via-[#FF8A3D] to-[#EA580C] text-[#0A0A0A] shadow-[0_0_20px_rgba(245,89,10,0.45)]"
+                : "text-stone-400 hover:text-white"
+            }`}
+          >
+            2D
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewChange?.("3d")}
+            aria-pressed={view === "3d"}
+            className={`rounded-full px-3 py-2 font-mono text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+              view === "3d"
+                ? "bg-gradient-to-r from-[#F5590A] via-[#FF8A3D] to-[#EA580C] text-[#0A0A0A] shadow-[0_0_20px_rgba(245,89,10,0.45)]"
+                : "text-stone-400 hover:text-white"
+            }`}
+          >
+            3D
+          </button>
         </div>
       </div>
 

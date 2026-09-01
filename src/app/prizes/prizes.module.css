@@ -1,0 +1,660 @@
+.section {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #0A0A0A;
+  padding: 4rem 1.5rem;
+  color: #F2F2F2;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .section {
+    padding: 5rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 8rem 2rem;
+  }
+}
+
+.backgroundGlows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glowOne {
+  position: absolute;
+  right: 15%;
+  top: 15%;
+  width: 420px;
+  height: 420px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(245, 89, 10, 0.08) 0%, transparent 70%);
+  filter: blur(60px);
+}
+
+.glowTwo {
+  position: absolute;
+  left: 5%;
+  bottom: 20%;
+  width: 300px;
+  height: 300px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 183, 3, 0.05) 0%, transparent 70%);
+  filter: blur(60px);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 640px) {
+  .header {
+    margin-bottom: 4rem;
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #F5590A;
+  margin-bottom: 1rem;
+}
+
+.dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: #F5590A;
+  box-shadow: 0 0 8px rgba(245, 89, 10, 0.8);
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+}
+
+.title em {
+  font-style: normal;
+  background: linear-gradient(135deg, #F5590A 0%, #FFB066 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #A0A0A0;
+}
+
+@media (min-width: 640px) {
+  .subtitle {
+    font-size: 1.125rem;
+  }
+}
+
+/* Summary Card */
+.summaryCard {
+  margin: 3rem auto 4rem;
+  max-width: 900px;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(245, 89, 10, 0.2);
+  background: linear-gradient(135deg, rgba(245, 89, 10, 0.08) 0%, rgba(255, 183, 3, 0.05) 100%);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(245, 89, 10, 0.1);
+}
+
+@media (max-width: 640px) {
+  .summaryCard {
+    padding: 1.5rem;
+  }
+}
+
+.prizeBreakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(245, 89, 10, 0.15);
+}
+
+.breakdownItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.breakdownLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #A0A0A0;
+}
+
+.breakdownAmount {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #F5590A;
+}
+
+.totalPrize {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.totalLabel {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #808080;
+}
+
+.totalAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
+  font-weight: 800;
+  color: #F5590A;
+  text-shadow: 0 0 30px rgba(245, 89, 10, 0.3);
+}
+
+.currency {
+  font-size: 0.6em;
+  color: #FFB066;
+}
+
+/* Podium Section */
+.podiumSection {
+  margin: 4rem auto;
+  max-width: 1100px;
+}
+
+@media (min-width: 640px) {
+  .podiumSection {
+    margin: 5rem auto;
+  }
+}
+
+.podiumHeader {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.podiumHeader h2 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.podiumHeader p {
+  font-size: 0.95rem;
+  color: #A0A0A0;
+  margin: 0;
+}
+
+.podium {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .podium {
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 2rem;
+    align-items: flex-end;
+  }
+}
+
+.podiumCard {
+  position: relative;
+  padding: 2.5rem 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(20, 20, 22, 0.8) 0%, rgba(15, 15, 18, 0.8) 100%);
+  backdrop-filter: blur(8px);
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.podiumCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: radial-gradient(200px 200px at var(--gx, 50%) var(--gy, 50%), rgba(255, 207, 92, 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.podiumCard:hover {
+  border-color: rgba(245, 89, 10, 0.4);
+  box-shadow: 0 12px 32px -12px rgba(245, 89, 10, 0.3);
+}
+
+.podiumCard:hover::before {
+  opacity: 1;
+}
+
+.podiumCard.tierfirst {
+  padding-top: 3.5rem;
+  padding-bottom: 2.75rem;
+  border-color: rgba(255, 207, 92, 0.3);
+  background: linear-gradient(
+    180deg,
+    rgba(30, 22, 10, 0.9) 0%,
+    rgba(20, 18, 14, 0.8) 100%
+  );
+  box-shadow: 0 0 0 1px rgba(255, 207, 92, 0.1),
+    0 20px 40px -20px rgba(255, 207, 92, 0.2);
+}
+
+.podiumCard.tierfirst:hover {
+  border-color: rgba(255, 207, 92, 0.5);
+  box-shadow: 0 0 0 1px rgba(255, 207, 92, 0.1),
+    0 24px 48px -24px rgba(255, 207, 92, 0.3);
+}
+
+.crown {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  animation: floaty 3.4s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -8px);
+  }
+}
+
+.rankBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  margin: 0 auto 1.2rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #A0A0A0;
+  background: rgba(15, 15, 18, 0.6);
+  transition: all 0.35s;
+}
+
+.podiumCard.tierfirst .rankBadge {
+  background: linear-gradient(145deg, #FFCF5C, #D99A2B);
+  border-color: transparent;
+  color: #241B06;
+  box-shadow: 0 0 16px rgba(255, 207, 92, 0.4);
+}
+
+.podiumCard:hover .rankBadge {
+  transform: translateZ(30px) rotate(-8deg) scale(1.08);
+}
+
+.rankLabel {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A0A0A0;
+  margin: 0 0 0.75rem;
+}
+
+.podiumCard.tierfirst .rankLabel {
+  color: #FFCF5C;
+}
+
+.prizeAmount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: #FFA94D;
+}
+
+.podiumCard.tierfirst .prizeAmount {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: #FFCF5C;
+}
+
+.currency {
+  font-size: 0.6em;
+  color: #FFB066;
+}
+
+.podiumCard.tierfirst .currency {
+  color: #D99A2B;
+}
+
+.prizeNote {
+  font-size: 0.85rem;
+  color: #808080;
+  margin: 0;
+}
+
+.prizeBar {
+  width: 100%;
+  height: 3px;
+  margin-top: 1.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #F5590A 0%, #FFCF5C 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: expandBar 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+}
+
+@keyframes expandBar {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Innovation Card */
+.innovationCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.75rem 2rem;
+  margin-top: 2rem;
+  border: 1px dashed rgba(245, 89, 10, 0.35);
+  border-radius: 1.25rem;
+  background: rgba(245, 89, 10, 0.05);
+  transition: all 0.35s;
+}
+
+@media (max-width: 640px) {
+  .innovationCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.innovationCard:hover {
+  border-color: #F5590A;
+  background: rgba(245, 89, 10, 0.08);
+}
+
+.innovationIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(245, 89, 10, 0.3);
+  background: rgba(245, 89, 10, 0.1);
+  color: #FFB066;
+}
+
+.innovationIcon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.innovationIcon:hover svg {
+  animation: spin 3.2s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.innovationContent {
+  flex: 1;
+  text-align: left;
+}
+
+.innovationTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #F2F2F2;
+}
+
+.innovationDesc {
+  font-size: 0.85rem;
+  color: #A0A0A0;
+  margin: 0.25rem 0 0;
+}
+
+.innovationAmount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  white-space: nowrap;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #FFB066;
+}
+
+/* Benefits Section */
+.benefitsSection {
+  margin: 4rem auto;
+  max-width: 900px;
+}
+
+@media (min-width: 640px) {
+  .benefitsSection {
+    margin: 6rem auto;
+  }
+}
+
+.benefitsHeader {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.benefitsHeader h2 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.benefitsHeader p {
+  font-size: 0.95rem;
+  color: #A0A0A0;
+  margin: 0;
+}
+
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.benefitCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 18, 0.6);
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.benefitCard:hover {
+  border-color: rgba(245, 89, 10, 0.3);
+  transform: translateX(4px);
+}
+
+.benefitCard.expanded {
+  border-color: rgba(255, 207, 92, 0.35);
+  background: linear-gradient(90deg, rgba(245, 89, 10, 0.06), transparent 60%);
+}
+
+.benefitHead {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.benefitNum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #A0A0A0;
+  background: rgba(20, 20, 22, 0.6);
+  transition: all 0.35s;
+}
+
+.benefitCard:hover .benefitNum {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.benefitCard .numgold {
+  background: linear-gradient(145deg, #FFCF5C, #D99A2B);
+  color: #241B06;
+  border-color: transparent;
+}
+
+.benefitCard .numorange {
+  color: #FFB066;
+  border-color: rgba(245, 89, 10, 0.3);
+}
+
+.benefitCard .numsilver {
+  color: #D7D0C6;
+  border-color: rgba(215, 208, 198, 0.2);
+}
+
+.benefitCard .numspecial {
+  color: #FFB066;
+  border-color: rgba(255, 176, 102, 0.3);
+}
+
+.benefitTitleGroup {
+  flex: 1;
+  text-align: left;
+}
+
+.benefitLabel {
+  display: block;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #F5590A;
+  margin-bottom: 0.25rem;
+}
+
+.benefitTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #F2F2F2;
+}
+
+.benefitChev {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #A0A0A0;
+  transition: transform 0.35s;
+}
+
+.benefitCard.expanded .benefitChev {
+  transform: rotate(180deg);
+  color: #F5590A;
+}
+
+.benefitBody {
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.benefitBody p {
+  margin: 0;
+  padding: 1.25rem 1.5rem 1.25rem 3.75rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #A0A0A0;
+}
+
+.benefitsNote {
+  text-align: center;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.8rem;
+  color: #A0A0A0;
+  margin: 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.benefitsNote strong {
+  color: #F5590A;
+  font-weight: 700;
+}

@@ -8,6 +8,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import AboutPage from "@/app/about/page";
 import TracksPage from "@/app/tracks/page";
 import TimelinePage from "@/app/timeline/page";
+import PrizesPage from "@/app/prizes/page";
 import SponsorsPage from "@/app/sponsors/page";
 import FAQPage from "@/app/faq/page";
 import GamesSection from "@/components/GamesSection";
@@ -317,6 +318,7 @@ export default function HomePage() {
         <SectionTransition><TracksPage /></SectionTransition>
         <SectionTransition><GamesSection /></SectionTransition>
         <SectionTransition><TimelinePage /></SectionTransition>
+        <SectionTransition><PrizesPage /></SectionTransition>
         <SectionTransition><SponsorsPage /></SectionTransition>
         <SectionTransition><FAQPage /></SectionTransition>
 

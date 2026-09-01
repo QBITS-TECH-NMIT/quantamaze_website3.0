@@ -1,0 +1,21 @@
+.vc { grid-column: span 2; }
+.electricTitle { overflow: visible; border-color: rgba(245, 89, 10, .72); background: #0c0c0d; box-shadow: 0 18px 36px rgba(0, 0, 0, .32), inset 0 1px rgba(255, 255, 255, .025); }
+.electricTitle::after { display: none; }
+.electricTreatment { position: absolute; inset: 0; z-index: 0; opacity: .72; pointer-events: none; }
+.electricTitle > *:not(.electricTreatment) { position: relative; z-index: 1; }
+.electricInner { position: absolute; inset: 0; border-radius: 18px; }
+.glowLayerOne, .glowLayerTwo { position: absolute; inset: 0; border: 1px solid rgba(226, 232, 240, .19); border-radius: 18px; }
+.glowLayerOne { filter: blur(.6px); }
+.glowLayerTwo { border-color: rgba(226, 232, 240, .34); filter: blur(2px); opacity: .3; }
+.overlayOne, .overlayTwo, .backgroundGlow { position: absolute; inset: 0; border-radius: 18px; pointer-events: none; }
+.overlayOne { opacity: .12; mix-blend-mode: screen; transform: scale(1.02); filter: blur(12px); background: linear-gradient(-30deg, rgba(255,255,255,.48), transparent 30%, transparent 70%, rgba(255,255,255,.48)); }
+.overlayTwo, .backgroundGlow { display: none; }
+.vcList { width: 100%; flex: 1; align-items: center; justify-content: center; margin-top: 0; }
+.vcLogo { width: 240px; max-width: 240px; flex: 0 0 240px; }
+.vcLogo span { text-align: center; }
+
+@media (max-width: 640px) {
+  .vc { grid-column: auto; }
+  .vcList { justify-content: flex-start; margin-top: 1.5rem; }
+  .vcLogo { width: auto; max-width: none; flex: 1 1 122px; }
+}

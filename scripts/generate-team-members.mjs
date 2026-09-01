@@ -29,14 +29,18 @@ const OUTPUT_FILE = path.join(ROOT, 'src', 'lib', 'teamMembers.js');
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
 const MATCH_THRESHOLD = 0.65;
+const MANUAL_PHOTO_OVERRIDES = {
+  'AD-01': { sourceFolder: 'Events', file: 'Akshata_C_Events.jpg' },
+  'EV-01': { sourceFolder: 'Administration', file: 'Haseena.jpg' },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OFFICIAL ROSTER DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FACULTY_DATA = [
-  { name: 'Dr Lakshmanan M', role: 'Faculty', code: 'FA-01' },
   { name: 'Dr N Samanvita', role: 'Faculty', code: 'FA-02' },
+  { name: 'Dr Lakshmanan M', role: 'Faculty', code: 'FA-01' },
   { name: 'Dr Amruth Ramesh', role: 'Faculty', code: 'FA-03' },
   { name: 'Mr Melam Thirupathaiah', role: 'Faculty', code: 'FA-04' },
   { name: 'Mrs Meghana A', role: 'Faculty', code: 'FA-05' },
@@ -74,7 +78,7 @@ const DOMAINS_DATA = [
     folderNames: ['Administration', 'Admin'],
     tagline: 'Governance, Strategy & Internal Operations',
     members: [
-      { name: 'Haseena Tawfeeqa', role: 'Head', code: 'AD-01', isHead: true },
+      { name: 'Akshata Choudi', role: 'Head', code: 'AD-01', isHead: true },
       { name: 'Rifa Anjum', role: 'Member', code: 'AD-02' },
       { name: 'LD Sai Charan', role: 'Member', code: 'AD-03', imagePosition: '50% 18%' },
       { name: 'Abhianv Deo', role: 'Member', code: 'AD-04' },
@@ -110,7 +114,7 @@ const DOMAINS_DATA = [
     folderNames: ['Events', 'Event'],
     tagline: 'Hackathon Execution, Logistics & Stage Management',
     members: [
-      { name: 'Akshata Choudi', role: 'Head', code: 'EV-01', isHead: true },
+      { name: 'Haseena Tawfeeqa', role: 'Head', code: 'EV-01', isHead: true },
       { name: 'Soham N Jain', role: 'Member', code: 'EV-02' },
       { name: 'Shreyas S Patil', role: 'Member', code: 'EV-03' },
       { name: 'Keerthana', role: 'Member', code: 'EV-04' },
@@ -438,6 +442,41 @@ function runPhotoMatching() {
   const unmatchedFiles = [];
   const photoMap = {};
 
+  const applyManualOverride = (group, matchingFolder, folderPath, files) => {
+    const memberCodeToOverride = Object.entries(MANUAL_PHOTO_OVERRIDES).find(([code, override]) => {
+      const member = group.members.find((item) => item.code === code);
+      if (!member) return false;
+
+      const sourceFolder = override.sourceFolder ?? matchingFolder;
+      const sourcePath = path.join(PHOTOS_SRC, sourceFolder, override.file);
+      return fs.existsSync(sourcePath);
+    });
+
+    if (!memberCodeToOverride) return;
+
+    const [code, override] = memberCodeToOverride;
+    const memberIndex = group.members.findIndex((member) => member.code === code);
+    if (memberIndex === -1 || group.members[memberIndex].photo) return;
+
+    const sourceFolder = override.sourceFolder ?? matchingFolder;
+    const srcPath = path.join(PHOTOS_SRC, sourceFolder, override.file);
+    const destSlug = toSafeSlug(code, override.file);
+    const destPath = path.join(PHOTOS_DEST, destSlug);
+    fs.copyFileSync(srcPath, destPath);
+    photoMap[code] = `/team-photos/${destSlug}`;
+
+    matchedList.push({
+      code,
+      name: group.members[memberIndex].name,
+      group: group.name,
+      file: override.file,
+      destSlug,
+      score: '1.00',
+    });
+
+    return memberIndex;
+  };
+
   // Find all available domain subfolders inside "q-bits team"
   const availableSubfolders = fs.existsSync(PHOTOS_SRC)
     ? fs.readdirSync(PHOTOS_SRC).filter((item) => {
@@ -478,6 +517,11 @@ function runPhotoMatching() {
     const files = fs.readdirSync(folderPath);
     const claimedIndices = new Set();
     const candidateMatches = [];
+
+    const manualOverrideIndex = applyManualOverride(group, matchingFolder, folderPath, files);
+    if (manualOverrideIndex !== undefined) {
+      claimedIndices.add(manualOverrideIndex);
+    }
 
     for (const file of files) {
       const fullFilePath = path.join(folderPath, file);

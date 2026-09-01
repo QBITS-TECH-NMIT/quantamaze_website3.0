@@ -16,7 +16,7 @@ export default function FAQPage() {
     {
       question: "Who can participate in the hackathon?",
       answer:
-        "Students from any institution across India can participate in Quant-A-Maze 3.0. Participants can form teams of 2-4 members. Individual participation is also welcome, and you can be paired with other participants.",
+        "Students from any institution across India can participate in Quant-A-Maze 3.0. Participants can form teams of 2-4 members.",
     },
     {
       question: "What are the different tracks available?",
@@ -27,11 +27,6 @@ export default function FAQPage() {
       question: "When is the hackathon scheduled?",
       answer:
         "Quant-A-Maze 3.0 is scheduled for September 7-8, 2026. The event runs for 36 hours continuously, providing participants with ample time to develop and refine their solutions.",
-    },
-    {
-      question: "Is there a registration fee?",
-      answer:
-        "Registration details and fees (if any) are mentioned on our official website. Early bird registrations often come with discounts. Keep an eye on our social media channels for announcements.",
     },
     {
       question: "What should I bring to the hackathon?",

@@ -143,7 +143,7 @@ export const DOMAINS_DATA = [
     "tagline": "Governance, Strategy & Internal Operations",
     "members": [
       {
-        "name": "Haseena Tawfeeqa",
+        "name": "Akshata Choudi",
         "role": "Head",
         "code": "AD-01",
         "isHead": true,
@@ -289,7 +289,7 @@ export const DOMAINS_DATA = [
     "tagline": "Hackathon Execution, Logistics & Stage Management",
     "members": [
       {
-        "name": "Akshata Choudi",
+        "name": "Haseena Tawfeeqa",
         "role": "Head",
         "code": "EV-01",
         "isHead": true,

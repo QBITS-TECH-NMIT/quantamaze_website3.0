@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Counter } from "@/components/MotionPrimitives";
 import MembersSection from "@/components/MembersSection";
-import { eventPhotos } from "@/lib/eventPhotos";
+import { eventAlbums } from "@/lib/eventPhotos";
 
 const AtomModel3D = dynamic(() => import("@/components/AtomModel3D"), {
   ssr: false,
@@ -226,9 +227,28 @@ export default function AboutPage() {
   const shouldReduceMotion = useReducedMotion();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [eventsView, setEventsView] = useState("2d");
-  const [showAllEventPhotos, setShowAllEventPhotos] = useState(false);
+  const [selectedEventAlbum, setSelectedEventAlbum] = useState(null);
+  const [albumPortalTarget, setAlbumPortalTarget] = useState(null);
   const isCubeInView = isModalOpen;
   const cubeContainerRef = useRef(null);
+
+  useEffect(() => {
+    setAlbumPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedEventAlbum) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setSelectedEventAlbum(null);
+    };
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedEventAlbum]);
 
   // Close modal on Escape key & manage body scroll lock + navbar hiding
   useEffect(() => {
@@ -269,9 +289,14 @@ export default function AboutPage() {
       date: "14-16 November 2024",
       track: "National Hackathon",
       desc: "Quant-A-Maze 2.0 brought students together for a national-level quantum technology hackathon, combining rapid prototyping, problem-solving, and hands-on exploration across emerging computing frontiers.",
-      tags: ["#QuantAMaze2", "#QuantumComputing", "#NationalHackathon"],
+      photos: eventAlbums.find((album) => album.eventId === "quant-a-maze-2")?.photos ?? [],
     },
   ];
+
+  const folderCardStyles = {
+    closed: "opacity-0 scale-0 translate-y-[20px]",
+    open: "opacity-100 scale-100 translate-y-0",
+  };
 
   const modalPages = [
     { id: 0, title: "About", label: "01 // ABOUT", subtitle: "Mission & Tech" },
@@ -301,6 +326,118 @@ export default function AboutPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, activeModalPage, goToModalPage, modalPages.length]);
+
+  function EventArchiveFolderCard({ album, onOpen }) {
+    const [isHovered, setIsHovered] = useState(false);
+    const previewPhotos = (album?.photos ?? []).slice(0, 5);
+
+    return (
+      <div
+        className="relative h-[130px] w-[170px] cursor-pointer select-none perspective-[1200px]"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsHovered(true)}
+        onBlur={() => setIsHovered(false)}
+      >
+        <div
+          className={`relative h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${isHovered ? "-rotate-y-[5deg] rotate-x-[10deg]" : ""}`}
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <svg viewBox="0 0 50 40" className="absolute bottom-0 left-0 h-full w-full drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]" aria-hidden="true">
+            <path d="M0 4C0 1.79 1.79 0 4 0H16.52C17.72 0 18.84.54 19.57 1.47L22.43 5.07C23.16 5.99 24.28 6.53 25.48 6.53H46C48.21 6.53 50 8.32 50 10.53V36C50 38.21 48.21 40 46 40H4C1.79 40 0 38.21 0 36V4Z" fill="#0f4c9a" />
+          </svg>
+
+          <div className={`absolute bottom-[-7px] left-0 z-[90] w-full origin-bottom transition-transform duration-500 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] ${isHovered ? "rotate-x-[-50deg]" : ""}`}>
+            <svg viewBox="0 0 50 34" className="w-full" aria-hidden="true">
+              <path d="M0 4C0 1.79 1.79 0 4 0H46C48.21 0 50 1.79 50 4V30C50 32.21 48.21 34 46 34H4C1.79 34 0 32.21 0 30V4Z" fill="rgba(245, 89, 10, 0.65)" />
+            </svg>
+          </div>
+
+          <div className={`absolute left-[10%] top-[-40px] z-[20] flex h-[25px] items-center rounded-full border border-white/20 bg-[#F5590A]/90 px-2 transition-all duration-500 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] ${isHovered ? "top-[-36px] w-[80%] opacity-100" : "w-[30px] opacity-0"}`}>
+            <svg viewBox="0 0 24 24" className="h-[12px] w-[12px] shrink-0 stroke-white" fill="none" strokeWidth="3" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span className="ml-2 text-[9px] font-bold text-white/90">{album?.eventName ?? "Album"}</span>
+          </div>
+
+          <div className={`absolute right-[-75px] top-[-95px] z-[100] flex items-center gap-2 rounded-full bg-[#c9a6ff] px-2 py-1 text-black shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isHovered ? "scale-100 translate-y-0 opacity-100" : "scale-0 translate-y-[20px] opacity-0"}`}>
+            <span className="relative h-[6px] w-[6px] rounded-full bg-[#34d399] shadow-[0_0_10px_#34d399]">
+              <span className="absolute inset-0 rounded-full bg-[#34d399] animate-pulse" />
+            </span>
+            <span className="font-sans text-[8px] font-extrabold uppercase tracking-[0.04em]">Files</span>
+            <span className="font-sans text-[12px] font-black text-white">{String((album?.photos?.length ?? 0)).padStart(2, "0")}</span>
+          </div>
+
+          {previewPhotos.map((photo, index) => {
+            const transformMap = [
+              "translateY(-70px) rotate(-10deg) translateX(-15px) translateZ(20px)",
+              "translateY(-55px) rotate(8deg) translateX(18px) translateZ(10px)",
+              "translateY(-40px) rotate(-15deg) translateX(-8px)",
+              "translateY(-25px) rotate(12deg) translateX(12px)",
+              "translateY(-10px) rotate(-5deg)",
+            ];
+            const backgroundClass = ["bg-[#f59e0b]", "bg-[#f97316]", "bg-[#fb7185]", "bg-[#a78bfa]", "bg-[#22c55e]"];
+
+            return (
+              <button
+                key={photo.id || `${album?.eventId || "event"}-${index}`}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOpen?.(album);
+                }}
+                className={`absolute left-[10%] z-[0] h-[85px] w-[80%] overflow-hidden rounded-[6px] border border-white/10 bg-[#0f172a] shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_4px_12px_rgba(0,0,0,0.3)] transition-all duration-500 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] ${isHovered ? "opacity-100" : "opacity-0"} ${backgroundClass[index] ?? backgroundClass[0]}`}
+                style={{ transform: isHovered ? transformMap[index] ?? transformMap[0] : "translate(0,0) rotate(0deg)", transitionDelay: `${index * 40}ms` }}
+                aria-label={`Open ${album?.eventName ?? "event"} album`}
+              >
+                <img src={photo.src} alt={photo.alt || album?.eventName || "Event photo"} className="h-full w-full object-cover" />
+                <span className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/30" />
+                <span className="absolute bottom-[10px] right-[10px] rounded-[4px] bg-black/55 px-[6px] py-[3px] text-[7px] font-bold text-white/90 backdrop-blur-sm">{index + 1}</span>
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => onOpen?.(album)}
+            className={`absolute bottom-[-7px] left-0 z-[99] h-[34px] w-full rounded-b-[12px] border border-white/10 bg-transparent transition-all duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
+            aria-label={`Open ${album?.eventName ?? "event"} album`}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  function EventArchiveModal({ album, onClose }) {
+    if (!album) return null;
+
+    return (
+      <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm transition-opacity duration-300" onClick={onClose}>
+        <div className="relative w-[min(95vw,900px)] max-h-[90vh] flex flex-col rounded-2xl border border-white/10 bg-[#0c0d12] shadow-[0_20px_80px_rgba(0,0,0,0.8)] transition-all duration-300" onClick={(event) => event.stopPropagation()}>
+          <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.22em] text-[#F5590A]">Event Album</p>
+              <h3 className="mt-1 truncate text-xl font-bold text-white">{album.eventName}</h3>
+            </div>
+            <button type="button" onClick={onClose} className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-2xl font-semibold text-white transition hover:border-white/30 hover:bg-white/10 hover:text-[#F5590A]" aria-label="Close album view">×</button>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(album.photos ?? []).map((photo) => (
+                <div key={photo.id} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image src={photo.src} alt={photo.alt || album.eventName} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw" className="object-cover transition duration-300 group-hover:scale-105" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const statIcons = {
     clock: (
@@ -777,17 +914,7 @@ export default function AboutPage() {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.56, ease: [0.16, 1, 0.3, 1], delay: 0.42 }}
                               className="flex flex-wrap gap-2 pt-1"
-                            >
-                              <span className="about-panel-pill rounded-lg border border-orange-400/30 bg-orange-400/10 px-3 py-1 font-mono text-xs font-semibold text-orange-300">
-                                #QuantumAlgorithms
-                              </span>
-                              <span className="about-panel-pill rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-1 font-mono text-xs font-semibold text-amber-300">
-                                #Qiskit &amp; Cirq
-                              </span>
-                              <span className="about-panel-pill rounded-lg border border-orange-400/30 bg-orange-400/10 px-3 py-1 font-mono text-xs font-semibold text-orange-300">
-                                #NationalHackathon
-                              </span>
-                            </motion.div>
+                            />
                           </motion.div>
 
                           {/* Right Column: 3D Quantum Cube Interactive Scene */}
@@ -900,7 +1027,21 @@ export default function AboutPage() {
                               key={ev.id}
                               className="group relative rounded-2xl border border-white/10 bg-white/[0.025] p-5 backdrop-blur-md transition-all duration-250 hover:border-[#F5590A]/60 hover:bg-white/[0.05] hover:shadow-[0_0_25px_rgba(245,89,10,0.2)] sm:p-6"
                             >
-                              <div className="grid gap-6 lg:grid-cols-[minmax(15rem,0.75fr)_minmax(0,1.25fr)] lg:items-start lg:gap-8">
+                              <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start lg:gap-8">
+                                <div className="flex flex-col items-start">
+                                  <div className="mb-3 flex items-center justify-start gap-2">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#FF8A3D]">
+                                      Event archive // {ev.photos.length} photos
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-start">
+                                    <EventArchiveFolderCard
+                                      album={eventAlbums.find((album) => album.eventId === ev.id) ?? { eventId: ev.id, eventName: ev.title, photos: ev.photos }}
+                                      onOpen={(album) => setSelectedEventAlbum(album)}
+                                    />
+                                  </div>
+                                </div>
+
                                 <div>
                                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                                     <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider ${ev.badgeColor}`}>
@@ -921,57 +1062,6 @@ export default function AboutPage() {
                                   <p className="text-xs leading-relaxed text-slate-300 sm:text-sm">
                                     {ev.desc}
                                   </p>
-
-                                  <div className="mt-5 flex flex-wrap gap-1.5 border-t border-white/5 pt-4">
-                                    {ev.tags.map((tag) => (
-                                      <span key={tag} className="rounded bg-black/40 px-2 py-0.5 font-mono text-[9px] text-slate-400">
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <div className="mb-3 flex items-center justify-between gap-3">
-                                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#FF8A3D]">
-                                      Event archive // {eventPhotos.length} photos
-                                    </span>
-                                    <span className="text-[10px] text-slate-500">
-                                      {showAllEventPhotos ? "Full archive" : "Highlights"}
-                                    </span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                    {eventPhotos.slice(0, showAllEventPhotos ? eventPhotos.length : 12).map((photo) => (
-                                      <a
-                                        key={photo.id}
-                                        href={photo.originalSrc}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="group/photo relative aspect-[4/3] overflow-hidden rounded-lg border border-white/10 bg-black/30"
-                                        aria-label={`Open ${photo.alt}`}
-                                      >
-                                        <Image
-                                          src={photo.src}
-                                          alt={photo.alt}
-                                          fill
-                                          sizes="(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 18vw"
-                                          loading="lazy"
-                                          className="object-cover transition duration-300 group-hover/photo:scale-105 group-hover/photo:brightness-110"
-                                        />
-                                      </a>
-                                    ))}
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setShowAllEventPhotos((visible) => !visible);
-                                    }}
-                                    className="mt-3 inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#FFB703] transition-colors hover:text-white"
-                                  >
-                                    <span>{showAllEventPhotos ? "Show highlights" : `View all ${eventPhotos.length} photos`}</span>
-                                    <span aria-hidden="true">{showAllEventPhotos ? "↑" : "→"}</span>
-                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -1094,6 +1184,52 @@ export default function AboutPage() {
         </AnimatePresence>
       </section>
       {eventsView === "3d" && <InfiniteCanvasView onClose={() => setEventsView("2d")} />}
+      {albumPortalTarget
+        ? createPortal(
+            <AnimatePresence>
+              {selectedEventAlbum ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 backdrop-blur-sm overflow-hidden"
+                  onClick={() => setSelectedEventAlbum(null)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.25 }}
+                    className="relative w-[min(90vw,1100px)] max-h-[85vh] flex flex-col rounded-2xl border border-white/10 bg-[#0c0d12] shadow-[0_20px_80px_rgba(0,0,0,0.8)]"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
+                      <div className="min-w-0">
+                        <p className="font-mono text-[10px] font-black uppercase tracking-[0.22em] text-[#F5590A]">Event Album</p>
+                        <h3 className="mt-1 truncate text-xl font-bold text-white">{selectedEventAlbum.eventName}</h3>
+                      </div>
+                      <button type="button" onClick={() => setSelectedEventAlbum(null)} className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-2xl font-semibold text-white transition hover:border-white/30 hover:bg-white/10 hover:text-[#F5590A]" aria-label="Close album view">×</button>
+                    </div>
+
+                    <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {(selectedEventAlbum.photos ?? []).map((photo) => (
+                          <div key={photo.id} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
+                            <div className="relative aspect-[4/3] overflow-hidden">
+                              <Image src={photo.src} alt={photo.alt || selectedEventAlbum.eventName} fill sizes="(max-width: 640px) calc(50vw - 24px), (max-width: 1024px) calc(50vw - 28px), calc(33.333vw - 32px)" className="object-cover transition duration-300 group-hover:scale-105" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>,
+            albumPortalTarget
+          )
+        : null}
     </div>
   );
 }

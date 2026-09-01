@@ -9,6 +9,7 @@ export default function TrackModal({ track, onClose, triggerRef }) {
   useEffect(() => {
     if (!track) return;
 
+    const triggerElement = triggerRef?.current;
     const previousOverflow = document.body.style.overflow;
     const previousPaddingRight = document.body.style.paddingRight;
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -67,8 +68,8 @@ export default function TrackModal({ track, onClose, triggerRef }) {
       document.body.style.paddingRight = previousPaddingRight;
       document.removeEventListener("keydown", handleKeyDown);
 
-      if (triggerRef?.current) {
-        triggerRef.current.focus();
+      if (triggerElement) {
+        triggerElement.focus();
       }
     };
   }, [track, onClose, triggerRef]);

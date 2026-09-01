@@ -67,10 +67,11 @@ const tracks = [
 
 export default function TracksPage() {
   const [selectedTrack, setSelectedTrack] = useState(null);
+  const [selectedTriggerRef, setSelectedTriggerRef] = useState(null);
   const triggerRefs = useRef({});
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen pt-20 sm:pt-24">
       <section id="tracks" className="brochure-section relative min-h-screen overflow-hidden bg-[#0A0A0A] py-16 text-[#F2F2F2] sm:py-32">
         <div className="mx-auto max-w-6xl">
           <Reveal>
@@ -85,7 +86,7 @@ export default function TracksPage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.15 }}
-            className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:gap-8"
+            className="track-fan-grid grid gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6"
           >
             {tracks.map((track) => (
               <motion.button
@@ -95,33 +96,29 @@ export default function TracksPage() {
                   triggerRefs.current[track.id] = element;
                 }}
                 variants={staggerItem}
-                whileHover={{ y: -5, borderColor: "rgba(245,89,10,0.8)" }}
-                transition={{ duration: 0.25, ease: easeOut }}
-                className="track-card track-card-mobile relative flex cursor-pointer flex-col rounded-lg p-5 text-left transition-all sm:p-6"
-                onClick={() => setSelectedTrack(track)}
+                transition={{ duration: 0.5, ease: easeOut }}
+                className="track-card-promo"
+                onClick={(event) => {
+                  setSelectedTrack(track);
+                  setSelectedTriggerRef({ current: event.currentTarget });
+                }}
                 aria-haspopup="dialog"
                 aria-expanded={selectedTrack?.id === track.id}
               >
-                <span className="tech-crosshair right-3 top-3">+</span>
-                <span className="tech-crosshair bottom-3 right-3">+</span>
-
-                <div className="mb-5 flex items-center justify-between sm:mb-8">
-                  {track.icon && (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-white/10 bg-[#17171c] p-2 text-xl sm:h-14 sm:w-14">
-                      <span aria-hidden="true">{track.icon}</span>
-                    </div>
-                  )}
-                  <span className="rounded border border-[#F5590A]/20 bg-[#F5590A]/10 px-2 py-1 font-mono text-[0.65rem] font-bold tracking-[0.2em] text-[#F5590A] sm:text-xs sm:tracking-[0.25em]">
-                    TRACK // {track.index}
-                  </span>
+                <div className="track-card-visual">
+                  <div className="track-card-logo" aria-hidden="true">{track.icon}</div>
+                  <span className="track-card-badge">TRACK // {track.index}</span>
                 </div>
 
-                <h3 className="mb-2.5 text-lg font-semibold text-[#eeece6] sm:mb-3 sm:text-2xl">
-                  {track.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-stone-400 sm:text-base">
-                  {track.tagline}
-                </p>
+                <div className="track-card-summary">
+                  <h3>{track.title}</h3>
+                  <p>{track.tagline}....</p>
+                </div>
+
+                <div className="track-card-overlay">
+                  <p className="track-card-overlay-title">{track.title}</p>
+                  <p className="track-card-overlay-description">{track.description}</p>
+                </div>
               </motion.button>
             ))}
           </motion.div>
@@ -131,7 +128,7 @@ export default function TracksPage() {
       <TrackModal
         track={selectedTrack}
         onClose={() => setSelectedTrack(null)}
-        triggerRef={selectedTrack ? triggerRefs.current[selectedTrack.id] : null}
+        triggerRef={selectedTriggerRef}
       />
     </div>
   );

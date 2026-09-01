@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
       <body className="isolate min-h-full flex flex-col bg-[#0A0A0A] text-[#F2F2F2]">
         <ParticleBackground />
         <NavBar />
-        <div className="mobile-page-shell relative z-10 flex-1 flex flex-col sm:pb-0">
+        <div className="mobile-page-shell relative z-10 flex-1 flex flex-col pb-[5.2rem] sm:pb-0">
           {children}
         </div>
         <Footer />

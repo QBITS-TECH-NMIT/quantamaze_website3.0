@@ -328,6 +328,7 @@ export default function ElectricBorderCanvas({
   color = "#E2E8F0",
   borderRadius = 24,
   borderOffset = 50,
+  canvasPadding = borderOffset,
   displacement = 45,
   speed = 1.4,
   lineWidth = 1.2,
@@ -359,8 +360,8 @@ export default function ElectricBorderCanvas({
     const updateDimensions = () => {
       if (!containerRef?.current || !canvas) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const w = Math.round(rect.width + 2 * borderOffset);
-      const h = Math.round(rect.height + 2 * borderOffset);
+      const w = Math.round(rect.width + 2 * canvasPadding);
+      const h = Math.round(rect.height + 2 * canvasPadding);
       if (w > 0 && h > 0) {
         renderer.resize(w, h);
         if (shouldReduceMotion) {
@@ -408,6 +409,7 @@ export default function ElectricBorderCanvas({
     color,
     borderRadius,
     borderOffset,
+    canvasPadding,
     displacement,
     speed,
     lineWidth,

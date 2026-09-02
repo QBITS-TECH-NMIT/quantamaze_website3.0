@@ -2,15 +2,15 @@
 export const FACULTY_DATA = [
   {
     "name": "Dr N Samanvita",
-    "role": "Head Of Department",
-    "code": "FA-01",
+    "role": "Faculty",
+    "code": "FA-02",
     "photo": "/team-photos/fa_02.jpg",
     "photoUrl": "/team-photos/fa_02.jpg"
   },
   {
     "name": "Dr Lakshmanan M",
     "role": "Faculty",
-    "code": "FA-02",
+    "code": "FA-01",
     "photo": "/team-photos/fa_01.jpg",
     "photoUrl": "/team-photos/fa_01.jpg"
   },
@@ -72,60 +72,60 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/tc_01.png"
       },
       {
-        "name": "Jadyn",
-        "role": "Lead",
-        "code": "TC-02",
-        "photo": "/team-photos/tc_09.jpg",
-        "photoUrl": "/team-photos/tc_09.jpg"
-      },
-      {
         "name": "Janvika Malapati",
         "role": "Member",
-        "code": "TC-03",
+        "code": "TC-02",
         "photo": "/team-photos/tc_02.jpg",
         "photoUrl": "/team-photos/tc_02.jpg"
       },
       {
         "name": "Prisha Ruturaj C",
         "role": "Member",
-        "code": "TC-04",
+        "code": "TC-03",
         "photo": "/team-photos/tc_03.jpg",
         "photoUrl": "/team-photos/tc_03.jpg"
       },
       {
         "name": "Vemala Prajwal",
         "role": "Member",
-        "code": "TC-05",
+        "code": "TC-04",
         "photo": "/team-photos/tc_04.png",
         "photoUrl": "/team-photos/tc_04.png"
       },
       {
         "name": "Haripriya Katabathina",
         "role": "Member",
-        "code": "TC-06",
+        "code": "TC-05",
         "photo": "/team-photos/tc_05.jpg",
         "photoUrl": "/team-photos/tc_05.jpg"
       },
       {
         "name": "Hiranmayi",
         "role": "Member",
-        "code": "TC-07",
+        "code": "TC-06",
         "photo": "/team-photos/tc_06.jpg",
         "photoUrl": "/team-photos/tc_06.jpg"
       },
       {
         "name": "Pranav Rohan",
         "role": "Member",
-        "code": "TC-08",
+        "code": "TC-07",
         "photo": "/team-photos/tc_07.png",
         "photoUrl": "/team-photos/tc_07.png"
       },
       {
         "name": "Farhan Akhtar",
         "role": "Member",
-        "code": "TC-09",
+        "code": "TC-08",
         "photo": "/team-photos/tc_08.jpg",
         "photoUrl": "/team-photos/tc_08.jpg"
+      },
+      {
+        "name": "Jadyn",
+        "role": "Member",
+        "code": "TC-09",
+        "photo": "/team-photos/tc_09.jpg",
+        "photoUrl": "/team-photos/tc_09.jpg"
       },
       {
         "name": "Arnav Raj Karn",
@@ -151,23 +151,16 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/ad_01.jpg"
       },
       {
-        "name": "Raksha P",
-        "role": "Member",
-        "code": "AD-02",
-        "photo": "/team-photos/ad_08.jpg",
-        "photoUrl": "/team-photos/ad_08.jpg"
-      },
-      {
         "name": "Rifa Anjum",
         "role": "Member",
-        "code": "AD-03",
+        "code": "AD-02",
         "photo": "/team-photos/ad_02.jpg",
         "photoUrl": "/team-photos/ad_02.jpg"
       },
       {
         "name": "LD Sai Charan",
         "role": "Member",
-        "code": "AD-04",
+        "code": "AD-03",
         "imagePosition": "50% 18%",
         "photo": "/team-photos/ad_03.jpg",
         "photoUrl": "/team-photos/ad_03.jpg"
@@ -175,32 +168,38 @@ export const DOMAINS_DATA = [
       {
         "name": "Abhianv Deo",
         "role": "Member",
-        "code": "AD-05",
+        "code": "AD-04",
         "photo": "/team-photos/ad_04.jpeg",
         "photoUrl": "/team-photos/ad_04.jpeg"
       },
       {
         "name": "Karthik S Rao",
         "role": "Member",
-        "code": "AD-06",
+        "code": "AD-05",
         "photo": "/team-photos/ad_05.jpg",
         "photoUrl": "/team-photos/ad_05.jpg"
       },
       {
         "name": "Keerthana Bhat",
         "role": "Member",
-        "code": "AD-07",
+        "code": "AD-06",
         "photo": "/team-photos/ad_06.jpg",
         "photoUrl": "/team-photos/ad_06.jpg"
       },
       {
         "name": "D Ganesh",
         "role": "Member",
-        "code": "AD-08",
+        "code": "AD-07",
         "photo": "/team-photos/ad_07.jpg",
         "photoUrl": "/team-photos/ad_07.jpg"
       },
-
+      {
+        "name": "Raksha P",
+        "role": "Member",
+        "code": "AD-08",
+        "photo": "/team-photos/ad_08.jpg",
+        "photoUrl": "/team-photos/ad_08.jpg"
+      }
     ]
   },
   {
@@ -226,55 +225,54 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/ds_02.jpg"
       },
       {
-        "name": "Kulsum",
-        "role": "Lead",
-        "code": "DS-03",
-        "photo": "/team-photos/ds_09.jpg",
-        "photoUrl": "/team-photos/ds_09.jpg"
-      },
-      {
         "name": "Melisha Dsouza",
         "role": "Member",
-        "code": "DS-04",
+        "code": "DS-03",
         "photo": "/team-photos/ds_03.jpg",
         "photoUrl": "/team-photos/ds_03.jpg"
       },
       {
         "name": "Anupriya Kumari",
         "role": "Member",
-        "code": "DS-05",
+        "code": "DS-04",
         "photo": "/team-photos/ds_04.jpg",
         "photoUrl": "/team-photos/ds_04.jpg"
       },
       {
         "name": "Swasti Jain",
         "role": "Member",
-        "code": "DS-06",
+        "code": "DS-05",
         "photo": "/team-photos/ds_05.jpg",
         "photoUrl": "/team-photos/ds_05.jpg"
       },
       {
         "name": "Shanmukhi Vytlaa",
         "role": "Member",
-        "code": "DS-07",
+        "code": "DS-06",
         "photo": "/team-photos/ds_06.jpg",
         "photoUrl": "/team-photos/ds_06.jpg"
       },
       {
         "name": "Dheshna M",
         "role": "Member",
-        "code": "DS-08",
+        "code": "DS-07",
         "photo": "/team-photos/ds_07.jpeg",
         "photoUrl": "/team-photos/ds_07.jpeg"
       },
       {
         "name": "Adhya",
         "role": "Member",
-        "code": "DS-09",
+        "code": "DS-08",
         "photo": "/team-photos/ds_08.jpg",
         "photoUrl": "/team-photos/ds_08.jpg"
       },
-
+      {
+        "name": "Kulsum",
+        "role": "Member",
+        "code": "DS-09",
+        "photo": "/team-photos/ds_09.jpg",
+        "photoUrl": "/team-photos/ds_09.jpg"
+      },
       {
         "name": "Arpita Thakur",
         "role": "Member",

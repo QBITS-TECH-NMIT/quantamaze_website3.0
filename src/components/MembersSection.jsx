@@ -565,6 +565,13 @@ function DomainQuickBar({ compact = false }) {
         >
           Faculty
         </button>
+        <button
+          type="button"
+          onClick={() => scrollTo("section-leadership")}
+          className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-xs font-semibold text-stone-300 hover:border-[#F5590A] hover:bg-[#F5590A]/10 hover:text-[#FF8A3D] transition-all"
+        >
+          Leadership
+        </button>
         {DOMAINS_DATA.map((d) => (
           <button
             key={d.id}

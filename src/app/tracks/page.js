@@ -86,7 +86,7 @@ export default function TracksPage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.15 }}
-            className="track-fan-grid grid gap-4 sm:grid-cols-2 sm:gap-5 lg:gap-6"
+            className="track-fan-grid grid justify-items-center gap-6 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4 lg:gap-8"
           >
             {tracks.map((track) => (
               <motion.button
@@ -97,7 +97,10 @@ export default function TracksPage() {
                 }}
                 variants={staggerItem}
                 transition={{ duration: 0.5, ease: easeOut }}
+                whileHover={{ scale: 1.05, rotate: 0, transition: { duration: 0.5, ease: "easeOut" } }}
+                whileTap={{ scale: 0.95, rotate: 1.7, transition: { duration: 0.15, ease: "easeOut" } }}
                 className="track-card-promo"
+                data-text={track.code}
                 onClick={(event) => {
                   setSelectedTrack(track);
                   setSelectedTriggerRef({ current: event.currentTarget });
@@ -112,12 +115,7 @@ export default function TracksPage() {
 
                 <div className="track-card-summary">
                   <h3>{track.title}</h3>
-                  <p>{track.tagline}....</p>
-                </div>
-
-                <div className="track-card-overlay">
-                  <p className="track-card-overlay-title">{track.title}</p>
-                  <p className="track-card-overlay-description">{track.description}</p>
+                  <p>{track.tagline}</p>
                 </div>
               </motion.button>
             ))}

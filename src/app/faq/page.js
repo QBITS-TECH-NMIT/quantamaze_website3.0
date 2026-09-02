@@ -26,7 +26,7 @@ export default function FAQPage() {
     {
       question: "When is the hackathon scheduled?",
       answer:
-        "Quant-A-Maze 3.0 is scheduled for September 7-8, 2026. The event runs for 36 hours continuously, providing participants with ample time to develop and refine their solutions.",
+        "Quant-A-Maze 3.0 is scheduled for October 28-30, 2026. The event runs for 36 hours continuously, providing participants with ample time to develop and refine their solutions.",
     },
     {
       question: "What should I bring to the hackathon?",

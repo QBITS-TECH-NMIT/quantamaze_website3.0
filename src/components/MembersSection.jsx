@@ -37,14 +37,15 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     tagline: "Architecture, Systems & Quantum Computing",
     members: [
       { name: "Syed Maaz", role: "Head", photo: null, photoUrl: null, code: "TC-01", isHead: true },
-      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
+      { name: "Jadyn", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
       { name: "Prisha Ruturaj C", role: "Member", photo: null, photoUrl: null, code: "TC-03" },
       { name: "Vemala Prajwal", role: "Member", photo: null, photoUrl: null, code: "TC-04" },
       { name: "Haripriya Katabathina", role: "Member", photo: null, photoUrl: null, code: "TC-05" },
       { name: "Hiranmayi", role: "Member", photo: null, photoUrl: null, code: "TC-06" },
       { name: "Pranav Rohan", role: "Member", photo: null, photoUrl: null, code: "TC-07" },
       { name: "Farhan Akhtar", role: "Member", photo: null, photoUrl: null, code: "TC-08" },
-      { name: "Jadyn", role: "Member", photo: null, photoUrl: null, code: "TC-09" },
+      
+      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
       { name: "Arnav Raj Karn", role: "Member", photo: null, photoUrl: null, code: "TC-10" },
     ],
   },

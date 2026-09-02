@@ -921,7 +921,7 @@ export default function AboutPage() {
                           <div ref={cubeContainerRef} className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#08080C] p-2 shadow-2xl">
                             <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 font-mono text-[10px] text-slate-300 backdrop-blur-md">
                               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#F5590A]" />
-                              <span>QUANTUM SIMULATOR</span>
+                              <span>DARE TO CLICK</span>
                             </div>
                             <div className="h-[220px] w-full sm:h-[280px]">
                               {isCubeInView ? <QuantumCubeScene /> : <div className="h-full w-full bg-[#08080C]" />}

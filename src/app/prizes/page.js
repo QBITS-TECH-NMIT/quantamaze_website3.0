@@ -318,7 +318,7 @@ export default function PrizesPage() {
                 </svg>
               </div>
               <div className={styles.innovationContent}>
-                <h4 className={styles.innovationTitle}>Innovation Award</h4>
+                <h4 className={styles.innovationTitle}>Innovative Award</h4>
                 <p className={styles.innovationDesc}>Best original idea across any track — voted by judges</p>
               </div>
               <div className={styles.innovationAmount}>
@@ -400,7 +400,7 @@ export default function PrizesPage() {
               Memberships are awarded per team member · courtesy of <strong>CodeCrafters</strong>
             </p>
             <p className={styles.benefitsNote}>
-              Organizers receive 3-month VIP membership · up to five core team members
+              
             </p>
           </div>
         </div>

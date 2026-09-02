@@ -62,10 +62,10 @@ function TimelineCard({ event, isEven, index }) {
 
 export default function TimelinePage() {
   const events = [
-    { stage: "STAGE 01", title: "Registration", date: "September 7 – 28", active: true },
-    { stage: "STAGE 02", title: "Phase 1", date: "September 7 – 28", active: false },
+    { stage: "STAGE 01", title: "Registration Starts", date: "September 7", active: true },
+    { stage: "STAGE 02", title: "Phase 1 (PPT Submission)", date: "September 7 – 28", active: false },
     { stage: "STAGE 03", title: "Phase 1 Results", date: "October 3", active: false },
-    { stage: "STAGE 04", title: "Phase 2", date: "October 28 – 30", active: false },
+    { stage: "STAGE 04", title: "Phase 2 (@NMIT)", date: "October 28 – 30", active: false },
     { stage: "STAGE 05", title: "Final Results", date: "October 30", active: false },
   ];
 

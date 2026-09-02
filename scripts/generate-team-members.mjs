@@ -32,6 +32,7 @@ const MATCH_THRESHOLD = 0.65;
 const MANUAL_PHOTO_OVERRIDES = {
   'AD-01': { sourceFolder: 'Events', file: 'Akshata_C_Events.jpg' },
   'EV-01': { sourceFolder: 'Administration', file: 'Haseena.jpg' },
+  'TC-02': { sourceFolder: 'Technical', file: 'Jadyn_Technical' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

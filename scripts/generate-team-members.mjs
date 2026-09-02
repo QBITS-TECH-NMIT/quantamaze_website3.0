@@ -32,7 +32,6 @@ const MATCH_THRESHOLD = 0.65;
 const MANUAL_PHOTO_OVERRIDES = {
   'AD-01': { sourceFolder: 'Events', file: 'Akshata_C_Events.jpg' },
   'EV-01': { sourceFolder: 'Administration', file: 'Haseena.jpg' },
-  'TC-02': { sourceFolder: 'Technical', file: 'Jadyn_Technical' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,13 +78,14 @@ const DOMAINS_DATA = [
     tagline: 'Governance, Strategy & Internal Operations',
     members: [
       { name: 'Akshata Choudi', role: 'Head', code: 'AD-01', isHead: true },
-      { name: 'Rifa Anjum', role: 'Member', code: 'AD-02' },
-      { name: 'LD Sai Charan', role: 'Member', code: 'AD-03', imagePosition: '50% 18%' },
-      { name: 'Abhianv Deo', role: 'Member', code: 'AD-04' },
-      { name: 'Karthik S Rao', role: 'Member', code: 'AD-05' },
-      { name: 'Keerthana Bhat', role: 'Member', code: 'AD-06' },
-      { name: 'D Ganesh', role: 'Member', code: 'AD-07' },
-      { name: 'Raksha P', role: 'Member', code: 'AD-08' },
+      { name: 'Raksha P', role: 'Member', code: 'AD-02' },
+      { name: 'Rifa Anjum', role: 'Member', code: 'AD-03' },
+      { name: 'LD Sai Charan', role: 'Member', code: 'AD-04', imagePosition: '50% 18%' },
+      { name: 'Abhianv Deo', role: 'Member', code: 'AD-05' },
+      { name: 'Karthik S Rao', role: 'Member', code: 'AD-06' },
+      { name: 'Keerthana Bhat', role: 'Member', code: 'AD-07' },
+      { name: 'D Ganesh', role: 'Member', code: 'AD-08' },
+
     ],
   },
   {

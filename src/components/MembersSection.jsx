@@ -44,8 +44,7 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
       { name: "Hiranmayi", role: "Member", photo: null, photoUrl: null, code: "TC-06" },
       { name: "Pranav Rohan", role: "Member", photo: null, photoUrl: null, code: "TC-07" },
       { name: "Farhan Akhtar", role: "Member", photo: null, photoUrl: null, code: "TC-08" },
-      
-      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
+      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-09" },
       { name: "Arnav Raj Karn", role: "Member", photo: null, photoUrl: null, code: "TC-10" },
     ],
   },
@@ -56,13 +55,14 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     tagline: "Governance, Strategy & Internal Operations",
     members: [
       { name: "Haseena Tawfeeqa", role: "Head", photo: null, photoUrl: null, code: "AD-01", isHead: true },
-      { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
-      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-03", imagePosition: "50% 18%" },
-      { name: "Abhianv Deo", role: "Member", photo: null, photoUrl: null, code: "AD-04" },
-      { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
-      { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
-      { name: "D Ganesh", role: "Member", photo: null, photoUrl: null, code: "AD-07" },
-      { name: "Raksha P", role: "Member", photo: null, photoUrl: null, code: "AD-08" },
+      { name: "Raksha P", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
+      { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-03" },
+      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-04", imagePosition: "50% 18%" },
+      { name: "Abhianv Deo", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
+      { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
+      { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-07" },
+      { name: "D Ganesh", role: "Member", photo: null, photoUrl: null, code: "AD-08" },
+
     ],
   },
   {

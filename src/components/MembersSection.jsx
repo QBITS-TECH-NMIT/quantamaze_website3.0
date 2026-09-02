@@ -544,7 +544,7 @@ export function ViewToggle({ view, onChange }) {
 // QUICK DOMAIN JUMP NAVIGATOR CHIPS
 // ─────────────────────────────────────────────────────────────────
 
-function DomainQuickBar() {
+function DomainQuickBar({ compact = false }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -553,7 +553,7 @@ function DomainQuickBar() {
   };
 
   return (
-    <div className="mb-14 overflow-x-auto pb-3 pt-1 scrollbar-none">
+    <div className={`${compact ? "mb-6 sticky top-0 z-20 -mx-1 px-2 pt-1" : "mb-14 pt-1"} overflow-x-auto pb-3 scrollbar-none`}>
       <div className="flex items-center gap-2 min-w-max">
         <span className="font-mono text-[11px] font-black uppercase tracking-wider text-[#F5590A] mr-2">
           QUICK JUMP:
@@ -633,7 +633,7 @@ export default function MembersSection({ showHeader = true, compact = false }) {
       )}
 
       {/* Quick Domain Navigation Bar */}
-      {view === "2d" && !compact && <DomainQuickBar />}
+      {view === "2d" && <DomainQuickBar compact={compact} />}
 
       {/* Smooth Crossfade View Switcher */}
       <AnimatePresence mode="wait">

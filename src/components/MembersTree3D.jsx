@@ -655,51 +655,32 @@ function SceneLabel({ position, title, subtitle, color, size = 0.22, emphasis = 
 }
 
 function RootNode() {
-  const rootRef = useRef();
-  const glowRef = useRef();
-  const shellRef = useRef();
   const [hovered, setHovered] = useState(false);
 
-  useFrame(({ clock }) => {
-    if (!rootRef.current) return;
-    const pulse = 1 + Math.sin(clock.elapsedTime * 1.8) * 0.08;
-    rootRef.current.rotation.y = clock.elapsedTime * 0.36;
-    rootRef.current.rotation.x = Math.sin(clock.elapsedTime * 0.9) * 0.2;
-    rootRef.current.scale.setScalar(pulse);
-    if (glowRef.current) {
-      glowRef.current.scale.setScalar(2.2 + Math.sin(clock.elapsedTime * 2.4) * 0.16);
-      glowRef.current.material.opacity = hovered ? 0.32 : 0.2;
-    }
-    if (shellRef.current) {
-      shellRef.current.rotation.y = -clock.elapsedTime * 0.5;
-      shellRef.current.scale.setScalar(hovered ? 1.75 : 1.52);
-    }
-  });
-
   return (
-    <group ref={rootRef} position={ROOT_POSITION}>
-      <mesh ref={glowRef} scale={1.8} renderOrder={0}>
+    <group position={ROOT_POSITION}>
+      <mesh scale={1.8} renderOrder={0}>
         <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial color="#7dd3fc" transparent opacity={0.18} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color={ROOT_COLOR} transparent opacity={0.2} depthWrite={false} toneMapped={false} />
       </mesh>
       <mesh scale={1.35} renderOrder={1}>
         <sphereGeometry args={[1, 24, 24]} />
         <meshStandardMaterial
-          color="#f8fafc"
-          emissive="#38bdf8"
-          emissiveIntensity={2.8}
+          color="#fff7ed"
+          emissive={ROOT_COLOR}
+          emissiveIntensity={2.4}
           roughness={0.18}
           metalness={0.55}
           toneMapped={false}
         />
       </mesh>
-      <mesh ref={shellRef} scale={1.55} renderOrder={2}>
+      <mesh scale={1.55} renderOrder={2}>
         <sphereGeometry args={[1, 18, 18]} />
-        <meshBasicMaterial color="#dbeafe" transparent opacity={0.35} wireframe depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color="#ffd6c2" transparent opacity={0.38} wireframe depthWrite={false} toneMapped={false} />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0]} renderOrder={3}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} renderOrder={3}>
         <torusGeometry args={[1.8, 0.05, 12, 80]} />
-        <meshBasicMaterial color="#7dd3fc" transparent opacity={0.7} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color={ROOT_COLOR} transparent opacity={0.8} depthWrite={false} toneMapped={false} />
       </mesh>
       <mesh
         onPointerOver={(event) => {
@@ -727,7 +708,7 @@ function RootNode() {
       />
       {hovered && (
         <Html position={[0, -2.85, 0]} center distanceFactor={10} style={{ pointerEvents: "none" }}>
-          <div className="pointer-events-none rounded-full border border-cyan-400/40 bg-[#081018]/90 px-4 py-2 text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.2)] backdrop-blur-md">
+          <div className="pointer-events-none rounded-full border border-[#F5590A]/50 bg-[#120d0a]/90 px-4 py-2 text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-[#FFD7C2] shadow-[0_0_24px_rgba(245,89,10,0.28)] backdrop-blur-md">
             Q-Bits — Quantum Technology Club
           </div>
         </Html>

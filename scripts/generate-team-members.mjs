@@ -143,13 +143,14 @@ const DOMAINS_DATA = [
     tagline: 'Corporate Partnerships, Outreach & Brand Growth',
     members: [
       { name: 'Kotresh', role: 'Head', code: 'MK-01', isHead: true },
-      { name: 'Rishiman Dadwal', role: 'Member', code: 'MK-02' },
-      { name: 'T Lokeshwar Reddy', role: 'Member', code: 'MK-03' },
-      { name: 'Varsha Sanjay', role: 'Member', code: 'MK-04' },
-      { name: 'Baibhav Kumar', role: 'Member', code: 'MK-05' },
-      { name: 'Ankit', role: 'Member', code: 'MK-06' },
-      { name: 'Veeksha Reddy', role: 'Member', code: 'MK-07' },
-      { name: 'Zainaba', role: 'Member', code: 'MK-08' },
+      { name: 'Zainaba', role: 'Lead', code: 'MK-02' },
+      { name: 'Rishiman Dadwal', role: 'Member', code: 'MK-03' },
+      { name: 'T Lokeshwar Reddy', role: 'Member', code: 'MK-04' },
+      { name: 'Varsha Sanjay', role: 'Member', code: 'MK-05' },
+      { name: 'Baibhav Kumar', role: 'Member', code: 'MK-06' },
+      { name: 'Ankit', role: 'Member', code: 'MK-07' },
+      { name: 'Veeksha Reddy', role: 'Member', code: 'MK-08' },
+      
     ],
   },
   {

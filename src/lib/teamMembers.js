@@ -28,13 +28,6 @@ export const FACULTY_DATA = [
     "photo": "/team-photos/fa_04.jpg",
     "photoUrl": "/team-photos/fa_04.jpg"
   },
-  {
-    "name": "Mrs Meghana A",
-    "role": "Faculty",
-    "code": "FA-05",
-    "photo": "/team-photos/fa_05.jpg",
-    "photoUrl": "/team-photos/fa_05.jpg"
-  }
 ];
 
 export const LEADERSHIP_DATA = [

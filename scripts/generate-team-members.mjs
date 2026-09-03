@@ -96,9 +96,9 @@ const DOMAINS_DATA = [
     tagline: 'Visual Identity, UI/UX & Creative Media',
     members: [
       { name: 'Maaz', role: 'Head', code: 'DS-01', isHead: true },
-      { name: 'Vaibhavi', role: 'Head', code: 'DS-04', isHead: true },
-      { name: 'Kulsum', role: 'Lead', code: 'DS-02' },
-      { name: 'Dheshna M', role: 'Co Lead', code: 'DS-03' },
+      { name: 'Vaibhavi', role: 'Head', code: 'DS-02', isHead: true },
+      { name: 'Kulsum', role: 'Lead', code: 'DS-03' },
+      { name: 'Dheshna M', role: 'Co Lead', code: 'DS-04' },
       { name: 'Melisha Dsouza', role: 'Member', code: 'DS-05' },
       { name: 'Anupriya Kumari', role: 'Member', code: 'DS-06' },
       { name: 'Swasti Jain', role: 'Member', code: 'DS-07' },

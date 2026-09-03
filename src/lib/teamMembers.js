@@ -210,6 +210,14 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/ds_01.png"
       },
       {
+        "name": "Vaibhavi",
+        "role": "Head",
+        "code": "DS-04",
+        "isHead": true,
+        "photo": "/team-photos/ds_04.jpg",
+        "photoUrl": "/team-photos/ds_04.jpg"
+      },
+      {
         "name": "Kulsum",
         "role": "Lead",
         "code": "DS-02",
@@ -222,14 +230,6 @@ export const DOMAINS_DATA = [
         "code": "DS-03",
         "photo": "/team-photos/ds_03.jpeg",
         "photoUrl": "/team-photos/ds_03.jpeg"
-      },
-      {
-        "name": "Vaibhavi",
-        "role": "Head",
-        "code": "DS-04",
-        "isHead": true,
-        "photo": "/team-photos/ds_04.jpg",
-        "photoUrl": "/team-photos/ds_04.jpg"
       },
       {
         "name": "Melisha Dsouza",

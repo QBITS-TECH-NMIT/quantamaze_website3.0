@@ -236,7 +236,7 @@ export default function PrizesPage() {
                 Prize pool & <em>benefits</em>
               </h1>
               <p className={styles.subtitle}>
-                ₹1,05,000 in cash prizes plus exclusive CodeCrafters VIP memberships for all placed teams.
+                ₹1,00,000 in cash prizes plus exclusive CodeCrafters VIP memberships for all placed teams.
               </p>
             </div>
           </Reveal>

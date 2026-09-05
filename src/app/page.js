@@ -301,7 +301,9 @@ export default function HomePage() {
             {/* Register CTA linking to the global contact footer */}
             <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
-                href="#footer"
+                href="https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"
               >
                 <span>Register Now</span>

@@ -166,7 +166,7 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/ad_04.jpg"
       },
       {
-        "name": "Abhianv Deo",
+        "name": "Abhinav Deo",
         "role": "Member",
         "code": "AD-05",
         "photo": "/team-photos/ad_05.jpeg",
@@ -212,24 +212,24 @@ export const DOMAINS_DATA = [
       {
         "name": "Vaibhavi",
         "role": "Head",
-        "code": "DS-04",
-        "isHead": true,
-        "photo": "/team-photos/ds_04.jpg",
-        "photoUrl": "/team-photos/ds_04.jpg"
-      },
-      {
-        "name": "Kulsum",
-        "role": "Lead",
         "code": "DS-02",
+        "isHead": true,
         "photo": "/team-photos/ds_02.jpg",
         "photoUrl": "/team-photos/ds_02.jpg"
       },
       {
+        "name": "Kulsum",
+        "role": "Lead",
+        "code": "DS-03",
+        "photo": "/team-photos/ds_03.jpg",
+        "photoUrl": "/team-photos/ds_03.jpg"
+      },
+      {
         "name": "Dheshna M",
         "role": "Co Lead",
-        "code": "DS-03",
-        "photo": "/team-photos/ds_03.jpeg",
-        "photoUrl": "/team-photos/ds_03.jpeg"
+        "code": "DS-04",
+        "photo": "/team-photos/ds_04.jpeg",
+        "photoUrl": "/team-photos/ds_04.jpeg"
       },
       {
         "name": "Melisha Dsouza",

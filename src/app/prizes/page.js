@@ -298,34 +298,7 @@ export default function PrizesPage() {
               ))}
             </motion.div>
 
-            {/* Innovation Award */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: easeOut }}
-              className={styles.innovationCard}
-              whileHover={{ y: -4, transition: { duration: 0.3 } }}
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                burst(rect.left + rect.width / 2, rect.top + 40, 36);
-              }}
-            >
-              <div className={styles.innovationIcon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
-                  <circle cx="12" cy="12" r="3.2" />
-                </svg>
-              </div>
-              <div className={styles.innovationContent}>
-                <h4 className={styles.innovationTitle}>Innovative Award</h4>
-                <p className={styles.innovationDesc}>Best original idea across any track — voted by judges</p>
-              </div>
-              <div className={styles.innovationAmount}>
-                <span className={styles.currency}>₹</span>
-                <span><AnimatedCounter target={5000} duration={1400} /></span>
-              </div>
-            </motion.div>
+
           </div>
 
           {/* Winner Benefits Section */}

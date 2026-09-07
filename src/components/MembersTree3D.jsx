@@ -848,7 +848,7 @@ function TreeScene({ tree, activeDomain, onDomainSelect, onMemberSelect, focusRe
 
   // Continuously invalidate frames while animations are happening
   useFrame(() => {
-    invalidate();
+    if (!reducedQuality) invalidate();
   });
 
   return (

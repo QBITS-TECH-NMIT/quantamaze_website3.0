@@ -543,6 +543,10 @@ function ContinuousRender() {
 }
 
 export default function QuantumCubeScene({ showMaze = true, showQubit = true, showCornerNodes = true }) {
+  const reducedQuality = typeof window !== "undefined" && (
+    window.matchMedia("(pointer: coarse)").matches ||
+    (navigator.hardwareConcurrency || 8) <= 4
+  );
   // animationKey: a monotonically-increasing integer bumped on every explosion trigger.
   // Used as the overlay's React key so it fully unmounts+remounts each time, guaranteeing
   // all CSS animations restart from frame 0 and all internal state is fresh — even when
@@ -603,15 +607,15 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
       <Canvas
         frameloop="demand"
         camera={{ position: [0, 0, 6.8], fov: 36, near: 0.1, far: 1000 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
+        dpr={reducedQuality ? 1 : [1, 1.5]}
+        gl={{ antialias: !reducedQuality, alpha: true }}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.0;
           gl.outputColorSpace = THREE.SRGBColorSpace;
         }}
       >
-        <ContinuousRender />
+        {!reducedQuality && <ContinuousRender />}
         <ambientLight intensity={0.75} />
         <QuantumCoreCube
           showMaze={showMaze}
@@ -622,10 +626,12 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
           overlayActive={overlayActive}
         />
         <GroundGlow />
-        <OrbitControls enablePan={false} enableZoom={false} enableDamping dampingFactor={0.08} autoRotate autoRotateSpeed={0.5} rotateSpeed={0.9} />
-        <EffectComposer>
-          <Bloom intensity={0.7} mipmapBlur luminanceThreshold={0.22} luminanceSmoothing={0.75} radius={0.8} resolutionScale={0.5} />
-        </EffectComposer>
+        <OrbitControls enablePan={false} enableZoom={false} enableDamping={!reducedQuality} dampingFactor={0.08} autoRotate={!reducedQuality} autoRotateSpeed={0.5} rotateSpeed={0.9} />
+        {!reducedQuality && (
+          <EffectComposer>
+            <Bloom intensity={0.7} mipmapBlur luminanceThreshold={0.22} luminanceSmoothing={0.75} radius={0.8} resolutionScale={0.5} />
+          </EffectComposer>
+        )}
       </Canvas>
 
       {/* animationKey is used as `key` so React unmounts+remounts the overlay on every

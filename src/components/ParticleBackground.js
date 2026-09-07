@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-const PARTICLE_COUNT = 80;
+const DESKTOP_PARTICLE_COUNT = 80;
+const MOBILE_PARTICLE_COUNT = 28;
 
 export default function ParticleBackground() {
   const canvasRef = useRef(null);
@@ -12,23 +13,32 @@ export default function ParticleBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    const setViewportHeight = () => {
+      document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
+    };
+
+    setViewportHeight();
+    window.addEventListener("resize", setViewportHeight, { passive: true });
+
     const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
-        camera.position.z = 22;
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
+    camera.position.z = 22;
 
         const renderer = new THREE.WebGLRenderer({
           canvas,
           alpha: true,
-          antialias: !window.matchMedia("(pointer: coarse)").matches,
+          antialias: !isCoarsePointer,
           powerPreference: "high-performance",
         });
-        const maxPixelRatio = window.matchMedia("(pointer: coarse)").matches ? 1 : 1.5;
+        const maxPixelRatio = isCoarsePointer ? 1 : 1.5;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio));
         renderer.setClearColor(0x000000, 0);
 
         const group = new THREE.Group();
         const outerSphere = new THREE.Mesh(
-          new THREE.SphereGeometry(12, 28, 28),
+          new THREE.SphereGeometry(12, isCoarsePointer ? 16 : 28, isCoarsePointer ? 16 : 28),
           new THREE.MeshBasicMaterial({
             color: 0x800020,
             wireframe: true,
@@ -37,7 +47,7 @@ export default function ParticleBackground() {
           }),
         );
         const innerSphere = new THREE.Mesh(
-          new THREE.IcosahedronGeometry(7, 2),
+          new THREE.IcosahedronGeometry(7, isCoarsePointer ? 1 : 2),
           new THREE.MeshBasicMaterial({
             color: 0xd97706,
             wireframe: true,
@@ -46,7 +56,8 @@ export default function ParticleBackground() {
           }),
         );
 
-        const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+        const particleCount = isCoarsePointer ? MOBILE_PARTICLE_COUNT : DESKTOP_PARTICLE_COUNT;
+        const particlePositions = new Float32Array(particleCount * 3);
         for (let index = 0; index < particlePositions.length; index += 1) {
           particlePositions[index] = (Math.random() - 0.5) * 45;
         }
@@ -68,9 +79,10 @@ export default function ParticleBackground() {
         group.add(outerSphere, innerSphere, particles);
         scene.add(group);
 
-        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         let animationFrame = 0;
         let visible = !document.hidden;
+        let lastRenderTime = 0;
+        const frameInterval = isCoarsePointer ? 1000 / 30 : 1000 / 50;
 
         function resize() {
           const width = window.innerWidth;
@@ -80,11 +92,17 @@ export default function ParticleBackground() {
           renderer.setSize(width, height, false);
         }
 
-        function render() {
+        function render(time = 0) {
           if (!visible) {
             animationFrame = 0;
             return;
           }
+
+          if (time - lastRenderTime < frameInterval) {
+            animationFrame = window.requestAnimationFrame(render);
+            return;
+          }
+          lastRenderTime = time;
 
           if (!reducedMotion) {
             outerSphere.rotation.y += 0.0015;
@@ -111,6 +129,7 @@ export default function ParticleBackground() {
         render();
 
         return () => {
+          window.removeEventListener("resize", setViewportHeight);
           window.removeEventListener("resize", resize);
           document.removeEventListener("visibilitychange", handleVisibilityChange);
           if (animationFrame) window.cancelAnimationFrame(animationFrame);
@@ -130,7 +149,7 @@ export default function ParticleBackground() {
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none fixed left-0 top-0 block"
-      style={{ width: "100vw", height: "100dvh", zIndex: 0 }}
+      style={{ width: "100%", height: "calc(var(--vh, 1vh) * 100)", zIndex: 0 }}
     />
   );
 }

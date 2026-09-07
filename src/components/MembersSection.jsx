@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
@@ -55,14 +55,13 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
     tagline: "Governance, Strategy & Internal Operations",
     members: [
       { name: "Haseena Tawfeeqa", role: "Head", photo: null, photoUrl: null, code: "AD-01", isHead: true },
-      { name: "Raksha P", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
-      { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-03" },
-      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-04", imagePosition: "50% 18%" },
-      { name: "Abhianv Deo", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
-      { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
-      { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-07" },
-      { name: "D Ganesh", role: "Member", photo: null, photoUrl: null, code: "AD-08" },
-
+      { name: "Rifa Anjum", role: "Member", photo: null, photoUrl: null, code: "AD-02" },
+      { name: "LD Sai Charan", role: "Member", photo: null, photoUrl: null, code: "AD-03", imagePosition: "50% 18%" },
+      { name: "Abhinav Deo", role: "Member", photo: null, photoUrl: null, code: "AD-04" },
+      { name: "Karthik S Rao", role: "Member", photo: null, photoUrl: null, code: "AD-05" },
+      { name: "Keerthana Bhat", role: "Member", photo: null, photoUrl: null, code: "AD-06" },
+      { name: "D Ganesh", role: "Member", photo: null, photoUrl: null, code: "AD-07" },
+      { name: "Raksha P", role: "Member", photo: null, photoUrl: null, code: "AD-08" },
     ],
   },
   {
@@ -256,7 +255,7 @@ export function PlaceholderSilhouette({ code = "Q-01" }) {
 // MEMBER CARD COMPONENT (Larger, Spacious, Big Avatar, High Contrast)
 // ─────────────────────────────────────────────────────────────────
 
-export function MemberCard({ member }) {
+export const MemberCard = memo(function MemberCard({ member }) {
   const imagePosition =
     member.imagePosition ||
     (member.code === "DS-06"
@@ -280,7 +279,7 @@ export function MemberCard({ member }) {
   return (
     <motion.div
       variants={cardVariants}
-      className="group relative flex flex-col items-center justify-between overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090A10]/95 p-6 sm:p-8 shadow-[0_16px_40px_rgba(0,0,0,0.75)] transition-all duration-300 hover:-translate-y-2 hover:border-[#F5590A]/90 hover:shadow-[0_24px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(245,89,10,0.35),0_0_15px_rgba(255,138,61,0.2)]"
+      className="member-card group relative flex flex-col items-center justify-between overflow-hidden rounded-3xl border border-white/[0.09] bg-[#090A10]/95 p-6 sm:p-8 shadow-[0_16px_40px_rgba(0,0,0,0.75)] transition-all duration-300 hover:-translate-y-2 hover:border-[#F5590A]/90 hover:shadow-[0_24px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(245,89,10,0.35),0_0_15px_rgba(255,138,61,0.2)]"
     >
       {/* Corner Registration Marks */}
       <span className="comic-corner-bracket comic-corner-bracket--tl" aria-hidden="true" />
@@ -290,14 +289,14 @@ export function MemberCard({ member }) {
 
       {/* Top Header Row: ID Tag & Active Status */}
       <div className="flex w-full items-center justify-between z-10 mb-2">
-        <div className="flex items-center gap-1.5 rounded-md border border-white/10 bg-[#08080C]/90 px-3 py-1 backdrop-blur-md">
-          <span className="h-2 w-2 rounded-full bg-[#F5590A] shadow-[0_0_6px_#F5590A] animate-pulse" />
+        <div className="member-card-meta flex items-center gap-1.5 rounded-md border border-white/10 bg-[#08080C]/90 px-3 py-1 backdrop-blur-md">
+          <span className="member-card-status-dot h-2 w-2 rounded-full bg-[#F5590A] shadow-[0_0_6px_#F5590A] animate-pulse" />
           <span className="font-mono text-xs font-extrabold tracking-wider text-stone-200">
             {member.code || "Q-BIT"}
           </span>
         </div>
 
-        <div className="rounded-md border border-[#F5590A]/40 bg-[#F5590A]/10 px-2.5 py-1 backdrop-blur-md">
+        <div className="member-card-meta rounded-md border border-[#F5590A]/40 bg-[#F5590A]/10 px-2.5 py-1 backdrop-blur-md">
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#FF8A3D]">
             ACTIVE
           </span>
@@ -307,13 +306,13 @@ export function MemberCard({ member }) {
       {/* Center: Significantly Bigger Circular Photo / Avatar Area */}
       <div className="relative my-4 flex items-center justify-center">
         {/* Ambient Orange Glow behind circle */}
-        <div className="absolute -inset-4 rounded-full bg-gradient-to-tr from-[#F5590A]/25 via-[#FF8A3D]/12 to-transparent blur-md group-hover:from-[#F5590A]/45 group-hover:blur-xl transition-all duration-300" />
+        <div className="member-card-ambient absolute -inset-4 rounded-full bg-gradient-to-tr from-[#F5590A]/25 via-[#FF8A3D]/12 to-transparent blur-md group-hover:from-[#F5590A]/45 group-hover:blur-xl transition-all duration-300" />
         
         {/* Rotating Outer Dash Ring */}
-        <div className="absolute -inset-2.5 rounded-full border border-[#F5590A]/35 border-dashed animate-[spin_24s_linear_infinite] pointer-events-none group-hover:border-[#F5590A]/70 transition-colors" />
+        <div className="member-card-ring absolute -inset-2.5 rounded-full border border-[#F5590A]/35 border-dashed animate-[spin_24s_linear_infinite] pointer-events-none group-hover:border-[#F5590A]/70 transition-colors" />
 
         {/* Circular Avatar Container */}
-        <div className="relative h-44 w-44 sm:h-48 sm:w-48 md:h-52 md:w-52 lg:h-56 lg:w-56 overflow-hidden rounded-full border-2 border-[#F5590A]/50 bg-[#08080E] shadow-[0_0_25px_rgba(245,89,10,0.25)] transition-all duration-300 group-hover:border-[#F5590A] group-hover:shadow-[0_0_40px_rgba(245,89,10,0.5)] group-hover:scale-[1.03]">
+        <div className="relative h-44 w-44 sm:h-48 sm:w-48 md:h-52 md:w-52 lg:h-56 lg:w-56 aspect-square overflow-hidden rounded-full border-2 border-[#F5590A]/50 bg-[#08080E] shadow-[0_0_25px_rgba(245,89,10,0.25)] transition-all duration-300 group-hover:border-[#F5590A] group-hover:shadow-[0_0_40px_rgba(245,89,10,0.5)] group-hover:scale-[1.03]">
           {member.photo || member.photoUrl ? (
             <img
               src={member.photo || member.photoUrl}
@@ -350,7 +349,7 @@ export function MemberCard({ member }) {
       <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 shadow-[inset_0_0_0_1.5px_rgba(245,89,10,0.4)]" />
     </motion.div>
   );
-}
+});
 
 // ─────────────────────────────────────────────────────────────────
 // SECTION HEADING COMPONENT
@@ -428,7 +427,7 @@ export function MemberGrid({ members }) {
 
 export function View2D({ leadership = LEADERSHIP_DATA, faculty = FACULTY_DATA, domains = DOMAINS_DATA }) {
   return (
-    <div className="space-y-24 sm:space-y-32 lg:space-y-36">
+    <div className="members-2d-view space-y-24 sm:space-y-32 lg:space-y-36">
       <motion.section
         id="section-faculty"
         variants={sectionVariants}

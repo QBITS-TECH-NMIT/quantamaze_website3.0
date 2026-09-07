@@ -139,12 +139,14 @@ function AtomScene({ rotation, shouldReduceMotion }) {
 }
 
 export default function AtomModel3D({ rotation = { x: -16, y: 32 }, shouldReduceMotion = false }) {
+  const isCoarsePointer = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
   return (
     <Canvas
       frameloop="demand"
       camera={{ position: [0, 0, 5.2], fov: 44 }}
-      dpr={[1, 1.5]}
-      gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+      dpr={isCoarsePointer ? 1 : [1, 1.5]}
+      gl={{ alpha: true, antialias: !isCoarsePointer, powerPreference: "high-performance" }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
       style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "none" }}
     >

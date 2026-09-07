@@ -75,6 +75,7 @@ export default function LoadingScreen({ onComplete }) {
     let assetsReady = false;
     let minTimeReady = prefersReducedMotion;
     const startedAt = performance.now();
+    let lastPaintAt = 0;
     const assetCount = 3;
     let loadedAssets = 0;
     const updateAssetProgress = () => {
@@ -115,10 +116,13 @@ export default function LoadingScreen({ onComplete }) {
       const target = targetProgressRef.current;
       const next = prefersReducedMotion ? target : current + (target - current) * 0.085;
       visualProgressRef.current = Math.abs(target - next) < 0.001 ? target : next;
-      setProgress(Math.round(visualProgressRef.current * 100));
-      if (pathRef.current && pathLengthRef.current) {
-        const point = pathRef.current.getPointAtLength(pathLengthRef.current * visualProgressRef.current);
-        setCursor({ x: point.x, y: point.y });
+      if (prefersReducedMotion || now - lastPaintAt >= 1000 / 30) {
+        lastPaintAt = now;
+        setProgress(Math.round(visualProgressRef.current * 100));
+        if (pathRef.current && pathLengthRef.current) {
+          const point = pathRef.current.getPointAtLength(pathLengthRef.current * visualProgressRef.current);
+          setCursor({ x: point.x, y: point.y });
+        }
       }
       if (!complete) frameRef.current = requestAnimationFrame(animate);
     }

@@ -11,15 +11,23 @@
  *   accentColor {string}         – CSS colour token for glows/bar. Defaults to site orange.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+export const COUNTDOWN_PHASES = [
+  { heading: "LAUNCHING IN", startDate: "2026-08-08T00:00:00+05:30", targetDate: "2026-09-07T00:00:00+05:30" },
+  { heading: "SUBMISSIONS CLOSE IN", startDate: "2026-09-07T00:00:00+05:30", targetDate: "2026-09-28T23:59:59+05:30" },
+  { heading: "PHASE 1 RESULTS IN", startDate: "2026-09-29T00:00:00+05:30", targetDate: "2026-10-03T00:00:00+05:30" },
+  { heading: "EVENT STARTS IN", startDate: "2026-10-03T00:00:00+05:30", targetDate: "2026-10-28T00:00:00+05:30" },
+  { heading: "FINAL RESULTS IN", startDate: "2026-10-28T00:00:00+05:30", targetDate: "2026-10-30T23:59:59+05:30" },
+];
 
 /* ─────────────────────────────────────────────
    Helpers
 ───────────────────────────────────────────── */
 
-function getTimeLeft(target) {
-  const diff = new Date(target) - Date.now();
+function getTimeLeft(target, now) {
+  const diff = new Date(target).getTime() - now;
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
   return {
     days: Math.floor(diff / 86_400_000),
@@ -30,10 +38,14 @@ function getTimeLeft(target) {
   };
 }
 
-function getProgress(start, target) {
-  const total = new Date(target) - new Date(start);
-  const elapsed = Date.now() - new Date(start);
+function getProgress(start, target, now) {
+  const total = new Date(target).getTime() - new Date(start).getTime();
+  const elapsed = now - new Date(start).getTime();
   return total <= 0 ? 100 : Math.min(100, Math.max(0, (elapsed / total) * 100));
+}
+
+function getActivePhase(phases, now) {
+  return phases.findIndex((phase) => new Date(phase.targetDate).getTime() > now);
 }
 
 /* ─────────────────────────────────────────────
@@ -256,31 +268,52 @@ function AmbientParticles({ accent }) {
 ───────────────────────────────────────────── */
 
 export default function CountdownTimer({
+  phases = COUNTDOWN_PHASES,
   targetDate,
   startDate,
   label = "Launching In",
   accentColor = "#f5590a",
 }) {
-  const resolvedTarget = targetDate ?? new Date("2026-09-07T00:00:00+05:30");
-  const resolvedStart =
-    startDate ?? new Date(new Date(resolvedTarget).getTime() - 30 * 86_400_000);
+  const resolvedPhases = useMemo(
+    () => targetDate
+      ? [{
+          heading: label,
+          startDate: startDate ?? new Date(new Date(targetDate).getTime() - 30 * 86_400_000),
+          targetDate,
+        }]
+      : phases,
+    [label, phases, startDate, targetDate],
+  );
 
   const [time, setTime] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [phaseIndex, setPhaseIndex] = useState(null);
 
   useEffect(() => {
     function tick() {
-      setTime(getTimeLeft(resolvedTarget));
-      setProgress(getProgress(resolvedStart, resolvedTarget));
+      const now = Date.now();
+      const nextPhaseIndex = getActivePhase(resolvedPhases, now);
+      setPhaseIndex(nextPhaseIndex === -1 ? null : nextPhaseIndex);
+
+      if (nextPhaseIndex === -1) {
+        setTime({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setProgress(100);
+        return;
+      }
+
+      const currentPhase = resolvedPhases[nextPhaseIndex];
+      setTime(getTimeLeft(currentPhase.targetDate, now));
+      setProgress(getProgress(currentPhase.startDate, currentPhase.targetDate, now));
     }
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-    // resolvedTarget / resolvedStart are stable refs — deps are intentionally omitted
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resolvedPhases]);
 
   const display = time ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  const heading = phaseIndex === null && time !== null
+    ? "EVENT CONCLUDED"
+    : resolvedPhases[phaseIndex ?? 0]?.heading ?? "EVENT CONCLUDED";
   const segments = [
     { key: "days",    value: display.days,    label: "Days"    },
     { key: "hours",   value: display.hours,   label: "Hours"   },
@@ -340,7 +373,7 @@ export default function CountdownTimer({
       <AmbientParticles accent={accentColor} />
 
       {/* Heading */}
-      {label && (
+      {heading && (
         <motion.p
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -357,7 +390,7 @@ export default function CountdownTimer({
             fontFamily: "var(--font-geist-mono, monospace)",
           }}
         >
-          {label}
+          {heading}
         </motion.p>
       )}
 

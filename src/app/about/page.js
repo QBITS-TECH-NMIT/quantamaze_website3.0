@@ -50,7 +50,8 @@ function InteractiveHeroCube({ onOpenModal }) {
 
   // Auto-rotation when not dragging
   useEffect(() => {
-    if (shouldReduceMotion) return;
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    if (shouldReduceMotion || isCoarsePointer) return;
 
     let lastTime = performance.now();
     const loop = (currentTime) => {
@@ -233,7 +234,8 @@ export default function AboutPage() {
   const cubeContainerRef = useRef(null);
 
   useEffect(() => {
-    setAlbumPortalTarget(document.body);
+    const frameId = window.requestAnimationFrame(() => setAlbumPortalTarget(document.body));
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
   useEffect(() => {

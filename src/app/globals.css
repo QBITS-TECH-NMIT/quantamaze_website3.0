@@ -3,6 +3,7 @@
 html {
   scroll-behavior: smooth;
   background: #0a0a0a;
+  overflow-x: clip;
 }
 
 :root {
@@ -33,8 +34,31 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
   background: var(--background);
   color: var(--foreground);
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
+}
+
+@media (pointer: coarse) {
+  .members-2d-view .member-card {
+    transition-property: border-color, box-shadow;
+  }
+
+  .members-2d-view .member-card:hover {
+    transform: none;
+  }
+
+  .members-2d-view .member-card-ambient {
+    filter: none;
+  }
+
+  .members-2d-view .member-card-meta {
+    backdrop-filter: none;
+  }
+
+  .members-2d-view .member-card-ring,
+  .members-2d-view .member-card-status-dot {
+    animation: none;
+  }
 }
 
 * {
@@ -794,8 +818,51 @@ body::before {
   border-left: 3px solid var(--accent);
 }
 
+.viewport-section {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+.page-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
 .home-hero {
   background-color: transparent !important;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .about-image-label,
+  .about-stat-card,
+  .about-partner-pill,
+  .timeline-card,
+  .hero-collab-panel,
+  .unbox-parcel-card,
+  .mobile-taskbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .about-stat-card,
+  .timeline-card {
+    background: rgba(18, 18, 20, 0.94);
+  }
+
+  .hero-collab-panel,
+  .unbox-parcel-card,
+  .mobile-taskbar {
+    background-color: rgba(12, 12, 18, 0.94);
+  }
+
+  .hero-atom-glow,
+  .background-glow,
+  .overlay-1,
+  .overlay-2 {
+    filter: blur(10px);
+  }
 }
 
 /* ==========================================================================
@@ -3626,8 +3693,10 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: 100;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
   background: #050505;
 }
@@ -4070,8 +4139,10 @@ body::before {
 }
 
 .members-3d-viewport:fullscreen {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  height: calc(var(--vh, 1vh) * 100);
   max-width: none;
   max-height: none;
   border: 0;

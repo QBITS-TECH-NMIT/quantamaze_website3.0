@@ -158,7 +158,7 @@ export const DOMAINS_DATA = [
         "photoUrl": "/team-photos/ad_03.jpg"
       },
       {
-        "name": "LD Sai Charan",
+        "name": "Abhinav Deo",
         "role": "Member",
         "code": "AD-04",
         "imagePosition": "50% 18%",

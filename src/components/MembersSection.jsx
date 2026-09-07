@@ -44,8 +44,7 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
       { name: "Hiranmayi", role: "Member", photo: null, photoUrl: null, code: "TC-06" },
       { name: "Pranav Rohan", role: "Member", photo: null, photoUrl: null, code: "TC-07" },
       { name: "Farhan Akhtar", role: "Member", photo: null, photoUrl: null, code: "TC-08" },
-      
-      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-02" },
+      { name: "Janvika Malapati", role: "Member", photo: null, photoUrl: null, code: "TC-09" },
       { name: "Arnav Raj Karn", role: "Member", photo: null, photoUrl: null, code: "TC-10" },
     ],
   },
@@ -544,7 +543,7 @@ export function ViewToggle({ view, onChange }) {
 // QUICK DOMAIN JUMP NAVIGATOR CHIPS
 // ─────────────────────────────────────────────────────────────────
 
-function DomainQuickBar() {
+function DomainQuickBar({ compact = false }) {
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -553,7 +552,7 @@ function DomainQuickBar() {
   };
 
   return (
-    <div className="mb-14 overflow-x-auto pb-3 pt-1 scrollbar-none">
+    <div className={`${compact ? "mb-6 sticky top-0 z-20 -mx-1 px-2 pt-1" : "mb-14 pt-1"} overflow-x-auto pb-3 scrollbar-none`}>
       <div className="flex items-center gap-2 min-w-max">
         <span className="font-mono text-[11px] font-black uppercase tracking-wider text-[#F5590A] mr-2">
           QUICK JUMP:
@@ -564,6 +563,13 @@ function DomainQuickBar() {
           className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-xs font-semibold text-stone-300 hover:border-[#F5590A] hover:bg-[#F5590A]/10 hover:text-[#FF8A3D] transition-all"
         >
           Faculty
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollTo("section-leadership")}
+          className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-xs font-semibold text-stone-300 hover:border-[#F5590A] hover:bg-[#F5590A]/10 hover:text-[#FF8A3D] transition-all"
+        >
+          Leadership
         </button>
         {DOMAINS_DATA.map((d) => (
           <button
@@ -633,7 +639,7 @@ export default function MembersSection({ showHeader = true, compact = false }) {
       )}
 
       {/* Quick Domain Navigation Bar */}
-      {view === "2d" && !compact && <DomainQuickBar />}
+      {view === "2d" && <DomainQuickBar compact={compact} />}
 
       {/* Smooth Crossfade View Switcher */}
       <AnimatePresence mode="wait">

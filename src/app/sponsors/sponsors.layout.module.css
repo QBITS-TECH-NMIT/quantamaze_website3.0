@@ -1,4 +1,13 @@
-.vc { grid-column: span 2; }
+.vc { grid-column: span 1; }
+.inkind { grid-row: span 2; justify-content: flex-start; }
+.inkindList { flex: 1; flex-direction: column; align-items: stretch; justify-content: space-between; margin-top: 1.5rem; }
+.platformSponsor { color: rgba(255, 255, 255, .42); font-family: var(--font-geist-mono), monospace; font-size: .62rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.event { border-color: rgba(245, 89, 10, .34); background: linear-gradient(135deg, rgba(31, 22, 16, .98), rgba(11, 11, 11, .98)); }
+.electricTitle { grid-column: span 1; }
+.event { grid-column: span 1; }
+.eventList { align-items: center; justify-content: center; }
+.eventLogo { width: min(240px, 100%); flex: 0 1 240px; }
+.eventLogo span { text-align: center; }
 .electricTitle { overflow: visible; border-color: rgba(245, 89, 10, .72); background: #0c0c0d; box-shadow: 0 18px 36px rgba(0, 0, 0, .32), inset 0 1px rgba(255, 255, 255, .025); }
 .electricTitle::after { display: none; }
 .electricTreatment { position: absolute; inset: 0; z-index: 0; opacity: .72; pointer-events: none; }
@@ -15,7 +24,8 @@
 .vcLogo span { text-align: center; }
 
 @media (max-width: 640px) {
-  .vc { grid-column: auto; }
+  .electricTitle, .vc, .event { grid-column: auto; }
+  .inkind { grid-row: auto; }
   .vcList { justify-content: flex-start; margin-top: 1.5rem; }
   .vcLogo { width: auto; max-width: none; flex: 1 1 122px; }
 }

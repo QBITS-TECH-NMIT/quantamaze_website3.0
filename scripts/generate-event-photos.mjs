@@ -1,4 +1,5 @@
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -7,29 +8,57 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const photosDirectory = path.join(projectRoot, "public", "images", "events");
 const thumbnailsDirectory = path.join(photosDirectory, "thumbs");
 await mkdir(thumbnailsDirectory, { recursive: true });
-const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const supportedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"]);
 const names = (await readdir(photosDirectory, { withFileTypes: true }))
   .filter((entry) => !entry.isDirectory() && supportedExtensions.has(path.extname(entry.name).toLowerCase()))
   .map((entry) => entry.name)
   .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
 
+const seenHashes = new Set();
 const photos = [];
-for (const [index, name] of names.entries()) {
-  const metadata = await sharp(path.join(photosDirectory, name)).metadata();
-  const thumbnailName = `${path.parse(name).name}.webp`;
-  await sharp(path.join(photosDirectory, name))
-    .resize({ width: 960, withoutEnlargement: true })
-    .webp({ quality: 72, effort: 4 })
-    .toFile(path.join(thumbnailsDirectory, thumbnailName));
+const generatedThumbs = new Set();
 
-  photos.push({
-    id: `event-photo-${index + 1}`,
-    src: `/images/events/thumbs/${encodeURIComponent(thumbnailName)}`,
-    originalSrc: `/images/events/${encodeURIComponent(name)}`,
-    alt: `Quant-A-Maze event photo ${index + 1}`,
-    width: metadata.width ?? 1,
-    height: metadata.height ?? 1,
-  });
+for (const name of names) {
+  const sourcePath = path.join(photosDirectory, name);
+  const hash = crypto.createHash("sha256").update(await readFile(sourcePath)).digest("hex");
+  if (seenHashes.has(hash)) continue;
+  seenHashes.add(hash);
+
+  const thumbnailName = `${path.parse(name).name}.webp`;
+  const thumbnailPath = path.join(thumbnailsDirectory, thumbnailName);
+
+  try {
+    const ext = path.extname(name).toLowerCase();
+    const sharpOptions = ext === ".heic" || ext === ".heif" ? { unlimited: true, limitInputPixels: false } : undefined;
+    const metadata = await sharp(sourcePath, sharpOptions).rotate().metadata();
+    await sharp(sourcePath, sharpOptions)
+      .rotate()
+      .resize({ width: 960, withoutEnlargement: true })
+      .webp({ quality: 72, effort: 4 })
+      .toFile(thumbnailPath);
+    generatedThumbs.add(thumbnailName);
+
+    photos.push({
+      id: `event-photo-${photos.length + 1}`,
+      src: `/images/events/thumbs/${encodeURIComponent(thumbnailName)}`,
+      originalSrc: `/images/events/${encodeURIComponent(name)}`,
+      alt: `Quant-A-Maze event photo ${photos.length + 1}`,
+      width: metadata.width ?? 1,
+      height: metadata.height ?? 1,
+    });
+  } catch (error) {
+    console.warn(`Skipping ${name}: ${error.message.split("\n")[0]}`);
+  }
+}
+
+const existingThumbs = (await readdir(thumbnailsDirectory, { withFileTypes: true }))
+  .filter((entry) => entry.isFile())
+  .map((entry) => entry.name);
+
+for (const thumbName of existingThumbs) {
+  if (!generatedThumbs.has(thumbName)) {
+    await unlink(path.join(thumbnailsDirectory, thumbName));
+  }
 }
 
 const eventAlbums = [

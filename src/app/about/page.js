@@ -23,11 +23,18 @@ const QuantumCubeScene = dynamic(() => import("@/components/QuantumCubeScene"), 
   loading: () => <div className="h-[260px] w-full rounded-2xl bg-[#08080C] sm:h-[320px]" />,
 });
 
+const REGISTRATION_URL = "https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge";
+
 const easeOut = [0.16, 1, 0.3, 1];
 
 // Interactive 3D Quantum Hero Cube Component with Comic Affordances
 function InteractiveHeroCube({ onOpenModal }) {
   const shouldReduceMotion = useReducedMotion();
+  const isLowPowerDevice = typeof window !== "undefined" && (
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    (navigator.hardwareConcurrency || 8) <= 4 ||
+    window.innerWidth < 360
+  );
   const [rotation, setRotation] = useState({ x: -16, y: 32 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, rotX: -16, rotY: 32 });
@@ -51,7 +58,7 @@ function InteractiveHeroCube({ onOpenModal }) {
   // Auto-rotation when not dragging
   useEffect(() => {
     const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    if (shouldReduceMotion || isCoarsePointer) return;
+    if (shouldReduceMotion || isLowPowerDevice || isCoarsePointer) return;
 
     let lastTime = performance.now();
     const loop = (currentTime) => {
@@ -926,7 +933,7 @@ export default function AboutPage() {
                               <span>DARE TO CLICK</span>
                             </div>
                             <div className="h-[220px] w-full sm:h-[280px]">
-                              {isCubeInView ? <QuantumCubeScene /> : <div className="h-full w-full bg-[#08080C]" />}
+                              {isCubeInView ? <QuantumCubeScene registrationUrl={REGISTRATION_URL} /> : <div className="h-full w-full bg-[#08080C]" />}
                             </div>
                             <div className="mt-1 text-center font-mono text-[10px] text-slate-400">
                               Drag to rotate 3D Quantum Cube in real-time

@@ -58,6 +58,8 @@ export default function LoadingScreen({ onComplete }) {
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lowPowerDevice = (navigator.hardwareConcurrency || 8) <= 4 || window.innerWidth < 360;
+    const shouldReduceHeavyMotion = prefersReducedMotion || lowPowerDevice;
     const alreadySeen = window.sessionStorage.getItem(LOADER_KEY) === "true";
 
     if (alreadySeen && !startedRef.current) {
@@ -67,13 +69,13 @@ export default function LoadingScreen({ onComplete }) {
     }
 
     startedRef.current = true;
-    setReduced(prefersReducedMotion);
-    if (prefersReducedMotion) targetProgressRef.current = 1;
+    setReduced(shouldReduceHeavyMotion);
+    if (shouldReduceHeavyMotion) targetProgressRef.current = 1;
 
     let complete = false;
     let finishing = false;
     let assetsReady = false;
-    let minTimeReady = prefersReducedMotion;
+    let minTimeReady = shouldReduceHeavyMotion;
     const startedAt = performance.now();
     let lastPaintAt = 0;
     const assetCount = 3;
@@ -89,8 +91,8 @@ export default function LoadingScreen({ onComplete }) {
     const assetPromise = loadAssets(updateAssetProgress);
     const minTimer = window.setTimeout(() => {
       minTimeReady = true;
-      if (assetsReady || prefersReducedMotion) finish();
-    }, prefersReducedMotion ? 60 : MIN_DURATION);
+      if (assetsReady || shouldReduceHeavyMotion) finish();
+    }, shouldReduceHeavyMotion ? 60 : MIN_DURATION);
     const hardTimer = window.setTimeout(() => finish(), MAX_DURATION);
     const skipTimer = window.setTimeout(() => setSkipReady(true), 1000);
 
@@ -106,8 +108,8 @@ export default function LoadingScreen({ onComplete }) {
         window.setTimeout(() => {
           setVisible(false);
           onComplete();
-        }, prefersReducedMotion ? 400 : 620);
-      }, prefersReducedMotion ? 0 : 620);
+        }, shouldReduceHeavyMotion ? 180 : 620);
+      }, shouldReduceHeavyMotion ? 0 : 620);
     }
 
     function animate(now) {
@@ -116,7 +118,7 @@ export default function LoadingScreen({ onComplete }) {
       const target = targetProgressRef.current;
       const next = prefersReducedMotion ? target : current + (target - current) * 0.085;
       visualProgressRef.current = Math.abs(target - next) < 0.001 ? target : next;
-      if (prefersReducedMotion || now - lastPaintAt >= 1000 / 30) {
+      if (shouldReduceHeavyMotion || now - lastPaintAt >= 1000 / 30) {
         lastPaintAt = now;
         setProgress(Math.round(visualProgressRef.current * 100));
         if (pathRef.current && pathLengthRef.current) {

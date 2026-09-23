@@ -76,7 +76,7 @@ export default function CosmicExplosionOverlay({
   onAnimationComplete,
   onDismiss,
   onReset,
-  registrationUrl = "REGISTRATION_URL_HERE",
+  registrationUrl = "https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge",
 }) {
   const reducedMotion = usePrefersReducedMotion();
   const [mounted, setMounted] = useState(false);

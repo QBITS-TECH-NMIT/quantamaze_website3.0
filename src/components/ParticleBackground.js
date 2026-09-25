@@ -124,7 +124,7 @@ export default function ParticleBackground() {
         }
 
         resize();
-        window.addEventListener("resize", resize);
+        window.addEventListener("resize", resize, { passive: true });
         document.addEventListener("visibilitychange", handleVisibilityChange);
         render();
 

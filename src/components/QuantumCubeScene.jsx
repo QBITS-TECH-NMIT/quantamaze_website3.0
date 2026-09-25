@@ -8,6 +8,7 @@ import * as THREE from "three";
 import CosmicExplosionOverlay from "@/components/CosmicExplosionOverlay";
 
 const CUBE_SIZE = 2.2;
+const DEFAULT_REGISTRATION_URL = "https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge";
 const FACE_SIZE = 1.92;
 const ORANGE = "#ff8c32";
 const AMBER = "#ffc46b";
@@ -542,7 +543,12 @@ function ContinuousRender() {
   return null;
 }
 
-export default function QuantumCubeScene({ showMaze = true, showQubit = true, showCornerNodes = true }) {
+export default function QuantumCubeScene({
+  showMaze = true,
+  showQubit = true,
+  showCornerNodes = true,
+  registrationUrl = DEFAULT_REGISTRATION_URL,
+}) {
   const reducedQuality = typeof window !== "undefined" && (
     window.matchMedia("(pointer: coarse)").matches ||
     (navigator.hardwareConcurrency || 8) <= 4
@@ -644,6 +650,7 @@ export default function QuantumCubeScene({ showMaze = true, showQubit = true, sh
         onAnimationComplete={handleAnimationComplete}
         onDismiss={handleOverlayClose}
         onReset={handleOverlayClose}
+        registrationUrl={registrationUrl}
       />
     </div>
   );

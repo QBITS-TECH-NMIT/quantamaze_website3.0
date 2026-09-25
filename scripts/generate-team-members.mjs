@@ -13,12 +13,14 @@
  * HOW TO ADD PHOTOS:
  *  Simply drop image files (e.g. Full_Name_Domain.jpg or Full_Name.png) into the
  *  appropriate subfolder under "q-bits team/".
- *  Accepted formats: .jpg, .jpeg, .png, .webp, .gif, .avif
+ *  Accepted formats: .jpg, .jpeg, .png, .webp, .gif, .avif, .heic, .heif
+  Matched photos are converted to browser-safe WebP in public/team-photos.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import sharp from 'sharp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +29,7 @@ const PHOTOS_SRC = path.join(ROOT, 'q-bits team');
 const PHOTOS_DEST = path.join(ROOT, 'public', 'team-photos');
 const OUTPUT_FILE = path.join(ROOT, 'src', 'lib', 'teamMembers.js');
 
-const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.heic', '.heif']);
 const MATCH_THRESHOLD = 0.65;
 const MANUAL_PHOTO_OVERRIDES = {
   'AD-01': { sourceFolder: 'Events', file: 'Akshata_C_Events.jpg' },
@@ -404,37 +406,29 @@ function extractPersonName(filename, domainFolderNames = []) {
 
 function isUsableImageFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  if (!IMAGE_EXTS.has(ext)) return false;
-
-  // Detect and skip HEIC/ISOBMFF containers that have .jpg/.png extension or raw format
-  try {
-    const fd = fs.openSync(filePath, 'r');
-    const buf = Buffer.alloc(12);
-    fs.readSync(fd, buf, 0, 12, 0);
-    fs.closeSync(fd);
-    if (buf.slice(4, 8).toString('ascii') === 'ftyp') {
-      const brand = buf.slice(8, 12).toString('ascii').toLowerCase();
-      if (['heic', 'heis', 'mif1', 'msf1', 'avci', 'avcs'].includes(brand)) {
-        return false;
-      }
-    }
-  } catch {
-    // Proceed if file read is not possible
-  }
-  return true;
+  return IMAGE_EXTS.has(ext);
 }
 
-function toSafeSlug(code, originalFilename) {
-  const ext = path.extname(originalFilename).toLowerCase();
+function toSafeSlug(code) {
   const safeCode = code.toLowerCase().replace(/[^a-z0-9]/g, '_');
-  return `${safeCode}${ext}`;
+  return `${safeCode}.webp`;
+}
+
+async function writeBrowserPhoto(srcPath, destPath) {
+  const ext = path.extname(srcPath).toLowerCase();
+  const options = ext === ".heic" || ext === ".heif" ? { unlimited: true, limitInputPixels: false } : undefined;
+  await sharp(srcPath, options)
+    .rotate()
+    .resize({ width: 960, withoutEnlargement: true })
+    .webp({ quality: 72, effort: 4 })
+    .toFile(destPath);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN MATCHING ENGINE
 // ─────────────────────────────────────────────────────────────────────────────
 
-function runPhotoMatching() {
+async function runPhotoMatching() {
   fs.mkdirSync(PHOTOS_DEST, { recursive: true });
 
   const matchedList = [];
@@ -442,7 +436,7 @@ function runPhotoMatching() {
   const unmatchedFiles = [];
   const photoMap = {};
 
-  const applyManualOverride = (group, matchingFolder, folderPath, files) => {
+  const applyManualOverride = async (group, matchingFolder) => {
     const memberCodeToOverride = Object.entries(MANUAL_PHOTO_OVERRIDES).find(([code, override]) => {
       const member = group.members.find((item) => item.code === code);
       if (!member) return false;
@@ -460,9 +454,18 @@ function runPhotoMatching() {
 
     const sourceFolder = override.sourceFolder ?? matchingFolder;
     const srcPath = path.join(PHOTOS_SRC, sourceFolder, override.file);
-    const destSlug = toSafeSlug(code, override.file);
+    const destSlug = toSafeSlug(code);
     const destPath = path.join(PHOTOS_DEST, destSlug);
-    fs.copyFileSync(srcPath, destPath);
+    try {
+      await writeBrowserPhoto(srcPath, destPath);
+    } catch (error) {
+      unmatchedFiles.push({
+        folder: sourceFolder,
+        file: override.file,
+        reason: `Could not convert to a browser-safe image (${error.message.split('\n')[0]})`,
+      });
+      return;
+    }
     photoMap[code] = `/team-photos/${destSlug}`;
 
     matchedList.push({
@@ -518,7 +521,7 @@ function runPhotoMatching() {
     const claimedIndices = new Set();
     const candidateMatches = [];
 
-    const manualOverrideIndex = applyManualOverride(group, matchingFolder, folderPath, files);
+    const manualOverrideIndex = await applyManualOverride(group, matchingFolder);
     if (manualOverrideIndex !== undefined) {
       claimedIndices.add(manualOverrideIndex);
     }
@@ -572,7 +575,8 @@ function runPhotoMatching() {
       '.jpg': 2,
       '.jpeg': 2,
       '.gif': 1,
-      '.avif': 1,
+      '.heic': 0,
+      '.heif': 0,
     };
 
     // Sort candidate matches by highest score first, then prefer higher-quality formats
@@ -596,13 +600,23 @@ function runPhotoMatching() {
         continue;
       }
 
-      claimedIndices.add(match.memberIndex);
       const member = group.members[match.memberIndex];
-      const destSlug = toSafeSlug(member.code, match.file);
+      const destSlug = toSafeSlug(member.code);
       const destPath = path.join(PHOTOS_DEST, destSlug);
       const srcPath = path.join(folderPath, match.file);
 
-      fs.copyFileSync(srcPath, destPath);
+      try {
+        await writeBrowserPhoto(srcPath, destPath);
+      } catch (error) {
+        unmatchedFiles.push({
+          folder: matchingFolder,
+          file: match.file,
+          reason: `Could not convert to a browser-safe image (${error.message.split('\n')[0]})`,
+        });
+        continue;
+      }
+
+      claimedIndices.add(match.memberIndex);
       const publicUrl = `/team-photos/${destSlug}`;
       photoMap[member.code] = publicUrl;
 
@@ -665,6 +679,15 @@ function runPhotoMatching() {
 
   fs.writeFileSync(OUTPUT_FILE, fileOutput, 'utf8');
 
+  const keepNames = new Set(Object.values(photoMap).map((publicUrl) => path.basename(publicUrl)));
+  for (const existing of fs.readdirSync(PHOTOS_DEST)) {
+    const existingPath = path.join(PHOTOS_DEST, existing);
+    if (fs.statSync(existingPath).isDirectory()) continue;
+    if (!keepNames.has(existing)) {
+      fs.unlinkSync(existingPath);
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // CLI OUTPUT LOG
   // ─────────────────────────────────────────────────────────────────────────
@@ -710,4 +733,4 @@ function runPhotoMatching() {
   console.log(`\n${BOLD}Summary:${RESET} ${matchedList.length}/${totalMembers} members matched. teamMembers.js updated successfully.\n`);
 }
 
-runPhotoMatching();
+await runPhotoMatching();

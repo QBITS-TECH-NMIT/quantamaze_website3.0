@@ -106,7 +106,7 @@ export default function PrizesPage() {
       canvas.height = window.innerHeight;
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize, { passive: true });
 
     const loop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

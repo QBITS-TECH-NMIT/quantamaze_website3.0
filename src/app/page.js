@@ -13,7 +13,9 @@ import SponsorsPage from "@/app/sponsors/page";
 import FAQPage from "@/app/faq/page";
 import GamesSection from "@/components/GamesSection";
 import { Reveal, staggerContainer, staggerItem, easeOut } from "@/components/MotionPrimitives";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+
+const REGISTRATION_URL = "https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge";
 
 const titleReveal = {
   hidden: {},
@@ -53,8 +55,24 @@ function SectionTransition({ children }) {
 }
 
 export default function HomePage() {
+  const reducedMotion = useReducedMotion();
   const [siteReady, setSiteReady] = useState(false);
+  const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
   const handleLoaderComplete = useCallback(() => setSiteReady(true), []);
+
+  useEffect(() => {
+    const checkLowPower = () => {
+      setIsLowPowerDevice(
+        (navigator.hardwareConcurrency || 8) <= 4 ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        window.innerWidth < 360,
+      );
+    };
+
+    checkLowPower();
+    window.addEventListener("resize", checkLowPower);
+    return () => window.removeEventListener("resize", checkLowPower);
+  }, []);
 
   useEffect(() => {
     const readyTimer = window.setTimeout(() => {
@@ -86,7 +104,11 @@ export default function HomePage() {
 
       <motion.div
         aria-hidden="true"
-        style={{ scaleX: pageProgress, transformOrigin: "0% 50%" }}
+        style={{
+          scaleX: reducedMotion || isLowPowerDevice ? 1 : pageProgress,
+          transformOrigin: "0% 50%",
+          opacity: reducedMotion || isLowPowerDevice ? 0.9 : 1,
+        }}
         className="fixed left-0 right-0 top-0 z-[60] h-0.5 bg-[#F5590A] shadow-[0_0_12px_rgba(245,89,10,0.8)]"
       />
 
@@ -269,7 +291,10 @@ export default function HomePage() {
             {/* 07 // SEPTEMBER + venue */}
             <motion.div
               variants={staggerItem}
-              style={{ opacity: heroTextOpacity, scale: heroTextScale }}
+              style={{
+                opacity: reducedMotion || isLowPowerDevice ? 1 : heroTextOpacity,
+                scale: reducedMotion || isLowPowerDevice ? 1 : heroTextScale,
+              }}
               className="flex flex-col items-center rounded-2xl border border-[#F5590A]/20 bg-white/[0.02] px-6 py-5 shadow-[0_0_35px_rgba(245,89,10,0.08)] backdrop-blur-sm sm:px-8 sm:py-6"
             >
               <p className="text-center font-mono text-2xl font-bold tracking-wider text-[#F5590A] drop-shadow-[0_0_20px_rgba(255,107,26,0.25)] sm:text-4xl md:text-5xl">
@@ -297,7 +322,7 @@ export default function HomePage() {
             {/* Register CTA linking to the global contact footer */}
             <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
-                href="https://unstop.com/o/dTNRjrK?lb=usexmYuI&utm_medium=Share&utm_source=qbitsnmi84610&utm_campaign=Online_coding_challenge"
+                href={REGISTRATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"

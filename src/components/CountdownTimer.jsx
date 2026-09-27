@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export const COUNTDOWN_PHASES = [
   { heading: "LAUNCHING IN", startDate: "2026-08-08T00:00:00+05:30", targetDate: "2026-09-07T00:00:00+05:30" },
-  { heading: "SUBMISSIONS CLOSE IN", startDate: "2026-09-07T00:00:00+05:30", targetDate: "2026-09-28T23:59:59+05:30" },
+  { heading: "SUBMISSIONS CLOSE IN", startDate: "2026-09-07T00:00:00+05:30", targetDate: "2026-10-05T23:59:59+05:30" },
   { heading: "PHASE 1 RESULTS IN", startDate: "2026-09-29T00:00:00+05:30", targetDate: "2026-10-03T00:00:00+05:30" },
   { heading: "EVENT STARTS IN", startDate: "2026-10-03T00:00:00+05:30", targetDate: "2026-10-28T00:00:00+05:30" },
   { heading: "FINAL RESULTS IN", startDate: "2026-10-28T00:00:00+05:30", targetDate: "2026-10-30T23:59:59+05:30" },

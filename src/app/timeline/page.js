@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll } from "framer-motion";
 import { Reveal, easeOut } from "@/components/MotionPrimitives";
 
@@ -62,12 +62,30 @@ function TimelineCard({ event, isEven, index }) {
 
 export default function TimelinePage() {
   const events = [
-    { stage: "STAGE 01", title: "Registration Starts", date: "September 7", active: true },
-    { stage: "STAGE 02", title: "Phase 1 (PPT Submission)", date: "September 7 – 28", active: false },
-    { stage: "STAGE 03", title: "Phase 1 Results", date: "October 3", active: false },
-    { stage: "STAGE 04", title: "Phase 2 (@NMIT)", date: "October 28 – 30", active: false },
-    { stage: "STAGE 05", title: "Final Results", date: "October 30", active: false },
+    { stage: "STAGE 01", title: "Registration Starts", date: "September 7", startDate: "2026-09-07T00:00:00+05:30", endDate: "2026-09-07T23:59:59+05:30" },
+    { stage: "STAGE 02", title: "Phase 1 (PPT Submission)", date: "September 7 - October 5", startDate: "2026-09-07T00:00:00+05:30", endDate: "2026-10-05T23:59:59+05:30" },
+    { stage: "STAGE 03", title: "Phase 1 Results", date: "October 9", startDate: "2026-10-09T00:00:00+05:30", endDate: "2026-10-09T23:59:59+05:30" },
+    { stage: "STAGE 04", title: "Phase 2 (@NMIT)", date: "October 28 – 30", startDate: "2026-10-28T00:00:00+05:30", endDate: "2026-10-29T23:59:59+05:30" },
+    { stage: "STAGE 05", title: "Final Results", date: "October 30", startDate: "2026-10-30T00:00:00+05:30", endDate: "2026-10-30T23:59:59+05:30" },
   ];
+  const [currentTime, setCurrentTime] = useState(null);
+
+  useEffect(() => {
+    const updateCurrentTime = () => setCurrentTime(Date.now());
+    updateCurrentTime();
+    const timer = window.setInterval(updateCurrentTime, 60_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const activeEventIndex = currentTime === null
+    ? -1
+    : events.findIndex((event) => {
+        const start = new Date(event.startDate).getTime();
+        const end = new Date(event.endDate).getTime();
+        return currentTime >= start && currentTime <= end;
+      });
+  const eventsWithStatus = events.map((event, index) => ({ ...event, active: index === activeEventIndex }));
 
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -100,7 +118,7 @@ export default function TimelinePage() {
             />
 
             <ol className="space-y-16 md:space-y-20">
-              {events.map((event, index) => {
+              {eventsWithStatus.map((event, index) => {
                 const isEven = index % 2 === 0;
                 return (
                   <li key={event.title} className="relative grid grid-cols-[2rem_minmax(0,1fr)] items-center md:grid-cols-[minmax(0,1fr)_3rem_minmax(0,1fr)] md:gap-6">

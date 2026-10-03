@@ -48,6 +48,21 @@ function getActivePhase(phases, now) {
   return phases.findIndex((phase) => new Date(phase.targetDate).getTime() > now);
 }
 
+function getAnnouncementState(now) {
+  const phase1ResultsStart = new Date("2026-10-03T00:00:00+05:30").getTime();
+  const phase1ResultsEnd = new Date("2026-10-27T23:59:59+05:30").getTime();
+
+  if (now >= phase1ResultsStart && now <= phase1ResultsEnd) {
+    return {
+      badge: "Stay Tuned",
+      title: "Phase 1 results will be announced soon.",
+      subtitle: "We are finalising the evaluation.",
+    };
+  }
+
+  return null;
+}
+
 /* ─────────────────────────────────────────────
    Single digit slot — flip/roll animation
 ───────────────────────────────────────────── */
@@ -288,10 +303,21 @@ export default function CountdownTimer({
   const [time, setTime] = useState(null);
   const [progress, setProgress] = useState(0);
   const [phaseIndex, setPhaseIndex] = useState(null);
+  const [announcementState, setAnnouncementState] = useState(null);
 
   useEffect(() => {
     function tick() {
       const now = Date.now();
+      const nextAnnouncement = getAnnouncementState(now);
+      setAnnouncementState(nextAnnouncement);
+
+      if (nextAnnouncement) {
+        setTime({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        setProgress(100);
+        setPhaseIndex(null);
+        return;
+      }
+
       const nextPhaseIndex = getActivePhase(resolvedPhases, now);
       setPhaseIndex(nextPhaseIndex === -1 ? null : nextPhaseIndex);
 
@@ -311,10 +337,8 @@ export default function CountdownTimer({
   }, [resolvedPhases]);
 
   const display = time ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  const isCountdownComplete = phaseIndex === null || Boolean(time?.expired);
-  const heading = isCountdownComplete
-    ? "Stay Tuned"
-    : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned";
+  const isCountdownComplete = Boolean(announcementState) || phaseIndex === null || Boolean(time?.expired);
+  const heading = announcementState?.badge ?? (isCountdownComplete ? "Stay Tuned" : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned");
   const segments = [
     { key: "days",    value: display.days,    label: "Days"    },
     { key: "hours",   value: display.hours,   label: "Hours"   },
@@ -397,7 +421,7 @@ export default function CountdownTimer({
 
       {/* Cards + dividers */}
       <AnimatePresence mode="wait">
-        {isCountdownComplete ? (
+        {announcementState ? (
           <motion.div
             key="results-announcement"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -438,7 +462,7 @@ export default function CountdownTimer({
                 fontFamily: "var(--font-geist-mono, monospace)",
               }}
             >
-              Stay Tuned
+              {announcementState.badge}
             </motion.span>
 
             <motion.h3
@@ -455,7 +479,7 @@ export default function CountdownTimer({
                 fontFamily: "var(--font-geist-sans, sans-serif)",
               }}
             >
-              Results will be announced soon.
+              {announcementState.title}
             </motion.h3>
 
             <motion.p
@@ -472,7 +496,7 @@ export default function CountdownTimer({
                 fontFamily: "var(--font-geist-mono, monospace)",
               }}
             >
-              We are finalising the evaluation.
+              {announcementState.subtitle}
             </motion.p>
           </motion.div>
         ) : (

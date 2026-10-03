@@ -338,7 +338,7 @@ export default function CountdownTimer({
 
   const display = time ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
   const isCountdownComplete = Boolean(announcementState) || phaseIndex === null || Boolean(time?.expired);
-  const heading = announcementState?.badge ?? (isCountdownComplete ? "Stay Tuned" : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned");
+  const heading = announcementState ? null : (isCountdownComplete ? "Stay Tuned" : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned");
   const segments = [
     { key: "days",    value: display.days,    label: "Days"    },
     { key: "hours",   value: display.hours,   label: "Hours"   },

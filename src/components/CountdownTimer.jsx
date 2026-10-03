@@ -311,9 +311,10 @@ export default function CountdownTimer({
   }, [resolvedPhases]);
 
   const display = time ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  const heading = phaseIndex === null && time !== null
-    ? "EVENT CONCLUDED"
-    : resolvedPhases[phaseIndex ?? 0]?.heading ?? "EVENT CONCLUDED";
+  const isCountdownComplete = phaseIndex === null || Boolean(time?.expired);
+  const heading = isCountdownComplete
+    ? "Stay Tuned"
+    : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned";
   const segments = [
     { key: "days",    value: display.days,    label: "Days"    },
     { key: "hours",   value: display.hours,   label: "Hours"   },
@@ -395,30 +396,117 @@ export default function CountdownTimer({
       )}
 
       {/* Cards + dividers */}
-      <div
-        className="relative z-10 grid w-full max-w-[860px] grid-cols-2 gap-2.5 sm:flex sm:flex-row sm:items-stretch sm:gap-2.5"
-      >
-        {segments.map((seg, i) => (
-          <div
-            key={seg.key}
-            style={{ display: "contents" }}
+      <AnimatePresence mode="wait">
+        {isCountdownComplete ? (
+          <motion.div
+            key="results-announcement"
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -18, scale: 0.98 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
+              maxWidth: "760px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "14px",
+              textAlign: "center",
+              padding: "18px 12px 8px",
+            }}
           >
-            <TimerSegment
-              value={seg.value}
-              label={seg.label}
-              isPulsing={seg.key === "seconds"}
-              accent={accentColor}
-              motionDelay={i * 0.08}
-            />
-            {i < segments.length - 1 && (
-              <DividerDots
-                accent={accentColor}
-                delay={i * 0.55}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+            <motion.span
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: `1px solid ${accentColor}55`,
+                background: `${accentColor}18`,
+                color: "#f7c9a8",
+                borderRadius: "999px",
+                padding: "7px 14px",
+                fontSize: "10px",
+                fontWeight: 700,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-geist-mono, monospace)",
+              }}
+            >
+              Stay Tuned
+            </motion.span>
+
+            <motion.h3
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              style={{
+                margin: 0,
+                color: "#f8f8f8",
+                fontSize: "clamp(24px, 4vw, 42px)",
+                lineHeight: 1.1,
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                fontFamily: "var(--font-geist-sans, sans-serif)",
+              }}
+            >
+              Results will be announced soon.
+            </motion.h3>
+
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+              style={{
+                margin: 0,
+                color: "#cbd5e1",
+                fontSize: "13px",
+                lineHeight: 1.6,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-geist-mono, monospace)",
+              }}
+            >
+              We are finalising the evaluation.
+            </motion.p>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="countdown"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 grid w-full max-w-[860px] grid-cols-2 gap-2.5 sm:flex sm:flex-row sm:items-stretch sm:gap-2.5"
+          >
+            {segments.map((seg, i) => (
+              <div
+                key={seg.key}
+                style={{ display: "contents" }}
+              >
+                <TimerSegment
+                  value={seg.value}
+                  label={seg.label}
+                  isPulsing={seg.key === "seconds"}
+                  accent={accentColor}
+                  motionDelay={i * 0.08}
+                />
+                {i < segments.length - 1 && (
+                  <DividerDots
+                    accent={accentColor}
+                    delay={i * 0.55}
+                  />
+                )}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Progress bar */}
       <motion.div

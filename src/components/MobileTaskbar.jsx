@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import useResultsAvailability from "@/hooks/useResultsAvailability";
 
 const navItems = [
   {
@@ -95,6 +97,7 @@ export default function MobileTaskbar() {
   const pathname = usePathname();
   const [activeSection, setActiveSection] = useState("home");
   const [modalOpen, setModalOpen] = useState(false);
+  const { isLive: resultsLive } = useResultsAvailability();
 
   const handleNavigation = useCallback(
     (event, href) => {
@@ -177,7 +180,7 @@ export default function MobileTaskbar() {
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
         {navItems.map((item) => {
-          const isActive = activeSection === item.href.slice(1);
+          const isActive = pathname === "/" && activeSection === item.href.slice(1);
 
           return (
             <a
@@ -212,6 +215,29 @@ export default function MobileTaskbar() {
             </a>
           );
         })}
+        {resultsLive && (
+          <Link
+            href="/check-result"
+            aria-current={pathname === "/check-result" || pathname === "/results" ? "page" : undefined}
+            className={`mobile-taskbar-item ${pathname === "/check-result" || pathname === "/results" ? "is-active text-[#F5590A]" : "text-stone-400"}`}
+          >
+            {(pathname === "/check-result" || pathname === "/results") && (
+              <motion.div
+                layoutId="mobile-taskbar-active"
+                transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                className="absolute inset-x-0.5 inset-y-0.5 rounded-xl border border-[#F5590A]/25 bg-[#F5590A]/10 shadow-[0_0_16px_rgba(245,89,10,0.2)]"
+              />
+            )}
+            <span className="relative z-10" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M8 6h13M8 12h13M8 18h13" />
+                <path d="M3 6h.01M3 12h.01M3 18h.01" />
+              </svg>
+            </span>
+            <span className="mobile-taskbar-label relative z-10">Results</span>
+            <span aria-hidden className="mobile-taskbar-dot" />
+          </Link>
+        )}
       </div>
     </nav>
   );

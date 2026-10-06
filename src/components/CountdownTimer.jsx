@@ -71,7 +71,7 @@ function getAnnouncementState(now) {
       subtitle: "Check the official result page to view the shortlisted teams.",
       showResultsButton: true,
       buttonLabel: "View Results",
-      buttonLink: "/results",
+      buttonLink: "/check-result",
     };
   }
 

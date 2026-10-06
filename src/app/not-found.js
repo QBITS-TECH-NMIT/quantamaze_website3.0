@@ -202,12 +202,12 @@ export default function NotFound() {
 
         .not-found-page {
           position: relative;
-          min-height: calc(100vh - 68px);
+          min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: 84px 22px 50px;
+          padding: 24px 22px 50px;
           background:
             radial-gradient(circle at center, rgba(245, 89, 10, 0.08), transparent 42%),
             linear-gradient(180deg, rgba(10, 10, 10, 0.2), rgba(10, 10, 10, 0.9)),

@@ -66,7 +66,7 @@ export default function ResultsAdminExperience() {
       restoreTimedOut = true;
       setAuthReady(true);
       showNotice("Could not restore your admin session. Please sign in again.", true);
-    }, 10000);
+    }, 3000);
 
     const restoreSession = async () => {
       try {

@@ -4,13 +4,15 @@ import {
   RESULTS_TABLE_NAME,
   ResultsConfigurationError,
 } from "@/lib/resultsAdmin";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { RESULT_TRACKS } from "@/lib/resultTracks";
 
 export const runtime = "nodejs";
 
 const MAX_LENGTH = 60;
-const MAX_RESULT_RANK = 100000;
+const MAX_RESULT_RANK = 15;
 const VALID_STATUSES = new Set(["selected", "waiting_list"]);
+const PUBLIC_RESULTS_CACHE_TAG = "phase-one-public-results";
 
 function jsonResponse(body, init = {}) {
   const headers = new Headers(init.headers);
@@ -48,6 +50,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
       return query.order("created_at", { ascending: true }).order("id", { ascending: true });
     }
     return query
+      .order("track", { ascending: true, nullsFirst: false })
       .order("result_rank", { ascending: true })
       .order("created_at", { ascending: true })
       .order("id", { ascending: true });
@@ -64,6 +67,24 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
     error: null,
     legacySchema: true,
   };
+}
+
+const getCachedPublicTeams = unstable_cache(
+  async () => {
+    const supabase = getResultsServiceClient();
+    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
+    if (error) throw error;
+    if (legacySchema) {
+      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track and rank assignments.");
+    }
+    return data;
+  },
+  ["phase-one-public-results"],
+  { revalidate: 60, tags: [PUBLIC_RESULTS_CACHE_TAG] },
+);
+
+function invalidatePublicResultsCache() {
+  revalidateTag(PUBLIC_RESULTS_CACHE_TAG, { expire: 0 });
 }
 
 function errorResponse(error, exposeDetails = false) {
@@ -112,13 +133,7 @@ export async function GET(request) {
       return jsonResponse({ teams: data });
     }
 
-    const supabase = getResultsServiceClient();
-    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
-    if (error) throw error;
-    if (legacySchema) {
-      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track assignments.");
-    }
-    return jsonResponse({ teams: data });
+    return jsonResponse({ teams: await getCachedPublicTeams() });
   } catch (error) {
     return errorResponse(error, request.headers.has("authorization"));
   }
@@ -152,7 +167,7 @@ export async function POST(request) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
     }
     if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
-      return jsonResponse({ error: "Choose a valid positive rank." }, { status: 400 });
+      return jsonResponse({ error: "Rank must be between 1 and 15 within the selected track." }, { status: 400 });
     }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
@@ -167,6 +182,7 @@ export async function POST(request) {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
     }
     if (error) throw error;
+    invalidatePublicResultsCache();
     return jsonResponse({ team: data }, { status: 201 });
   } catch (error) {
     return errorResponse(error, true);
@@ -206,7 +222,7 @@ export async function PUT(request) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
     }
     if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
-      return jsonResponse({ error: "Choose a valid positive rank." }, { status: 400 });
+      return jsonResponse({ error: "Rank must be between 1 and 15 within the selected track." }, { status: 400 });
     }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
@@ -229,6 +245,7 @@ export async function PUT(request) {
     }
     if (error) throw error;
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
+    invalidatePublicResultsCache();
     return jsonResponse({ team: data });
   } catch (error) {
     return errorResponse(error, true);
@@ -260,6 +277,7 @@ export async function DELETE(request) {
       .maybeSingle();
     if (error) throw error;
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
+    invalidatePublicResultsCache();
     return jsonResponse({ deleted: true });
   } catch (error) {
     return errorResponse(error, true);

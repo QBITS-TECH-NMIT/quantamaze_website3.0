@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { RESULT_TRACKS } from "@/lib/resultTracks";
 import styles from "@/app/results/results.module.css";
 
 function CountUp({ value }) {
@@ -180,6 +181,14 @@ export default function ResultsExperience() {
       team.team_lead_name.toLowerCase().includes(normalizedQuery)
     );
   }, [allTeams, normalizedQuery]);
+  const teamsByTrack = useMemo(() => RESULT_TRACKS.map((track) => ({
+    track,
+    teams: filteredTeams.filter((team) => team.track === track),
+  })).filter((group) => group.teams.length > 0), [filteredTeams]);
+  const unassignedTeams = useMemo(
+    () => filteredTeams.filter((team) => !RESULT_TRACKS.includes(team.track)),
+    [filteredTeams],
+  );
   useEffect(() => {
     let active = true;
     fetch("/api/results", { cache: "no-store" })
@@ -241,21 +250,50 @@ export default function ResultsExperience() {
             {managedTeamsError && <p role="alert" className={styles.noResults}>{managedTeamsError}</p>}
             {filteredTeams.length > 0 ? (
               <>
-                <motion.div className={styles.teamGrid} layout>
-                  <AnimatePresence initial={false}>
-                    {filteredTeams.map((team, index) => (
-                      <TeamCard
-                        key={team.id}
-                        team={team}
-                        index={index}
-                        openId={openId}
-                        pinnedId={pinnedId}
-                        setOpenId={setOpenId}
-                        setPinnedId={setPinnedId}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
+                {teamsByTrack.map(({ track, teams: trackTeams }) => (
+                  <div className={styles.trackGroup} key={track}>
+                    <div className={styles.listToolbar}>
+                      <p className={styles.listLabel}><span />{track} <span className={styles.listCount}>{String(trackTeams.length).padStart(2, "0")}</span></p>
+                    </div>
+                    <motion.div className={styles.teamGrid} layout>
+                      <AnimatePresence initial={false}>
+                        {trackTeams.map((team, index) => (
+                          <TeamCard
+                            key={team.id}
+                            team={team}
+                            index={index}
+                            openId={openId}
+                            pinnedId={pinnedId}
+                            setOpenId={setOpenId}
+                            setPinnedId={setPinnedId}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  </div>
+                ))}
+                {unassignedTeams.length > 0 && (
+                  <div className={styles.trackGroup}>
+                    <div className={styles.listToolbar}>
+                      <p className={styles.listLabel}><span />Track not assigned <span className={styles.listCount}>{String(unassignedTeams.length).padStart(2, "0")}</span></p>
+                    </div>
+                    <motion.div className={styles.teamGrid} layout>
+                      <AnimatePresence initial={false}>
+                        {unassignedTeams.map((team, index) => (
+                          <TeamCard
+                            key={team.id}
+                            team={team}
+                            index={index}
+                            openId={openId}
+                            pinnedId={pinnedId}
+                            setOpenId={setOpenId}
+                            setPinnedId={setPinnedId}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  </div>
+                )}
               </>
             ) : (
               <p className={styles.noResults}>No teams or team leads match “{query}”.</p>

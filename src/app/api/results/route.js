@@ -9,6 +9,7 @@ import { RESULT_TRACKS } from "@/lib/resultTracks";
 export const runtime = "nodejs";
 
 const MAX_LENGTH = 60;
+const MAX_RESULT_RANK = 100000;
 const VALID_STATUSES = new Set(["selected", "waiting_list"]);
 
 function jsonResponse(body, init = {}) {
@@ -27,10 +28,11 @@ function isResultsSchemaMismatch(error) {
     );
 }
 
-function withLegacyTrackField(teams) {
-  return teams.map((team) => ({
+function withLegacyTrackAndRankFields(teams) {
+  return teams.map((team, index) => ({
     ...team,
     track: null,
+    result_rank: index + 1,
   }));
 }
 
@@ -40,9 +42,15 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
       .from(RESULTS_TABLE_NAME)
       .select(legacySchema
         ? "id, name, team_lead_name, status, created_at"
-        : "id, name, team_lead_name, track, status, created_at");
+        : "id, name, team_lead_name, track, result_rank, status, created_at");
     if (!isAdmin) query = query.eq("status", "selected");
-    return query.order(isAdmin ? "created_at" : "name", { ascending: isAdmin ? false : true });
+    if (legacySchema) {
+      return query.order("created_at", { ascending: true }).order("id", { ascending: true });
+    }
+    return query
+      .order("result_rank", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
   };
 
   const { data, error } = await buildQuery(false);
@@ -52,7 +60,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
   const legacyResult = await buildQuery(true);
   if (legacyResult.error) return { data: null, error: legacyResult.error, legacySchema: true };
   return {
-    data: withLegacyTrackField(legacyResult.data),
+    data: withLegacyTrackAndRankFields(legacyResult.data),
     error: null,
     legacySchema: true,
   };
@@ -132,6 +140,7 @@ export async function POST(request) {
     const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
+    const resultRank = Number(body?.result_rank);
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
@@ -142,14 +151,17 @@ export async function POST(request) {
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
     }
+    if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
+      return jsonResponse({ error: "Choose a valid positive rank." }, { status: 400 });
+    }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
     }
 
     const { data, error } = await admin.supabase
       .from(RESULTS_TABLE_NAME)
-      .insert({ name, team_lead_name: teamLeadName, track, status })
-      .select("id, name, team_lead_name, track, status, created_at")
+      .insert({ name, team_lead_name: teamLeadName, track, result_rank: resultRank, status })
+      .select("id, name, team_lead_name, track, result_rank, status, created_at")
       .single();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
@@ -182,6 +194,7 @@ export async function PUT(request) {
     const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
+    const resultRank = Number(body?.result_rank);
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
@@ -191,6 +204,9 @@ export async function PUT(request) {
     }
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
+    }
+    if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
+      return jsonResponse({ error: "Choose a valid positive rank." }, { status: 400 });
     }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
@@ -202,10 +218,11 @@ export async function PUT(request) {
         name,
         team_lead_name: teamLeadName,
         track,
+        result_rank: resultRank,
         status,
       })
       .eq("id", id)
-      .select("id, name, team_lead_name, track, status, created_at")
+      .select("id, name, team_lead_name, track, result_rank, status, created_at")
       .maybeSingle();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });

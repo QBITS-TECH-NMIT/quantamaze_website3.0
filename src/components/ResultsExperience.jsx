@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { RESULT_TRACKS } from "@/lib/resultTracks";
 import styles from "@/app/results/results.module.css";
 
 function CountUp({ value }) {
@@ -127,7 +126,7 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
       transition={{ layout: { duration: reduceMotion ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] } }}
     >
       <span className={styles.cardShimmer} aria-hidden="true" />
-      <span className={styles.cardIndex} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      <span className={styles.cardIndex} aria-hidden="true">{String(team.result_rank).padStart(2, "0")}</span>
       <button
         type="button"
         className={styles.cardTrigger}
@@ -137,11 +136,11 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
         onClick={toggleCard}
       >
         <span className={styles.cardHeading}>
-          <span className={styles.teamIndex}>{String(index + 1).padStart(2, "0")}</span>
+          <span className={styles.teamIndex}>{String(team.result_rank).padStart(2, "0")}</span>
           <span className={styles.teamName}>{team.name}</span>
         </span>
         <span className={styles.cardMeta}>
-          <span className={styles.memberCount}>Team lead</span>
+          <span className={styles.memberCount}>{team.track || "Track not assigned"}</span>
           <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`} aria-hidden="true">+</span>
         </span>
       </button>
@@ -171,7 +170,9 @@ export default function ResultsExperience() {
       name: team.name,
       track: team.track,
       team_lead_name: team.team_lead_name,
-    })), [managedTeams]);
+      result_rank: team.result_rank,
+    }))
+    .sort((first, second) => first.result_rank - second.result_rank), [managedTeams]);
   const filteredTeams = useMemo(() => {
     if (!normalizedQuery) return allTeams;
     return allTeams.filter((team) =>
@@ -179,15 +180,6 @@ export default function ResultsExperience() {
       team.team_lead_name.toLowerCase().includes(normalizedQuery)
     );
   }, [allTeams, normalizedQuery]);
-  const teamsByTrack = useMemo(() => RESULT_TRACKS.map((track) => ({
-    track,
-    teams: filteredTeams.filter((team) => team.track === track),
-  })).filter((group) => group.teams.length > 0), [filteredTeams]);
-  const unassignedTeams = useMemo(
-    () => filteredTeams.filter((team) => !RESULT_TRACKS.includes(team.track)),
-    [filteredTeams],
-  );
-
   useEffect(() => {
     let active = true;
     fetch("/api/results", { cache: "no-store" })
@@ -249,50 +241,21 @@ export default function ResultsExperience() {
             {managedTeamsError && <p role="alert" className={styles.noResults}>{managedTeamsError}</p>}
             {filteredTeams.length > 0 ? (
               <>
-                {teamsByTrack.map(({ track, teams: trackTeams }) => (
-                  <div className={styles.trackGroup} key={track}>
-                    <div className={styles.listToolbar}>
-                      <p className={styles.listLabel}><span />{track} <span className={styles.listCount}>{String(trackTeams.length).padStart(2, "0")}</span></p>
-                    </div>
-                    <motion.div className={styles.teamGrid} layout>
-                      <AnimatePresence initial={false}>
-                        {trackTeams.map((team, index) => (
-                          <TeamCard
-                            key={team.id}
-                            team={team}
-                            index={index}
-                            openId={openId}
-                            pinnedId={pinnedId}
-                            setOpenId={setOpenId}
-                            setPinnedId={setPinnedId}
-                          />
-                        ))}
-                      </AnimatePresence>
-                    </motion.div>
-                  </div>
-                ))}
-                {unassignedTeams.length > 0 && (
-                  <div className={styles.trackGroup}>
-                    <div className={styles.listToolbar}>
-                      <p className={styles.listLabel}><span />Track not assigned <span className={styles.listCount}>{String(unassignedTeams.length).padStart(2, "0")}</span></p>
-                    </div>
-                    <motion.div className={styles.teamGrid} layout>
-                      <AnimatePresence initial={false}>
-                        {unassignedTeams.map((team, index) => (
-                          <TeamCard
-                            key={team.id}
-                            team={team}
-                            index={index}
-                            openId={openId}
-                            pinnedId={pinnedId}
-                            setOpenId={setOpenId}
-                            setPinnedId={setPinnedId}
-                          />
-                        ))}
-                      </AnimatePresence>
-                    </motion.div>
-                  </div>
-                )}
+                <motion.div className={styles.teamGrid} layout>
+                  <AnimatePresence initial={false}>
+                    {filteredTeams.map((team, index) => (
+                      <TeamCard
+                        key={team.id}
+                        team={team}
+                        index={index}
+                        openId={openId}
+                        pinnedId={pinnedId}
+                        setOpenId={setOpenId}
+                        setPinnedId={setPinnedId}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
               </>
             ) : (
               <p className={styles.noResults}>No teams or team leads match “{query}”.</p>

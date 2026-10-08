@@ -31,6 +31,7 @@ export default function ResultsAdminExperience() {
   const [password, setPassword] = useState("");
   const [teamName, setTeamName] = useState("");
   const [teamLeadName, setTeamLeadName] = useState("");
+  const [resultRank, setResultRank] = useState("1");
   const [status, setStatus] = useState("selected");
   const [track, setTrack] = useState(RESULT_TRACKS[0]);
   const [teams, setTeams] = useState([]);
@@ -54,6 +55,10 @@ export default function ResultsAdminExperience() {
     });
     const data = await readResponse(response);
     setTeams(data.teams);
+    setResultRank(String(data.teams.reduce(
+      (highestRank, team) => Math.max(highestRank, Number(team.result_rank) || 0),
+      0,
+    ) + 1));
   }, []);
 
   useEffect(() => {
@@ -153,6 +158,10 @@ export default function ResultsAdminExperience() {
   const resetTeamForm = () => {
     setTeamName("");
     setTeamLeadName("");
+    setResultRank(String(teams.reduce(
+      (highestRank, team) => Math.max(highestRank, Number(team.result_rank) || 0),
+      0,
+    ) + 1));
     setStatus("selected");
     setTrack(RESULT_TRACKS[0]);
     setEditingTeamId("");
@@ -178,6 +187,7 @@ export default function ResultsAdminExperience() {
           ...(editingTeamId ? { id: editingTeamId } : {}),
           name: teamName,
           team_lead_name: teamLeadName,
+          result_rank: Number(resultRank),
           status,
           track,
         }),
@@ -198,6 +208,7 @@ export default function ResultsAdminExperience() {
     setEditingTeamId(team.id);
     setTeamName(team.name);
     setTeamLeadName(team.team_lead_name || "");
+    setResultRank(String(team.result_rank));
     setStatus(team.status);
     setTrack(RESULT_TRACKS.includes(team.track) ? team.track : RESULT_TRACKS[0]);
     setNotice("");
@@ -283,6 +294,15 @@ export default function ResultsAdminExperience() {
               <input maxLength={60} required value={teamLeadName} onChange={(event) => setTeamLeadName(event.target.value)} />
             </label>
             <label className={styles.field}>
+              Rank
+              <select required value={resultRank} onChange={(event) => setResultRank(event.target.value)}>
+                {Array.from(
+                  { length: Math.max(teams.length + (editingTeamId ? 0 : 1), Number(resultRank) || 1) },
+                  (_, index) => index + 1,
+                ).map((rank) => <option value={rank} key={rank}>{rank}</option>)}
+              </select>
+            </label>
+            <label className={styles.field}>
               Result column
               <select value={status} onChange={(event) => setStatus(event.target.value)}>
                 {STATUSES.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
@@ -321,6 +341,7 @@ export default function ResultsAdminExperience() {
                   <article className={styles.teamRow} key={team.id}>
                     <div className={styles.teamCopy}>
                       <span className={styles.teamName}>{team.name}</span>
+                      <span className={styles.teamLead}>Rank: {team.result_rank}</span>
                       <span className={styles.teamLead}>Team lead: {team.team_lead_name}</span>
                       <span className={styles.teamLead}>Track: {team.track || "Not assigned"}</span>
                     </div>

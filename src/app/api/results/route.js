@@ -9,7 +9,6 @@ import { RESULT_TRACKS } from "@/lib/resultTracks";
 export const runtime = "nodejs";
 
 const MAX_LENGTH = 60;
-const MAX_MEMBERS = 4;
 const VALID_STATUSES = new Set(["selected", "waiting_list"]);
 
 function jsonResponse(body, init = {}) {
@@ -28,10 +27,9 @@ function isResultsSchemaMismatch(error) {
     );
 }
 
-function withLegacyTeamFields(teams) {
+function withLegacyTrackField(teams) {
   return teams.map((team) => ({
     ...team,
-    members: [{ name: team.team_lead_name, role: "Team Lead" }],
     track: null,
   }));
 }
@@ -42,7 +40,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
       .from(RESULTS_TABLE_NAME)
       .select(legacySchema
         ? "id, name, team_lead_name, status, created_at"
-        : "id, name, team_lead_name, members, track, status, created_at");
+        : "id, name, team_lead_name, track, status, created_at");
     if (!isAdmin) query = query.eq("status", "selected");
     return query.order(isAdmin ? "created_at" : "name", { ascending: isAdmin ? false : true });
   };
@@ -54,7 +52,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
   const legacyResult = await buildQuery(true);
   if (legacyResult.error) return { data: null, error: legacyResult.error, legacySchema: true };
   return {
-    data: withLegacyTeamFields(legacyResult.data),
+    data: withLegacyTrackField(legacyResult.data),
     error: null,
     legacySchema: true,
   };
@@ -101,7 +99,7 @@ export async function GET(request) {
       const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase, true);
       if (error) throw error;
       if (legacySchema) {
-        console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team editing.");
+        console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track editing.");
       }
       return jsonResponse({ teams: data });
     }
@@ -110,7 +108,7 @@ export async function GET(request) {
     const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
     if (error) throw error;
     if (legacySchema) {
-      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team results.");
+      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track assignments.");
     }
     return jsonResponse({ teams: data });
   } catch (error) {
@@ -131,17 +129,15 @@ export async function POST(request) {
     }
 
     const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
-    const members = Array.isArray(body?.members)
-      ? body.members.map((member) => typeof member === "string" ? member.trim() : "")
-      : [];
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
     }
-    if (members.length < 2 || members.length > MAX_MEMBERS || members.some((member) => !member || member.length > MAX_LENGTH)) {
-      return jsonResponse({ error: `Enter a name for each team member (2–${MAX_MEMBERS} members, 60 characters per name).` }, { status: 400 });
+    if (!teamLeadName || teamLeadName.length > MAX_LENGTH) {
+      return jsonResponse({ error: "Team lead name is required and must be 60 characters or fewer." }, { status: 400 });
     }
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
@@ -150,15 +146,10 @@ export async function POST(request) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
     }
 
-    const memberRecords = members.map((member, index) => ({
-      name: member,
-      role: index === 0 ? "Team Lead" : "Member",
-    }));
-    const teamLeadName = members[0];
     const { data, error } = await admin.supabase
       .from(RESULTS_TABLE_NAME)
-      .insert({ name, team_lead_name: teamLeadName, members: memberRecords, track, status })
-      .select("id, name, team_lead_name, members, track, status, created_at")
+      .insert({ name, team_lead_name: teamLeadName, track, status })
+      .select("id, name, team_lead_name, track, status, created_at")
       .single();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
@@ -188,17 +179,15 @@ export async function PUT(request) {
     }
 
     const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
-    const members = Array.isArray(body?.members)
-      ? body.members.map((member) => typeof member === "string" ? member.trim() : "")
-      : [];
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
     }
-    if (members.length < 2 || members.length > MAX_MEMBERS || members.some((member) => !member || member.length > MAX_LENGTH)) {
-      return jsonResponse({ error: `Enter a name for each team member (2–${MAX_MEMBERS} members, 60 characters per name).` }, { status: 400 });
+    if (!teamLeadName || teamLeadName.length > MAX_LENGTH) {
+      return jsonResponse({ error: "Team lead name is required and must be 60 characters or fewer." }, { status: 400 });
     }
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
@@ -207,21 +196,16 @@ export async function PUT(request) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
     }
 
-    const memberRecords = members.map((member, index) => ({
-      name: member,
-      role: index === 0 ? "Team Lead" : "Member",
-    }));
     const { data, error } = await admin.supabase
       .from(RESULTS_TABLE_NAME)
       .update({
         name,
-        team_lead_name: members[0],
-        members: memberRecords,
+        team_lead_name: teamLeadName,
         track,
         status,
       })
       .eq("id", id)
-      .select("id, name, team_lead_name, members, track, status, created_at")
+      .select("id, name, team_lead_name, track, status, created_at")
       .maybeSingle();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });

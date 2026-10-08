@@ -30,7 +30,7 @@ export default function ResultsAdminExperience() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [teamName, setTeamName] = useState("");
-  const [members, setMembers] = useState(["", ""]);
+  const [teamLeadName, setTeamLeadName] = useState("");
   const [status, setStatus] = useState("selected");
   const [track, setTrack] = useState(RESULT_TRACKS[0]);
   const [teams, setTeams] = useState([]);
@@ -152,7 +152,7 @@ export default function ResultsAdminExperience() {
 
   const resetTeamForm = () => {
     setTeamName("");
-    setMembers(["", ""]);
+    setTeamLeadName("");
     setStatus("selected");
     setTrack(RESULT_TRACKS[0]);
     setEditingTeamId("");
@@ -161,9 +161,8 @@ export default function ResultsAdminExperience() {
   const handleSaveTeam = async (event) => {
     event.preventDefault();
     if (!session?.access_token) return;
-    const normalizedMembers = members.map((member) => member.trim());
-    if (normalizedMembers.some((member) => !member)) {
-      showNotice("Enter a name for every team member.", true);
+    if (!teamLeadName.trim()) {
+      showNotice("Enter the team lead's name.", true);
       return;
     }
     setBusy(true);
@@ -178,7 +177,7 @@ export default function ResultsAdminExperience() {
         body: JSON.stringify({
           ...(editingTeamId ? { id: editingTeamId } : {}),
           name: teamName,
-          members: normalizedMembers,
+          team_lead_name: teamLeadName,
           status,
           track,
         }),
@@ -196,12 +195,9 @@ export default function ResultsAdminExperience() {
   };
 
   const handleEdit = (team) => {
-    const teamMembers = Array.isArray(team.members)
-      ? team.members.map((member) => typeof member?.name === "string" ? member.name : "")
-      : [];
     setEditingTeamId(team.id);
     setTeamName(team.name);
-    setMembers(teamMembers.length >= 2 ? teamMembers : [team.team_lead_name || "", ""]);
+    setTeamLeadName(team.team_lead_name || "");
     setStatus(team.status);
     setTrack(RESULT_TRACKS.includes(team.track) ? team.track : RESULT_TRACKS[0]);
     setNotice("");
@@ -283,30 +279,9 @@ export default function ResultsAdminExperience() {
               <input maxLength={60} required value={teamName} onChange={(event) => setTeamName(event.target.value)} />
             </label>
             <label className={styles.field}>
-              Number of members
-              <select
-                value={members.length}
-                onChange={(event) => {
-                  const count = Number(event.target.value);
-                  setMembers((current) => Array.from({ length: count }, (_, index) => current[index] || ""));
-                }}
-              >
-                {[2, 3, 4].map((count) => <option value={count} key={count}>{count} members</option>)}
-              </select>
+              Team lead name
+              <input maxLength={60} required value={teamLeadName} onChange={(event) => setTeamLeadName(event.target.value)} />
             </label>
-            {members.map((member, index) => (
-              <label className={styles.field} key={index}>
-                {index === 0 ? "Member 1 (Team lead)" : `Member ${index + 1}`}
-                <input
-                  maxLength={60}
-                  required
-                  value={member}
-                  onChange={(event) => setMembers((current) => current.map((name, memberIndex) => (
-                    memberIndex === index ? event.target.value : name
-                  )))}
-                />
-              </label>
-            ))}
             <label className={styles.field}>
               Result column
               <select value={status} onChange={(event) => setStatus(event.target.value)}>
@@ -346,11 +321,7 @@ export default function ResultsAdminExperience() {
                   <article className={styles.teamRow} key={team.id}>
                     <div className={styles.teamCopy}>
                       <span className={styles.teamName}>{team.name}</span>
-                      {(team.members || [{ name: team.team_lead_name, role: "Team Lead" }]).map((member, index) => (
-                        <span className={styles.teamLead} key={`${team.id}-${index}`}>
-                          {member.role === "Team Lead" ? "Lead" : `Member ${index + 1}`}: {member.name}
-                        </span>
-                      ))}
+                      <span className={styles.teamLead}>Team lead: {team.team_lead_name}</span>
                       <span className={styles.teamLead}>Track: {team.track || "Not assigned"}</span>
                     </div>
                     <button

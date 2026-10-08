@@ -15,9 +15,14 @@ create table if not exists public.phase_one_results (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) between 1 and 60),
   team_lead_name text not null check (char_length(trim(team_lead_name)) between 1 and 60),
+  track text,
   status text not null check (status in ('selected', 'waiting_list')),
   created_at timestamptz not null default now()
 );
+
+alter table public.phase_one_results
+  add column if not exists track text,
+  drop column if exists members;
 
 create unique index if not exists phase_one_results_name_unique
   on public.phase_one_results (lower(name));

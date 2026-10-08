@@ -43,23 +43,16 @@ function initialsFor(name) {
     .toUpperCase();
 }
 
-function MemberDetails({ member }) {
-  const details = [member.college, member.year, member.branch, member.email].filter(Boolean);
-
+function TeamLeadDetails({ name }) {
   return (
-    <li className={`${styles.memberRow} ${member.role === "Team Lead" ? styles.leadRow : ""}`}>
-      <span className={styles.avatar} aria-hidden="true">{initialsFor(member.name)}</span>
+    <li className={`${styles.memberRow} ${styles.leadRow}`}>
+      <span className={styles.avatar} aria-hidden="true">{initialsFor(name)}</span>
       <span className={styles.memberCopy}>
         <span className={styles.memberNameLine}>
-          <span className={styles.memberName}>{member.name}</span>
-          {member.role === "Team Lead" && <span className={styles.leadBadge}>Lead</span>}
+          <span className={styles.memberName}>{name}</span>
+          <span className={styles.leadBadge}>Lead</span>
         </span>
-        <span className={styles.memberRole}>{member.role}</span>
-        {details.length > 0 && (
-          <span className={styles.memberDetails}>
-            {details.map((detail) => <span key={detail}>{detail}</span>)}
-          </span>
-        )}
+        <span className={styles.memberRole}>Team Lead</span>
       </span>
     </li>
   );
@@ -70,7 +63,7 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
   const reduceMotion = useReducedMotion();
   const cardRef = useRef(null);
   const isOpen = openId === team.id;
-  const contentId = `team-members-${team.id}`;
+  const contentId = `team-lead-${team.id}`;
 
   useEffect(() => {
     const card = cardRef.current;
@@ -140,7 +133,7 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
         className={styles.cardTrigger}
         aria-expanded={isOpen}
         aria-controls={contentId}
-        aria-label={`${isOpen ? "Collapse" : "Show"} members of ${team.name}`}
+        aria-label={`${isOpen ? "Collapse" : "Show"} team lead for ${team.name}`}
         onClick={toggleCard}
       >
         <span className={styles.cardHeading}>
@@ -148,16 +141,14 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
           <span className={styles.teamName}>{team.name}</span>
         </span>
         <span className={styles.cardMeta}>
-          <span className={styles.memberCount}>{team.members.length} {team.members.length === 1 ? "member" : "members"}</span>
+          <span className={styles.memberCount}>Team lead</span>
           <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`} aria-hidden="true">+</span>
         </span>
       </button>
       <div className={`${styles.memberDisclosure} ${isOpen ? styles.disclosureOpen : ""}`} id={contentId} aria-hidden={!isOpen}>
         <div className={styles.disclosureInner}>
           <ul className={styles.memberList}>
-            {team.members.map((member) => (
-                      <MemberDetails key={`${team.id}-${member.name}`} member={member} />
-            ))}
+            <TeamLeadDetails name={team.team_lead_name} />
           </ul>
         </div>
       </div>
@@ -179,15 +170,13 @@ export default function ResultsExperience() {
       id: `managed-${team.id}`,
       name: team.name,
       track: team.track,
-      members: Array.isArray(team.members) && team.members.length > 0
-        ? team.members
-        : [{ name: team.team_lead_name, role: "Team Lead" }],
+      team_lead_name: team.team_lead_name,
     })), [managedTeams]);
   const filteredTeams = useMemo(() => {
     if (!normalizedQuery) return allTeams;
     return allTeams.filter((team) =>
       team.name.toLowerCase().includes(normalizedQuery) ||
-      team.members.some((member) => member.name.toLowerCase().includes(normalizedQuery))
+      team.team_lead_name.toLowerCase().includes(normalizedQuery)
     );
   }, [allTeams, normalizedQuery]);
   const teamsByTrack = useMemo(() => RESULT_TRACKS.map((track) => ({
@@ -250,8 +239,8 @@ export default function ResultsExperience() {
                   type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search teams or members"
-                  aria-label="Search teams by team or member name"
+                  placeholder="Search teams or team leads"
+                  aria-label="Search teams by team or team lead name"
                 />
                 {query && <button className={styles.clearSearch} type="button" onClick={() => setQuery("")} aria-label="Clear search">×</button>}
               </label>
@@ -306,7 +295,7 @@ export default function ResultsExperience() {
                 )}
               </>
             ) : (
-              <p className={styles.noResults}>No teams or members match “{query}”.</p>
+              <p className={styles.noResults}>No teams or team leads match “{query}”.</p>
             )}
         </motion.section>
       </div>

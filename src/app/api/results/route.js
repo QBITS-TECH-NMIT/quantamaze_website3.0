@@ -38,14 +38,13 @@ function withLegacyTrackAndRankFields(teams) {
   }));
 }
 
-async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
+async function selectTeamsWithLegacyFallback(supabase) {
   const buildQuery = (legacySchema) => {
-    let query = supabase
+    const query = supabase
       .from(RESULTS_TABLE_NAME)
       .select(legacySchema
         ? "id, name, team_lead_name, status, created_at"
         : "id, name, team_lead_name, track, result_rank, status, created_at");
-    if (!isAdmin) query = query.eq("status", "selected");
     if (legacySchema) {
       return query.order("created_at", { ascending: true }).order("id", { ascending: true });
     }
@@ -72,7 +71,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
 const getCachedPublicTeams = unstable_cache(
   async () => {
     const supabase = getResultsServiceClient();
-    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
+    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase);
     if (error) throw error;
     if (legacySchema) {
       console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track and rank assignments.");
@@ -125,7 +124,7 @@ export async function GET(request) {
       const admin = await getResultsAdmin(request);
       if (admin.error) return authResponse(admin.error);
 
-      const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase, true);
+      const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase);
       if (error) throw error;
       if (legacySchema) {
         console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track editing.");

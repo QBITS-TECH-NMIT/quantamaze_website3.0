@@ -161,11 +161,16 @@ export default function ResultsExperience() {
   const [managedTeams, setManagedTeams] = useState([]);
   const [managedTeamsError, setManagedTeamsError] = useState("");
   const [query, setQuery] = useState("");
+  const [activeStatus, setActiveStatus] = useState("selected");
   const [openId, setOpenId] = useState(null);
   const [pinnedId, setPinnedId] = useState(null);
   const normalizedQuery = query.trim().toLowerCase();
+  const selectedCount = managedTeams.filter((team) => team.status === "selected").length;
+  const waitingCount = managedTeams.filter((team) => team.status === "waiting_list").length;
+  const isWaitingList = activeStatus === "waiting_list";
+  const activeStatusLabel = isWaitingList ? "Waiting list" : "Selected";
   const allTeams = useMemo(() => managedTeams
-    .filter((team) => team.status === "selected")
+    .filter((team) => team.status === activeStatus)
     .map((team) => ({
       id: `managed-${team.id}`,
       name: team.name,
@@ -173,7 +178,7 @@ export default function ResultsExperience() {
       team_lead_name: team.team_lead_name,
       result_rank: team.result_rank,
     }))
-    .sort((first, second) => first.result_rank - second.result_rank), [managedTeams]);
+    .sort((first, second) => first.result_rank - second.result_rank), [activeStatus, managedTeams]);
   const filteredTeams = useMemo(() => {
     if (!normalizedQuery) return allTeams;
     return allTeams.filter((team) =>
@@ -218,19 +223,43 @@ export default function ResultsExperience() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
           >
-            <p className={styles.countLine}><span className={styles.countNumber}><CountUp value={allTeams.length} /></span> {allTeams.length === 1 ? "team" : "teams"} selected</p>
+            <p className={styles.countLine}>
+              <span className={styles.countNumber}><CountUp value={isWaitingList ? waitingCount : selectedCount} /></span>
+              {isWaitingList ? "teams on the waiting list" : "teams selected"}
+            </p>
           </motion.div>
         </header>
 
         <motion.section
           className={styles.resultsSection}
-          aria-label="Phase 1 selected teams"
+          aria-label={`Phase 1 ${activeStatusLabel.toLowerCase()} teams`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.12 }}
         >
             <div className={styles.listToolbar}>
-              <p className={styles.listLabel}><span />Selected teams <span className={styles.listCount}>{String(filteredTeams.length).padStart(2, "0")}</span></p>
+              <p className={styles.listLabel}>
+                <span />{activeStatusLabel} teams
+                <span className={styles.listCount}>{String(filteredTeams.length).padStart(2, "0")}</span>
+              </p>
+              <div className={styles.statusSwitch} role="group" aria-label="Choose which teams to view">
+                <button
+                  type="button"
+                  className={`${styles.statusButton} ${!isWaitingList ? styles.statusButtonActive : ""}`}
+                  aria-pressed={!isWaitingList}
+                  onClick={() => setActiveStatus("selected")}
+                >
+                  Selected <span>{selectedCount}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.statusButton} ${isWaitingList ? styles.statusButtonActive : ""}`}
+                  aria-pressed={isWaitingList}
+                  onClick={() => setActiveStatus("waiting_list")}
+                >
+                  Waiting list <span>{waitingCount}</span>
+                </button>
+              </div>
               <label className={styles.searchBox}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
@@ -296,7 +325,11 @@ export default function ResultsExperience() {
                 )}
               </>
             ) : (
-              <p className={styles.noResults}>No teams or team leads match “{query}”.</p>
+              <p className={styles.noResults}>
+                {query
+                  ? `No ${activeStatusLabel.toLowerCase()} teams or team leads match “${query}”.`
+                  : `There are no ${activeStatusLabel.toLowerCase()} teams to display yet.`}
+              </p>
             )}
         </motion.section>
       </div>

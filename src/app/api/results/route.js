@@ -4,7 +4,6 @@ import {
   RESULTS_TABLE_NAME,
   ResultsConfigurationError,
 } from "@/lib/resultsAdmin";
-import { RESULTS_UNLOCK_AT } from "@/lib/results";
 import { RESULT_TRACKS } from "@/lib/resultTracks";
 
 export const runtime = "nodejs";
@@ -105,10 +104,6 @@ export async function GET(request) {
         console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team editing.");
       }
       return jsonResponse({ teams: data });
-    }
-
-    if (Date.now() < Date.parse(RESULTS_UNLOCK_AT)) {
-      return jsonResponse({ teams: [] });
     }
 
     const supabase = getResultsServiceClient();

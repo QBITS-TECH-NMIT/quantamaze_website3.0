@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import useResultsAvailability from "@/hooks/useResultsAvailability";
 
 const easeOut = [0.16, 1, 0.3, 1];
 
@@ -26,7 +25,6 @@ export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [modalOpen, setModalOpen] = useState(false);
-  const { isLive: resultsLive } = useResultsAvailability();
 
   const handleNavigation = useCallback(
     (event, href) => {
@@ -292,22 +290,20 @@ export default function NavBar() {
               </a>
             );
           })}
-          {resultsLive && (
-            <Link
-              href="/check-result"
-              aria-current={pathname === "/check-result" || pathname === "/results" ? "page" : undefined}
-              className={`nav-link relative px-3 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 sm:px-2.5 ${
-                pathname === "/check-result" || pathname === "/results"
-                  ? "text-[#F5590A]"
-                  : "text-stone-300 hover:text-[#FFA94D]"
-              }`}
-            >
-              Results
-              {(pathname === "/check-result" || pathname === "/results") && (
-                <span className="absolute -bottom-1 left-3 right-3 h-[2px] rounded-full bg-[#F5590A] shadow-[0_0_10px_#F5590A]" />
-              )}
-            </Link>
-          )}
+          <Link
+            href="/results"
+            aria-current={pathname === "/results" ? "page" : undefined}
+            className={`nav-link relative px-3 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 sm:px-2.5 ${
+              pathname === "/results"
+                ? "text-[#F5590A]"
+                : "text-stone-300 hover:text-[#FFA94D]"
+            }`}
+          >
+            Results
+            {pathname === "/results" && (
+              <span className="absolute -bottom-1 left-3 right-3 h-[2px] rounded-full bg-[#F5590A] shadow-[0_0_10px_#F5590A]" />
+            )}
+          </Link>
         </nav>
       </div>
     </motion.header>

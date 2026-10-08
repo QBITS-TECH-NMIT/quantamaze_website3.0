@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import ResultsCountdown from "@/components/ResultsCountdown";
-import useResultsAvailability from "@/hooks/useResultsAvailability";
-import { getResultsCountdown } from "@/lib/results";
 import { RESULT_TRACKS } from "@/lib/resultTracks";
 import styles from "@/app/results/results.module.css";
 
@@ -169,7 +166,6 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
 }
 
 export default function ResultsExperience() {
-  const { mounted, now, isLive } = useResultsAvailability(true);
   const reduceMotion = useReducedMotion();
   const [managedTeams, setManagedTeams] = useState([]);
   const [managedTeamsError, setManagedTeamsError] = useState("");
@@ -202,7 +198,6 @@ export default function ResultsExperience() {
     () => filteredTeams.filter((team) => !RESULT_TRACKS.includes(team.track)),
     [filteredTeams],
   );
-  const remaining = mounted ? getResultsCountdown(now) : null;
 
   useEffect(() => {
     let active = true;
@@ -227,53 +222,23 @@ export default function ResultsExperience() {
           <h1 className={styles.title}>Phase 1 <span>Results</span></h1>
           <p className={styles.subtitle}>QUANT-A-MAZE 3.0 <span>{"//"}</span> PHASE 1 SELECTION</p>
 
-          <AnimatePresence mode="wait" initial={false}>
-            {isLive ? (
-              <motion.div
-                key="results"
-                className={styles.resultsState}
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-              >
-                <p className={styles.countLine}><span className={styles.countNumber}><CountUp value={allTeams.length} /></span> {allTeams.length === 1 ? "team" : "teams"} selected</p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="locked"
-                className={styles.lockedState}
-                initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-              >
-                <span className={styles.lockIcon} aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="4" y="10" width="16" height="11" rx="2" />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                    <path d="M12 14v3" />
-                  </svg>
-                </span>
-                <h2>Phase 1 results unlock soon</h2>
-                <p className={styles.unlockMessage}>Results unlock on 9 October at 11:00 AM IST</p>
-                <ResultsCountdown
-                  remaining={remaining}
-                  ready={mounted}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <motion.div
+            className={styles.resultsState}
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <p className={styles.countLine}><span className={styles.countNumber}><CountUp value={allTeams.length} /></span> {allTeams.length === 1 ? "team" : "teams"} selected</p>
+          </motion.div>
         </header>
 
-        {isLive && (
-          <motion.section
-            className={styles.resultsSection}
-            aria-label="Phase 1 selected teams"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.12 }}
-          >
+        <motion.section
+          className={styles.resultsSection}
+          aria-label="Phase 1 selected teams"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.12 }}
+        >
             <div className={styles.listToolbar}>
               <p className={styles.listLabel}><span />Selected teams <span className={styles.listCount}>{String(filteredTeams.length).padStart(2, "0")}</span></p>
               <label className={styles.searchBox}>
@@ -343,8 +308,7 @@ export default function ResultsExperience() {
             ) : (
               <p className={styles.noResults}>No teams or members match “{query}”.</p>
             )}
-          </motion.section>
-        )}
+        </motion.section>
       </div>
     </main>
   );

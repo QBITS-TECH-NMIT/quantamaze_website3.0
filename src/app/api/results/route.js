@@ -19,14 +19,56 @@ function jsonResponse(body, init = {}) {
   return Response.json(body, { ...init, headers });
 }
 
+function isResultsSchemaMismatch(error) {
+  return error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    error?.code === "42703" ||
+    error?.code === "PGRST204" ||
+    /column .* does not exist|could not find the .* column/i.test(
+      `${error?.message || ""} ${error?.details || ""}`
+    );
+}
+
+function withLegacyTeamFields(teams) {
+  return teams.map((team) => ({
+    ...team,
+    members: [{ name: team.team_lead_name, role: "Team Lead" }],
+    track: null,
+  }));
+}
+
+async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
+  const buildQuery = (legacySchema) => {
+    let query = supabase
+      .from(RESULTS_TABLE_NAME)
+      .select(legacySchema
+        ? "id, name, team_lead_name, status, created_at"
+        : "id, name, team_lead_name, members, track, status, created_at");
+    if (!isAdmin) query = query.eq("status", "selected");
+    return query.order(isAdmin ? "created_at" : "name", { ascending: isAdmin ? false : true });
+  };
+
+  const { data, error } = await buildQuery(false);
+  if (!error) return { data, error: null, legacySchema: false };
+  if (!isResultsSchemaMismatch(error)) return { data: null, error, legacySchema: false };
+
+  const legacyResult = await buildQuery(true);
+  if (legacyResult.error) return { data: null, error: legacyResult.error, legacySchema: true };
+  return {
+    data: withLegacyTeamFields(legacyResult.data),
+    error: null,
+    legacySchema: true,
+  };
+}
+
 function errorResponse(error) {
   if (error instanceof ResultsConfigurationError) {
     return jsonResponse({ error: error.message }, { status: 503 });
   }
   console.error("Results API error:", error);
-  if (error?.code === "42P01" || error?.code === "PGRST205" || error?.code === "42703" || error?.code === "PGRST204") {
+  if (isResultsSchemaMismatch(error)) {
     return jsonResponse({
-      error: "The Phase 1 results database is not up to date. Run supabase/results-admin.sql in the Supabase SQL Editor.",
+      error: "The Phase 1 results database is missing required columns. Run the latest supabase/results-admin.sql in the Supabase SQL Editor.",
     }, { status: 503 });
   }
   return jsonResponse({ error: "Could not access results right now." }, { status: 500 });
@@ -48,11 +90,11 @@ export async function GET(request) {
       const admin = await getResultsAdmin(request);
       if (admin.error) return authResponse(admin.error);
 
-      const { data, error } = await admin.supabase
-        .from(RESULTS_TABLE_NAME)
-        .select("id, name, team_lead_name, members, track, status, created_at")
-        .order("created_at", { ascending: false });
+      const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase, true);
       if (error) throw error;
+      if (legacySchema) {
+        console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team editing.");
+      }
       return jsonResponse({ teams: data });
     }
 
@@ -61,12 +103,11 @@ export async function GET(request) {
     }
 
     const supabase = getResultsServiceClient();
-    const { data, error } = await supabase
-      .from(RESULTS_TABLE_NAME)
-      .select("id, name, team_lead_name, members, track, status")
-      .eq("status", "selected")
-      .order("name", { ascending: true });
+    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
     if (error) throw error;
+    if (legacySchema) {
+      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team results.");
+    }
     return jsonResponse({ teams: data });
   } catch (error) {
     return errorResponse(error);

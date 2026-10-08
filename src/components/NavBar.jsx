@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import useResultsAvailability from "@/hooks/useResultsAvailability";
 
 const easeOut = [0.16, 1, 0.3, 1];
 
@@ -25,6 +26,7 @@ export default function NavBar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [modalOpen, setModalOpen] = useState(false);
+  const { isLive: resultsLive } = useResultsAvailability();
 
   const handleNavigation = useCallback(
     (event, href) => {
@@ -239,7 +241,7 @@ export default function NavBar() {
       </div>
 
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-300 sm:px-10 ${
+        className={`mx-auto flex max-w-[1500px] items-center justify-between px-4 transition-all duration-300 sm:px-8 ${
           scrolled ? "py-2.5" : "py-3.5 sm:py-4"
         }`}
       >
@@ -262,18 +264,18 @@ export default function NavBar() {
 
         {/* Desktop Nav Links */}
         <nav
-          className="hidden items-center gap-1 sm:flex"
+          className="hidden items-center gap-0.5 sm:flex"
           aria-label="Main Navigation"
         >
           {navLinks.map((link) => {
-            const isActive = activeSection === link.href.slice(1);
+            const isActive = pathname === "/" && activeSection === link.href.slice(1);
 
             return (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={(event) => handleNavigation(event, link.href)}
-                className={`nav-link relative px-4 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                className={`nav-link relative px-3 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 cursor-pointer sm:px-2.5 ${
                   isActive
                     ? "text-[#F5590A]"
                     : "text-stone-300 hover:text-[#FFA94D]"
@@ -290,6 +292,22 @@ export default function NavBar() {
               </a>
             );
           })}
+          {resultsLive && (
+            <Link
+              href="/check-result"
+              aria-current={pathname === "/check-result" || pathname === "/results" ? "page" : undefined}
+              className={`nav-link relative px-3 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 sm:px-2.5 ${
+                pathname === "/check-result" || pathname === "/results"
+                  ? "text-[#F5590A]"
+                  : "text-stone-300 hover:text-[#FFA94D]"
+              }`}
+            >
+              Results
+              {(pathname === "/check-result" || pathname === "/results") && (
+                <span className="absolute -bottom-1 left-3 right-3 h-[2px] rounded-full bg-[#F5590A] shadow-[0_0_10px_#F5590A]" />
+              )}
+            </Link>
+          )}
         </nav>
       </div>
     </motion.header>

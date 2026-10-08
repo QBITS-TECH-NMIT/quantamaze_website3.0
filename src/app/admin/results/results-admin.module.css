@@ -1,0 +1,294 @@
+.page {
+  --orange: #f25c05;
+  min-height: 100vh;
+  padding: 112px 24px 80px;
+  color: #f2f2f2;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(242, 92, 5, 0.13), transparent 42%),
+    #0a0a0a;
+}
+
+.container {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+}
+
+.header,
+.columnHeader,
+.teamRow,
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #ff9a59;
+  font: 600 12px/1.4 var(--font-geist-mono), monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.1;
+}
+
+.subheading {
+  margin: 10px 0 0;
+  color: #b8b3ae;
+}
+
+.signOut,
+.submit,
+.editButton,
+.cancelEdit,
+.deleteButton {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  color: #f2f2f2;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  font: inherit;
+}
+
+.signOut {
+  padding: 10px 14px;
+}
+
+.signOut:hover,
+.editButton:hover,
+.cancelEdit:hover,
+.deleteButton:hover {
+  border-color: rgba(255, 138, 61, 0.7);
+}
+
+.formPanel,
+.column {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(20, 19, 18, 0.88);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.2);
+}
+
+.formPanel {
+  margin-bottom: 28px;
+  padding: 24px;
+}
+
+.formTitle {
+  margin: 0 0 18px;
+  font-size: 18px;
+}
+
+.form,
+.loginForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: #d5d1cd;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0 13px;
+  color: #f2f2f2;
+  background: #111;
+  font: inherit;
+  font-size: 15px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid rgba(255, 138, 61, 0.72);
+  outline-offset: 2px;
+}
+
+.submit {
+  min-height: 46px;
+  align-self: end;
+  border-color: transparent;
+  padding: 0 18px;
+  background: linear-gradient(110deg, #f25c05, #ff8a3d);
+  font-weight: 700;
+}
+
+.submit:disabled,
+.deleteButton:disabled,
+.editButton:disabled,
+.cancelEdit:disabled,
+.signOut:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+}
+
+.column {
+  min-width: 0;
+  padding: 20px;
+}
+
+.columnHeader {
+  margin-bottom: 16px;
+}
+
+.columnTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.count {
+  display: grid;
+  min-width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffd0ae;
+  background: rgba(242, 92, 5, 0.15);
+  font: 700 13px var(--font-geist-mono), monospace;
+}
+
+.teamList {
+  display: grid;
+  gap: 10px;
+}
+
+.teamRow {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.teamCopy {
+  min-width: 0;
+}
+
+.teamName,
+.teamLead {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.teamName {
+  font-weight: 700;
+}
+
+.teamLead {
+  margin-top: 4px;
+  color: #aaa39e;
+  font-size: 13px;
+}
+
+.deleteButton {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  color: #ffaaa0;
+  font-size: 13px;
+}
+
+.editButton,
+.cancelEdit {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  color: #ffd0ae;
+  font-size: 13px;
+}
+
+.cancelEdit {
+  min-height: 46px;
+  align-self: end;
+  padding: 0 18px;
+}
+
+.empty,
+.notice {
+  color: #b8b3ae;
+  line-height: 1.6;
+}
+
+.empty {
+  margin: 0;
+  padding: 18px 0 8px;
+  text-align: center;
+}
+
+.notice {
+  margin: 0 0 18px;
+  border: 1px solid rgba(255, 138, 61, 0.34);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(242, 92, 5, 0.08);
+}
+
+.noticeError {
+  border-color: rgba(255, 106, 106, 0.45);
+  color: #ffc0ba;
+  background: rgba(255, 60, 60, 0.07);
+}
+
+.loginPanel {
+  width: min(100%, 480px);
+  margin: 8vh auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: clamp(22px, 5vw, 36px);
+  background: rgba(20, 19, 18, 0.92);
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.32);
+}
+
+.loginForm {
+  grid-template-columns: 1fr;
+  margin-top: 24px;
+}
+
+.toolbar {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+  color: #b8b3ae;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 96px 16px 64px;
+  }
+
+  .header {
+    align-items: flex-start;
+  }
+
+  .form,
+  .board {
+    grid-template-columns: 1fr;
+  }
+
+  .submit {
+    grid-column: auto;
+  }
+}

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import LoadingScreen from "@/components/LoadingScreen";
-import CountdownTimer from "@/components/CountdownTimer";
+import CountdownTimer, { REGISTRATION_CUTOFF } from "@/components/CountdownTimer";
 import AboutPage from "@/app/about/page";
 import TracksPage from "@/app/tracks/page";
 import TimelinePage from "@/app/timeline/page";
@@ -58,7 +58,11 @@ export default function HomePage() {
   const reducedMotion = useReducedMotion();
   const [siteReady, setSiteReady] = useState(false);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
+  const [registrationIsOpen, setRegistrationIsOpen] = useState(
+    () => Date.now() < new Date(REGISTRATION_CUTOFF).getTime(),
+  );
   const handleLoaderComplete = useCallback(() => setSiteReady(true), []);
+  const handleRegistrationOpenChange = useCallback((isOpen) => setRegistrationIsOpen(isOpen), []);
 
   useEffect(() => {
     const checkLowPower = () => {
@@ -298,7 +302,7 @@ export default function HomePage() {
               className="flex flex-col items-center rounded-2xl border border-[#F5590A]/20 bg-white/[0.02] px-6 py-5 shadow-[0_0_35px_rgba(245,89,10,0.08)] backdrop-blur-sm sm:px-8 sm:py-6"
             >
               <p className="text-center font-mono text-2xl font-bold tracking-wider text-[#F5590A] drop-shadow-[0_0_20px_rgba(255,107,26,0.25)] sm:text-4xl md:text-5xl">
-                07 <span className="text-[#F5590A]/50">{"//"}</span> SEPTEMBER
+                28 <span className="text-[#F5590A]/50">{"//"}</span> OCTOBER
               </p>
               <p className="mt-2 flex max-w-[19rem] items-start justify-center gap-2 text-center text-sm leading-relaxed text-gray-300 sm:max-w-none sm:text-base">
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#F5590A]" fill="none" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" /><circle cx="12" cy="10" r="2.2" /></svg>
@@ -316,23 +320,27 @@ export default function HomePage() {
             >
               <CountdownTimer
                 accentColor="#f5590a"
+                onRegistrationOpenChange={handleRegistrationOpenChange}
               />
             </motion.div>
 
             {/* Register CTA linking to the global contact footer */}
-            <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
+            {registrationIsOpen && (
+              <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
                 href={REGISTRATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"
+                aria-label="Register for Quant-A-Maze"
+                className="group relative inline-flex min-h-[48px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all duration-200 hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FFB27E] active:scale-[0.97] sm:px-8 sm:py-4"
               >
                 <span>Register Now</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">
                   →
                 </span>
               </Link>
-            </motion.div>
+              </motion.div>
+            )}
           </motion.div>
           </section>
         </SectionTransition>

@@ -11,16 +11,38 @@
  *   accentColor {string}         – CSS colour token for glows/bar. Defaults to site orange.
  */
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
+import { RESULTS_UNLOCK_AT } from "@/lib/results";
+import styles from "./ResultsAnnouncement.module.css";
+
+const resultsDisplayFont = Bricolage_Grotesque({
+  variable: "--results-font-bricolage",
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  display: "swap",
+  adjustFontFallback: true,
+});
+
+const resultsMonoFont = JetBrains_Mono({
+  variable: "--results-font-jetbrains",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+  adjustFontFallback: true,
+});
 
 export const COUNTDOWN_PHASES = [
   { heading: "LAUNCHING IN", startDate: "2026-08-08T00:00:00+05:30", targetDate: "2026-09-07T00:00:00+05:30" },
   { heading: "SUBMISSIONS CLOSE IN", startDate: "2026-09-07T00:00:00+05:30", targetDate: "2026-10-05T23:59:59+05:30" },
-  { heading: "PHASE 1 RESULTS IN", startDate: "2026-09-29T00:00:00+05:30", targetDate: "2026-10-03T00:00:00+05:30" },
+  { heading: "PHASE 1 RESULTS IN", startDate: "2026-10-05T23:59:59+05:30", targetDate: "2026-10-09T11:00:00+05:30" },
   { heading: "EVENT STARTS IN", startDate: "2026-10-03T00:00:00+05:30", targetDate: "2026-10-28T00:00:00+05:30" },
   { heading: "FINAL RESULTS IN", startDate: "2026-10-28T00:00:00+05:30", targetDate: "2026-10-30T23:59:59+05:30" },
 ];
+
+export const REGISTRATION_CUTOFF = "2026-10-05T00:00:00+05:30";
+const REGISTRATION_CUTOFF_MS = new Date(REGISTRATION_CUTOFF).getTime();
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -48,11 +70,38 @@ function getActivePhase(phases, now) {
   return phases.findIndex((phase) => new Date(phase.targetDate).getTime() > now);
 }
 
+function getAnnouncementState(now) {
+  const submissionsDeadline = new Date("2026-10-05T23:59:59+05:30").getTime();
+  const resultsVisibleFrom = Date.parse(RESULTS_UNLOCK_AT);
+
+  if (now > submissionsDeadline && now < resultsVisibleFrom) {
+    return {
+      badge: "Stay Tuned",
+      title: "Phase 1 results will be announced soon.",
+      subtitle: "We are finalising the evaluation.",
+      showResultsButton: false,
+    };
+  }
+
+  if (now >= resultsVisibleFrom) {
+    return {
+      badge: "Results",
+      title: "Phase 1 results are live.",
+      subtitle: "Check the official result page to view the Phase 1 selected teams.",
+      showResultsButton: true,
+      buttonLabel: "View Results",
+      buttonLink: "/check-result",
+    };
+  }
+
+  return null;
+}
+
 /* ─────────────────────────────────────────────
    Single digit slot — flip/roll animation
 ───────────────────────────────────────────── */
 
-function DigitSlot({ digit }) {
+function DigitSlot({ digit, reducedMotion }) {
   return (
     <span
       style={{
@@ -63,14 +112,14 @@ function DigitSlot({ digit }) {
         lineHeight: 1,
       }}
     >
-      <AnimatePresence mode="popLayout" initial={false}>
+      <AnimatePresence mode={reducedMotion ? undefined : "popLayout"} initial={false}>
         <motion.span
           key={digit}
           style={{ display: "block", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}
-          initial={{ y: "-110%", opacity: 0, rotateX: -60 }}
+          initial={reducedMotion ? false : { y: "-110%", opacity: 0, rotateX: -60 }}
           animate={{ y: "0%", opacity: 1, rotateX: 0 }}
-          exit={{ y: "110%", opacity: 0, rotateX: 60 }}
-          transition={{ duration: 0.42, ease: [0.4, 0.0, 0.2, 1] }}
+          exit={reducedMotion ? undefined : { y: "110%", opacity: 0, rotateX: 60 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.42, ease: [0.4, 0.0, 0.2, 1] }}
         >
           {digit}
         </motion.span>
@@ -80,12 +129,12 @@ function DigitSlot({ digit }) {
 }
 
 /* Only the digits that changed will animate — each slot has its own key. */
-function AnimatedNumber({ value }) {
+function AnimatedNumber({ value, reducedMotion }) {
   const str = String(value).padStart(2, "0");
   return (
     <span style={{ display: "inline-flex", justifyContent: "center" }}>
-      <DigitSlot digit={str[0]} />
-      <DigitSlot digit={str[1]} />
+      <DigitSlot digit={str[0]} reducedMotion={reducedMotion} />
+      <DigitSlot digit={str[1]} reducedMotion={reducedMotion} />
     </span>
   );
 }
@@ -94,14 +143,14 @@ function AnimatedNumber({ value }) {
    Glass-card segment
 ───────────────────────────────────────────── */
 
-function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
+function TimerSegment({ value, label, isPulsing, accent, motionDelay, reducedMotion }) {
   const glowHex = accent + "33";
   return (
     <motion.div
-      initial={{ opacity: 0, y: 36 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 36 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.65, delay: motionDelay, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{
+      transition={reducedMotion ? { duration: 0 } : { duration: 0.65, delay: motionDelay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={reducedMotion ? undefined : {
         scale: 1.04,
         boxShadow: `0 0 0 1px rgba(255,255,255,0.13), 0 12px 48px rgba(0,0,0,0.55), 0 0 48px ${glowHex}`,
         transition: { duration: 0.2 },
@@ -124,7 +173,7 @@ function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
       />
 
       {/* Seconds-only outer glow pulse ring */}
-      {isPulsing && (
+      {isPulsing && !reducedMotion && (
         <motion.div
           aria-hidden
           animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.28, 0.1] }}
@@ -142,7 +191,7 @@ function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
       {/* Number */}
       <motion.div
         animate={
-          isPulsing
+          isPulsing && !reducedMotion
             ? {
                 scale: [1, 1.028, 1],
                 filter: [
@@ -153,7 +202,7 @@ function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
               }
             : {}
         }
-        transition={isPulsing ? { duration: 1, repeat: Infinity, ease: "easeInOut" } : {}}
+        transition={isPulsing && !reducedMotion ? { duration: 1, repeat: Infinity, ease: "easeInOut" } : {}}
         style={{
           fontSize: "clamp(28px, 8vw, 68px)",
           fontWeight: 800,
@@ -166,7 +215,7 @@ function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
           zIndex: 1,
         }}
       >
-        <AnimatedNumber value={value} />
+        <AnimatedNumber value={value} reducedMotion={reducedMotion} />
       </motion.div>
 
       {/* Label */}
@@ -192,7 +241,7 @@ function TimerSegment({ value, label, isPulsing, accent, motionDelay }) {
    Glowing divider dots (breathe animation)
 ───────────────────────────────────────────── */
 
-function DividerDots({ accent, delay }) {
+function DividerDots({ accent, delay, reducedMotion }) {
   return (
     <div
       aria-hidden
@@ -201,8 +250,8 @@ function DividerDots({ accent, delay }) {
       {[0, 1].map((i) => (
         <motion.span
           key={i}
-          animate={{ opacity: [0.25, 0.8, 0.25] }}
-          transition={{
+          animate={reducedMotion ? undefined : { opacity: [0.25, 0.8, 0.25] }}
+          transition={reducedMotion ? undefined : {
             duration: 2.2,
             repeat: Infinity,
             ease: "easeInOut",
@@ -236,7 +285,9 @@ const PARTICLES = Array.from({ length: 20 }, (_, i) => ({
   delay: (i * 0.38) % 5,
 }));
 
-function AmbientParticles({ accent }) {
+function AmbientParticles({ accent, reducedMotion }) {
+  if (reducedMotion) return null;
+
   return (
     <div
       aria-hidden
@@ -273,7 +324,9 @@ export default function CountdownTimer({
   startDate,
   label = "Launching In",
   accentColor = "#f5590a",
+  onRegistrationOpenChange,
 }) {
+  const reducedMotion = useReducedMotion();
   const resolvedPhases = useMemo(
     () => targetDate
       ? [{
@@ -288,10 +341,42 @@ export default function CountdownTimer({
   const [time, setTime] = useState(null);
   const [progress, setProgress] = useState(0);
   const [phaseIndex, setPhaseIndex] = useState(null);
+  const [announcementState, setAnnouncementState] = useState(null);
+  const [announcementEntered, setAnnouncementEntered] = useState(false);
+  const announcementRef = useRef(null);
+
+  useEffect(() => {
+    if (!announcementState?.showResultsButton) return undefined;
+
+    const announcement = announcementRef.current;
+    if (!announcement || !("IntersectionObserver" in window)) {
+      setAnnouncementEntered(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setAnnouncementEntered(true);
+      observer.disconnect();
+    }, { threshold: 0.15 });
+    observer.observe(announcement);
+    return () => observer.disconnect();
+  }, [announcementState?.showResultsButton]);
 
   useEffect(() => {
     function tick() {
       const now = Date.now();
+      const nextAnnouncement = getAnnouncementState(now);
+      setAnnouncementState(nextAnnouncement);
+      onRegistrationOpenChange?.(now < REGISTRATION_CUTOFF_MS);
+
+      if (nextAnnouncement) {
+        setTime({ days: 0, hours: 0, minutes: 0, seconds: 0, expired: true });
+        setProgress(100);
+        setPhaseIndex(null);
+        return;
+      }
+
       const nextPhaseIndex = getActivePhase(resolvedPhases, now);
       setPhaseIndex(nextPhaseIndex === -1 ? null : nextPhaseIndex);
 
@@ -308,12 +393,11 @@ export default function CountdownTimer({
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [resolvedPhases]);
+  }, [onRegistrationOpenChange, resolvedPhases]);
 
   const display = time ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  const heading = phaseIndex === null && time !== null
-    ? "EVENT CONCLUDED"
-    : resolvedPhases[phaseIndex ?? 0]?.heading ?? "EVENT CONCLUDED";
+  const isCountdownComplete = Boolean(announcementState) || phaseIndex === null || Boolean(time?.expired);
+  const heading = announcementState ? null : (isCountdownComplete ? "Stay Tuned" : resolvedPhases[phaseIndex ?? 0]?.heading ?? "Stay Tuned");
   const segments = [
     { key: "days",    value: display.days,    label: "Days"    },
     { key: "hours",   value: display.hours,   label: "Hours"   },
@@ -322,14 +406,22 @@ export default function CountdownTimer({
   ];
 
   return (
-    <div
+    <section
+      className="countdown-display"
+      aria-label="Hackathon countdown and Phase 1 results"
       style={{
+        "--bg": "#0A0A0A",
+        "--text": "#FFFFFF",
+        "--text-muted": "rgba(255,255,255,0.72)",
+        "--accent": "#F25C05",
+        "--accent-light": "#FF8A3D",
+        "--border": "rgba(242,92,5,0.4)",
         position: "relative",
         width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "22px",
+        gap: announcementState ? "24px" : "22px",
         padding: "24px 12px 20px",
         // isolation creates a new stacking context for internal z-indices only —
         // it does NOT escape to siblings outside this element.
@@ -343,10 +435,13 @@ export default function CountdownTimer({
       {/* Radial background glow */}
       <div
         aria-hidden
+        className={announcementState?.showResultsButton ? styles.breathingGlow : undefined}
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 75% 65% at 50% 50%, ${accentColor}18 0%, transparent 72%)`,
+          background: announcementState?.showResultsButton
+            ? "radial-gradient(ellipse 380px 300px at 50% 50%, rgba(249,115,22,1) 0%, transparent 72%)"
+            : `radial-gradient(ellipse 75% 65% at 50% 50%, ${accentColor}18 0%, transparent 72%)`,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -370,14 +465,26 @@ export default function CountdownTimer({
         }}
       />
 
-      <AmbientParticles accent={accentColor} />
+      <AmbientParticles accent={accentColor} reducedMotion={reducedMotion} />
+
+      {/* Content vignette keeps the existing wireframe background legible behind text. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: "-12px 0",
+          zIndex: 0.5,
+          pointerEvents: "none",
+          background: "radial-gradient(ellipse 68% 78% at 50% 48%, rgba(10,10,10,0.84) 0%, rgba(10,10,10,0.58) 56%, transparent 100%)",
+        }}
+      />
 
       {/* Heading */}
       {heading && (
         <motion.p
-          initial={{ opacity: 0, y: -10 }}
+          initial={reducedMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
           style={{
             position: "relative",
             zIndex: 1,
@@ -395,32 +502,226 @@ export default function CountdownTimer({
       )}
 
       {/* Cards + dividers */}
-      <div
-        className="relative z-10 grid w-full max-w-[860px] grid-cols-2 gap-2.5 sm:flex sm:flex-row sm:items-stretch sm:gap-2.5"
-      >
-        {segments.map((seg, i) => (
-          <div
-            key={seg.key}
-            style={{ display: "contents" }}
+      <AnimatePresence mode="wait">
+        {announcementState ? (
+          <motion.div
+            key="results-announcement"
+            ref={announcementRef}
+            className={announcementState.showResultsButton
+              ? `${styles.liveAnnouncement} ${styles.liveVignette} ${resultsDisplayFont.variable} ${resultsMonoFont.variable} ${announcementEntered ? styles.entered : ""}`
+              : undefined}
+            initial={reducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: -18, scale: 0.98 }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
+              maxWidth: "760px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "16px",
+              textAlign: "center",
+              padding: "18px 12px 8px",
+            }}
           >
-            <TimerSegment
-              value={seg.value}
-              label={seg.label}
-              isPulsing={seg.key === "seconds"}
-              accent={accentColor}
-              motionDelay={i * 0.08}
-            />
-            {i < segments.length - 1 && (
-              <DividerDots
-                accent={accentColor}
-                delay={i * 0.55}
-              />
+            {announcementState.showResultsButton && (
+              <div aria-hidden="true" className={styles.ambientDots}>
+                {Array.from({ length: 9 }, (_, index) => <span key={index} />)}
+              </div>
             )}
-          </div>
-        ))}
-      </div>
+            <motion.span
+              className={announcementState.showResultsButton ? styles.badge : undefined}
+              initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.08, ease: "easeOut" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid var(--border)",
+                background: "rgba(242,92,5,0.09)",
+                boxShadow: "inset 0 0 16px rgba(242,92,5,0.08)",
+                color: "#FFD0B0",
+                borderRadius: "999px",
+                padding: "8px 16px",
+                fontSize: "12px",
+                fontWeight: 700,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-mono)"
+                  : "var(--font-geist-mono, monospace)",
+              }}
+            >
+              {announcementState.showResultsButton && (
+                <span
+                  aria-hidden="true"
+                  className={styles.liveIndicator}
+                  style={{ width: 7, height: 7, marginRight: 9, borderRadius: "50%", background: "var(--accent-light)", boxShadow: "0 0 12px rgba(255,138,61,0.8)" }}
+                />
+              )}
+              {announcementState.badge}
+            </motion.span>
 
-      {/* Progress bar */}
+            {/* Fluid headline and orange live accent establish the announcement hierarchy. */}
+            <motion.h2
+              className={announcementState.showResultsButton ? styles.title : undefined}
+              aria-label={announcementState.showResultsButton ? announcementState.title : undefined}
+              initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.16, ease: "easeOut" }}
+              style={{
+                margin: 0,
+                color: "var(--text)",
+                fontSize: "clamp(2rem, 7vw, 4.5rem)",
+                lineHeight: 1.1,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-display)"
+                  : "var(--font-geist-sans, sans-serif)",
+              }}
+            >
+              {announcementState.showResultsButton ? (
+                <>
+                  <span className={styles.headlineLine}>Phase 1 results are </span>
+                  <span className={styles.headlineLine}>
+                    <span className={styles.liveWord}>
+                      live.<span aria-hidden="true" className={styles.liveUnderline} />
+                    </span>
+                  </span>
+                </>
+              ) : announcementState.title}
+            </motion.h2>
+
+            <motion.p
+              className={announcementState.showResultsButton ? styles.subtitle : undefined}
+              initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.24, ease: "easeOut" }}
+              style={{
+                margin: 0,
+                maxWidth: "60ch",
+                color: "var(--text-muted)",
+                fontSize: "clamp(12px, 1.4vw, 14px)",
+                lineHeight: 1.6,
+                letterSpacing: announcementState.showResultsButton ? "0.12em" : "0.1em",
+                textTransform: "uppercase",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-mono)"
+                  : "var(--font-geist-mono, monospace)",
+              }}
+            >
+              {announcementState.subtitle}
+            </motion.p>
+
+            {announcementState.showResultsButton && (
+              <motion.a
+                className={styles.resultsButton}
+                href={announcementState.buttonLink}
+                aria-label="View the Phase 1 selected teams"
+                initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.32, ease: "easeOut" }}
+                whileHover={reducedMotion ? undefined : { y: -2, scale: 1.02 }}
+                whileTap={reducedMotion ? undefined : { scale: 0.98, y: 0 }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 12,
+                  width: "100%",
+                  maxWidth: "320px",
+                  minWidth: "240px",
+                  minHeight: "52px",
+                  marginTop: "8px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  background: "linear-gradient(110deg, #F25C05, #FF8A3D)",
+                  color: "#16100C",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  letterSpacing: "0.01em",
+                  padding: "16px 28px",
+                  textDecoration: "none",
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.1), 0 10px 28px rgba(242,92,5,0.22)",
+                  fontFamily: "var(--results-font-display)",
+                }}
+              >
+                <span className={styles.buttonLabel}>{announcementState.buttonLabel}</span>
+                <span aria-hidden="true" className={styles.buttonArrow}>↗</span>
+              </motion.a>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="countdown"
+            initial={reducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: -20 }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 grid w-full max-w-[860px] grid-cols-2 gap-2.5 sm:flex sm:flex-row sm:items-stretch sm:gap-2.5"
+          >
+            {segments.map((seg, i) => (
+              <div
+                key={seg.key}
+                style={{ display: "contents" }}
+              >
+                <TimerSegment
+                  value={seg.value}
+                  label={seg.label}
+                  isPulsing={seg.key === "seconds"}
+                  accent={accentColor}
+                  motionDelay={i * 0.08}
+                  reducedMotion={reducedMotion}
+                />
+                {i < segments.length - 1 && (
+                  <DividerDots
+                    accent={accentColor}
+                    delay={i * 0.55}
+                    reducedMotion={reducedMotion}
+                  />
+                )}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Completed results use an accessible status bar instead of a stale elapsed percentage. */}
+      {announcementState ? (
+        <motion.div
+          className={announcementState.showResultsButton
+            ? `${styles.progressRow} ${resultsMonoFont.variable} ${announcementEntered ? styles.entered : ""}`
+            : undefined}
+          role="progressbar"
+          aria-label="Phase 1 completion status"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={100}
+          initial={reducedMotion ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.4, ease: "easeOut" }}
+          style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "480px", color: "#E5E7EB" }}
+        >
+          <div className={announcementState.showResultsButton ? styles.progressLabel : undefined} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#E5E7EB", fontFamily: announcementState.showResultsButton ? "var(--results-font-mono)" : "var(--font-geist-mono, monospace)" }}>
+            <span aria-hidden="true" className={announcementState.showResultsButton ? styles.checkIcon : undefined} style={{ display: "inline-flex", width: 18, height: 18, alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(242,92,5,0.16)", color: "#FF9B5B" }}>
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 8 3 3 7-7" /></svg>
+            </span>
+            <span>PHASE 1 <span aria-hidden="true" style={{ color: "#FF8A3D" }}>·</span> COMPLETED</span>
+          </div>
+          <div aria-hidden="true" className={announcementState.showResultsButton ? styles.progressTrack : undefined} style={{ height: 4, marginTop: 10, overflow: "hidden", borderRadius: 999, background: "rgba(255,255,255,0.12)" }}>
+            <div className={announcementState.showResultsButton ? styles.progressFill : undefined} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: "inherit", background: "linear-gradient(90deg, #F25C05, #FF8A3D)" }}>
+              {!announcementState.showResultsButton && !reducedMotion && <motion.span aria-hidden="true" initial={{ x: "-110%" }} animate={{ x: "400%" }} transition={{ duration: 1.25, ease: "easeInOut" }} style={{ position: "absolute", inset: 0, width: "30%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }} />}
+            </div>
+          </div>
+        </motion.div>
+      ) : (
+      /* Progress bar for active countdown phases. */
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -457,7 +758,7 @@ export default function CountdownTimer({
             }}
           />
           {/* Shimmer */}
-          <motion.div
+          {!reducedMotion && <motion.div
             aria-hidden
             animate={{ x: ["-120%", "220%"] }}
             transition={{
@@ -474,7 +775,7 @@ export default function CountdownTimer({
                 "linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)",
               borderRadius: "inherit",
             }}
-          />
+          />}
         </div>
 
         {/* Labels */}
@@ -483,29 +784,36 @@ export default function CountdownTimer({
             display: "flex",
             justifyContent: "space-between",
             marginTop: "9px",
-            fontSize: "9px",
+            fontSize: "12px",
             fontWeight: 700,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
-            color: "#4b5563",
+            color: "#D1D5DB",
             fontFamily: "var(--font-geist-mono, monospace)",
             fontVariantNumeric: "tabular-nums",
           }}
         >
           <span>Time elapsed</span>
-          <span style={{ color: accentColor }}>{progress.toFixed(1)}%</span>
+          <span style={{ color: "#FF8A3D" }}>{progress.toFixed(1)}%</span>
         </div>
       </motion.div>
+      )}
 
       {/* Responsive: hide middle divider when 2×2 wrapping on mobile */}
       <style>{`
+        .countdown-display .results-button-arrow { transition: transform 180ms ease; }
+        .countdown-display a:hover .results-button-arrow { transform: translateX(4px); }
+        .countdown-display a:focus-visible { outline: 3px solid #FFB27E; outline-offset: 4px; }
         @media (max-width: 479px) {
           .countdown-divider { display: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .countdown-display .results-button-arrow { transition: none !important; }
         }
         @media (min-width: 480px) {
           .countdown-divider { display: flex !important; }
         }
       `}</style>
-    </div>
+    </section>
   );
 }

@@ -1,0 +1,39 @@
+do $$
+begin
+  if to_regclass('public.phase_one_results') is null
+    and to_regclass('public.phase_two_results') is not null then
+    alter table public.phase_two_results rename to phase_one_results;
+  end if;
+
+  if to_regclass('public.phase_one_results_name_unique') is null
+    and to_regclass('public.phase_two_results_name_unique') is not null then
+    alter index public.phase_two_results_name_unique rename to phase_one_results_name_unique;
+  end if;
+end $$;
+
+create table if not exists public.phase_one_results (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (char_length(trim(name)) between 1 and 60),
+  team_lead_name text not null check (char_length(trim(team_lead_name)) between 1 and 60),
+  members jsonb not null default '[]'::jsonb,
+  track text,
+  status text not null check (status in ('selected', 'waiting_list')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.phase_one_results
+  add column if not exists members jsonb not null default '[]'::jsonb,
+  add column if not exists track text;
+
+update public.phase_one_results
+set members = jsonb_build_array(
+  jsonb_build_object('name', team_lead_name, 'role', 'Team Lead')
+)
+where members = '[]'::jsonb;
+
+create unique index if not exists phase_one_results_name_unique
+  on public.phase_one_results (lower(name));
+
+alter table public.phase_one_results enable row level security;
+revoke all on table public.phase_one_results from anon, authenticated;
+grant all on table public.phase_one_results to service_role;

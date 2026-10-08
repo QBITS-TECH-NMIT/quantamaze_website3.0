@@ -61,7 +61,7 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
   };
 }
 
-function errorResponse(error) {
+function errorResponse(error, exposeDetails = false) {
   if (error instanceof ResultsConfigurationError) {
     return jsonResponse({ error: error.message }, { status: 503 });
   }
@@ -71,7 +71,16 @@ function errorResponse(error) {
       error: "The Phase 1 results database is missing required columns. Run the latest supabase/results-admin.sql in the Supabase SQL Editor.",
     }, { status: 503 });
   }
-  return jsonResponse({ error: "Could not access results right now." }, { status: 500 });
+  if (error?.code === "42501") {
+    return jsonResponse({
+      error: "Supabase denied access to the results table. Run the latest supabase/results-admin.sql and verify the service-role key is configured in the deployment.",
+    }, { status: 503 });
+  }
+  if (exposeDetails && error?.message) {
+    const code = typeof error.code === "string" ? ` (${error.code})` : "";
+    return jsonResponse({ error: `Could not access results right now${code}: ${error.message}` }, { status: 500 });
+  }
+  return jsonResponse({ error: "Could not access results right now. Check the server configuration and try again." }, { status: 500 });
 }
 
 function authResponse(error) {
@@ -110,7 +119,7 @@ export async function GET(request) {
     }
     return jsonResponse({ teams: data });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, request.headers.has("authorization"));
   }
 }
 
@@ -162,7 +171,7 @@ export async function POST(request) {
     if (error) throw error;
     return jsonResponse({ team: data }, { status: 201 });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, true);
   }
 }
 
@@ -226,7 +235,7 @@ export async function PUT(request) {
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
     return jsonResponse({ team: data });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, true);
   }
 }
 
@@ -257,6 +266,6 @@ export async function DELETE(request) {
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
     return jsonResponse({ deleted: true });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse(error, true);
   }
 }

@@ -1,5 +1,6 @@
 import { findShortlistedTeam } from "@/lib/findShortlistedTeam";
 import { RESULTS_UNLOCK_AT } from "@/lib/results";
+import { findManagedResult, ResultsConfigurationError } from "@/lib/resultsAdmin";
 
 export const runtime = "nodejs";
 
@@ -62,6 +63,20 @@ export async function POST(request) {
 
   if (Object.keys(errors).length > 0) {
     return Response.json({ error: "invalid", errors }, { status: 400 });
+  }
+
+  try {
+    const managedResult = await findManagedResult(teamName, teamLeadName);
+    if (managedResult) {
+      return Response.json({ status: managedResult.status, teamName: managedResult.name });
+    }
+  } catch (error) {
+    if (error instanceof ResultsConfigurationError) {
+      console.error("Results check storage is not configured:", error.message);
+    } else {
+      console.error("Could not check managed results:", error);
+    }
+    return Response.json({ error: "results_unavailable" }, { status: 503 });
   }
 
   const match = findShortlistedTeam(teamName, teamLeadName);

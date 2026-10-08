@@ -13,7 +13,7 @@ const MAX_LENGTH = 60;
 const STATUS_LINES = [
   "> Locating team…",
   "> Verifying team lead…",
-  "> Cross-checking shortlist…",
+  "> Cross-checking Phase 1 results…",
   "> Compiling status…",
 ];
 const easeOut = [0.16, 1, 0.3, 1];
@@ -175,7 +175,7 @@ export default function CheckResultExperience() {
       return;
     }
 
-    if (!ok || (data.status !== "selected" && data.status !== "not_selected")) {
+    if (!ok || !["selected", "waiting_list", "not_selected"].includes(data.status)) {
       setFormError("We could not complete the check. Please try again.");
       setView("form");
       return;
@@ -186,6 +186,7 @@ export default function CheckResultExperience() {
   };
 
   const selected = result?.status === "selected";
+  const waitingListed = result?.status === "waiting_list";
   const remaining = mounted ? getResultsCountdown(now) : null;
   const liveMessage =
     view === "verifying"
@@ -193,7 +194,9 @@ export default function CheckResultExperience() {
       : view === "result"
         ? selected
           ? `Selected. Congratulations, Team ${result.teamName}.`
-          : "Not selected. Thank you for participating."
+          : waitingListed
+            ? `Your team ${result.teamName} is on the waiting list.`
+            : "Not selected. Thank you for participating."
         : "";
 
   return (
@@ -218,7 +221,7 @@ export default function CheckResultExperience() {
             Check your <span>status</span>
           </h1>
           <p className={styles.subtitle}>
-            QUANT-A-MAZE 3.0 <span>{"//"}</span> PHASE 2 SELECTION
+            QUANT-A-MAZE 3.0 <span>{"//"}</span> PHASE 1 RESULTS
           </p>
         </header>
 
@@ -243,8 +246,8 @@ export default function CheckResultExperience() {
                   <path d="M12 14v3" />
                 </svg>
               </span>
-              <h2>Phase 2 results unlock soon</h2>
-              <p className={resultStyles.unlockMessage}>Results unlock on 9 October</p>
+              <h2>Phase 1 results unlock soon</h2>
+              <p className={resultStyles.unlockMessage}>Results unlock on 3 October</p>
               <ResultsCountdown
                 remaining={remaining}
                 ready={mounted}
@@ -342,7 +345,7 @@ export default function CheckResultExperience() {
                     <div className={styles.listCard}>
                       <p className={styles.listCopy}>Want to see everyone who made it?</p>
                       <Link className={styles.fullList} href="/results">
-                        View all shortlisted teams <span aria-hidden="true">→</span>
+                        View all selected teams <span aria-hidden="true">→</span>
                       </Link>
                     </div>
                   </motion.div>
@@ -419,12 +422,16 @@ export default function CheckResultExperience() {
                       <h2 ref={headingRef} tabIndex={-1} className={styles.resultHeading}>
                         {selected
                           ? `Congratulations, Team ${result.teamName}! 🎉`
-                          : "Thank you for participating"}
+                          : waitingListed
+                            ? `Team ${result.teamName} is on the waiting list`
+                            : "Thank you for participating"}
                       </h2>
                       <p className={styles.resultBody}>
                         {selected
-                          ? "Your team has been selected for Phase 2 of Quant-A-Maze 3.0. We were impressed by your Phase 1 submission and look forward to seeing what you build next. Further details will be shared with the team lead shortly."
-                          : "We could not find a team with these details in the Phase 2 shortlist. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
+                          ? "Your team has been selected after Phase 1 of Quant-A-Maze 3.0. Further details will be shared with the team lead shortly."
+                          : waitingListed
+                            ? "Your team is currently on the Phase 1 waiting list. We will contact the team lead if a place becomes available."
+                            : "We could not find a team with these details in the Phase 1 results. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
                       </p>
 
                       <div className={styles.actions}>
@@ -442,7 +449,7 @@ export default function CheckResultExperience() {
                       <div className={styles.listCard}>
                         <p className={styles.listCopy}>Want to see everyone who made it?</p>
                         <Link className={styles.fullList} href="/results">
-                          View all shortlisted teams <span aria-hidden="true">→</span>
+                          View all selected teams <span aria-hidden="true">→</span>
                         </Link>
                       </div>
                     </div>

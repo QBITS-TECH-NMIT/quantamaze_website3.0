@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { RESULTS_UNLOCK_AT } from "@/lib/results";
 
 export const COUNTDOWN_PHASES = [
   { heading: "LAUNCHING IN", startDate: "2026-08-08T00:00:00+05:30", targetDate: "2026-09-07T00:00:00+05:30" },
@@ -53,7 +54,7 @@ function getActivePhase(phases, now) {
 
 function getAnnouncementState(now) {
   const submissionsDeadline = new Date("2026-10-05T23:59:59+05:30").getTime();
-  const resultsVisibleFrom = new Date("2026-10-09T00:00:00+05:30").getTime();
+  const resultsVisibleFrom = Date.parse(RESULTS_UNLOCK_AT);
 
   if (now > submissionsDeadline && now < resultsVisibleFrom) {
     return {
@@ -68,7 +69,7 @@ function getAnnouncementState(now) {
     return {
       badge: "Results",
       title: "Phase 1 results are live.",
-      subtitle: "Check the official result page to view the shortlisted teams.",
+      subtitle: "Check the official result page to view the Phase 1 selected teams.",
       showResultsButton: true,
       buttonLabel: "View Results",
       buttonLink: "/check-result",
@@ -555,7 +556,7 @@ export default function CountdownTimer({
             {announcementState.showResultsButton && (
               <motion.a
                 href={announcementState.buttonLink}
-                aria-label="View the Phase 1 shortlisted teams"
+                aria-label="View the Phase 1 selected teams"
                 initial={reducedMotion ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.32, ease: "easeOut" }}

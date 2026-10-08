@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import teams from "@/data/teams";
 import ResultsCountdown from "@/components/ResultsCountdown";
 import useResultsAvailability from "@/hooks/useResultsAvailability";
 import { getResultsCountdown } from "@/lib/results";
+import { RESULT_TRACKS } from "@/lib/resultTracks";
 import styles from "@/app/results/results.module.css";
 
 function CountUp({ value }) {
@@ -171,27 +171,61 @@ function TeamCard({ team, index, openId, pinnedId, setOpenId, setPinnedId }) {
 export default function ResultsExperience() {
   const { mounted, now, isLive } = useResultsAvailability(true);
   const reduceMotion = useReducedMotion();
+  const [managedTeams, setManagedTeams] = useState([]);
+  const [managedTeamsError, setManagedTeamsError] = useState("");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState(null);
   const [pinnedId, setPinnedId] = useState(null);
   const normalizedQuery = query.trim().toLowerCase();
+  const allTeams = useMemo(() => managedTeams
+    .filter((team) => team.status === "selected")
+    .map((team) => ({
+      id: `managed-${team.id}`,
+      name: team.name,
+      track: team.track,
+      members: Array.isArray(team.members) && team.members.length > 0
+        ? team.members
+        : [{ name: team.team_lead_name, role: "Team Lead" }],
+    })), [managedTeams]);
   const filteredTeams = useMemo(() => {
-    if (!normalizedQuery) return teams;
-    return teams.filter((team) =>
+    if (!normalizedQuery) return allTeams;
+    return allTeams.filter((team) =>
       team.name.toLowerCase().includes(normalizedQuery) ||
       team.members.some((member) => member.name.toLowerCase().includes(normalizedQuery))
     );
-  }, [normalizedQuery]);
+  }, [allTeams, normalizedQuery]);
+  const teamsByTrack = useMemo(() => RESULT_TRACKS.map((track) => ({
+    track,
+    teams: filteredTeams.filter((team) => team.track === track),
+  })).filter((group) => group.teams.length > 0), [filteredTeams]);
+  const unassignedTeams = useMemo(
+    () => filteredTeams.filter((team) => !RESULT_TRACKS.includes(team.track)),
+    [filteredTeams],
+  );
   const remaining = mounted ? getResultsCountdown(now) : null;
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/results", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not load added results.");
+        if (active) setManagedTeams(data.teams);
+      })
+      .catch((error) => {
+        if (active) setManagedTeamsError(error.message);
+      });
+    return () => { active = false; };
+  }, []);
 
   return (
     <main className={styles.page}>
       <div className={styles.backgroundGrid} aria-hidden="true" />
       <div className={styles.pageContent}>
         <header className={styles.hero}>
-          <p className={styles.phaseBadge}><span className={styles.liveDot} />Phase 2 · Shortlisted</p>
-          <h1 className={styles.title}>Shortlisted <span>Teams</span></h1>
-          <p className={styles.subtitle}>QUANT-A-MAZE 3.0 <span>{"//"}</span> PHASE 2 SELECTION</p>
+          <p className={styles.phaseBadge}><span className={styles.liveDot} />Phase 1 · Results</p>
+          <h1 className={styles.title}>Phase 1 <span>Results</span></h1>
+          <p className={styles.subtitle}>QUANT-A-MAZE 3.0 <span>{"//"}</span> PHASE 1 SELECTION</p>
 
           <AnimatePresence mode="wait" initial={false}>
             {isLive ? (
@@ -203,7 +237,7 @@ export default function ResultsExperience() {
                 exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
               >
-                <p className={styles.countLine}><span className={styles.countNumber}><CountUp value={teams.length} /></span> {teams.length === 1 ? "team" : "teams"} selected</p>
+                <p className={styles.countLine}><span className={styles.countNumber}><CountUp value={allTeams.length} /></span> {allTeams.length === 1 ? "team" : "teams"} selected</p>
               </motion.div>
             ) : (
               <motion.div
@@ -221,8 +255,8 @@ export default function ResultsExperience() {
                     <path d="M12 14v3" />
                   </svg>
                 </span>
-                <h2>Phase 2 results unlock soon</h2>
-                <p className={styles.unlockMessage}>Results unlock on 9 October</p>
+                <h2>Phase 1 results unlock soon</h2>
+                <p className={styles.unlockMessage}>Results unlock on 3 October</p>
                 <ResultsCountdown
                   remaining={remaining}
                   ready={mounted}
@@ -235,13 +269,13 @@ export default function ResultsExperience() {
         {isLive && (
           <motion.section
             className={styles.resultsSection}
-            aria-label="Teams shortlisted for Phase 2"
+            aria-label="Phase 1 selected teams"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.12 }}
           >
             <div className={styles.listToolbar}>
-              <p className={styles.listLabel}><span />Shortlist <span className={styles.listCount}>{String(filteredTeams.length).padStart(2, "0")}</span></p>
+              <p className={styles.listLabel}><span />Selected teams <span className={styles.listCount}>{String(filteredTeams.length).padStart(2, "0")}</span></p>
               <label className={styles.searchBox}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
@@ -258,22 +292,54 @@ export default function ResultsExperience() {
               </label>
             </div>
 
+            {managedTeamsError && <p role="alert" className={styles.noResults}>{managedTeamsError}</p>}
             {filteredTeams.length > 0 ? (
-              <motion.div className={styles.teamGrid} layout>
-                <AnimatePresence initial={false}>
-                  {filteredTeams.map((team, index) => (
-                    <TeamCard
-                      key={team.id}
-                      team={team}
-                      index={index}
-                      openId={openId}
-                      pinnedId={pinnedId}
-                      setOpenId={setOpenId}
-                      setPinnedId={setPinnedId}
-                    />
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              <>
+                {teamsByTrack.map(({ track, teams: trackTeams }) => (
+                  <div className={styles.trackGroup} key={track}>
+                    <div className={styles.listToolbar}>
+                      <p className={styles.listLabel}><span />{track} <span className={styles.listCount}>{String(trackTeams.length).padStart(2, "0")}</span></p>
+                    </div>
+                    <motion.div className={styles.teamGrid} layout>
+                      <AnimatePresence initial={false}>
+                        {trackTeams.map((team, index) => (
+                          <TeamCard
+                            key={team.id}
+                            team={team}
+                            index={index}
+                            openId={openId}
+                            pinnedId={pinnedId}
+                            setOpenId={setOpenId}
+                            setPinnedId={setPinnedId}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  </div>
+                ))}
+                {unassignedTeams.length > 0 && (
+                  <div className={styles.trackGroup}>
+                    <div className={styles.listToolbar}>
+                      <p className={styles.listLabel}><span />Track not assigned <span className={styles.listCount}>{String(unassignedTeams.length).padStart(2, "0")}</span></p>
+                    </div>
+                    <motion.div className={styles.teamGrid} layout>
+                      <AnimatePresence initial={false}>
+                        {unassignedTeams.map((team, index) => (
+                          <TeamCard
+                            key={team.id}
+                            team={team}
+                            index={index}
+                            openId={openId}
+                            pinnedId={pinnedId}
+                            setOpenId={setOpenId}
+                            setPinnedId={setPinnedId}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  </div>
+                )}
+              </>
             ) : (
               <p className={styles.noResults}>No teams or members match “{query}”.</p>
             )}

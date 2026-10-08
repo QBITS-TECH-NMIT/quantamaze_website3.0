@@ -297,6 +297,10 @@
   gap: 18px;
 }
 
+.trackGroup + .trackGroup {
+  margin-top: 40px;
+}
+
 .teamCard {
   --spot-x: 50%;
   --spot-y: 0%;
@@ -644,4 +648,3 @@
   .teamCard { transform: none; opacity: 1; }
   .teamCardVisible .cardShimmer { animation: none; }
 }
-

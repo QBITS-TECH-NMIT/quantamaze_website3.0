@@ -98,35 +98,36 @@ async function loadSnapshot() {
   loadingSnapshot = true;
   netState = realtimeConnected ? "syncing…" : "syncing (polling)…";
   notify();
-  const { data, error } = await supabase
-    .from(STATE_TABLE)
-    .select("state_key, value")
-    .eq("room_id", CONFIG.room);
-  loadingSnapshot = false;
-  if (error) {
-    netState = "database read failed";
+  try {
+    const { data, error } = await supabase
+      .from(STATE_TABLE)
+      .select("state_key, value")
+      .eq("room_id", CONFIG.room);
+    if (error) throw error;
+
+    S = {};
+    for (const row of data || []) setPath(row.state_key, row.value);
+    for (const payload of pendingChanges) applyDatabaseChange(payload);
+    pendingChanges = [];
+    for (const write of pendingWrites.values()) setPath(write.path, write.value);
+    hydrated = true;
+    netState = realtimeConnected ? "online" : "online · polling";
     notify();
-    console.error("[Inauguration] Could not load Supabase inauguration state.", error);
+    flushPendingWrites();
+    if (realtimeConnected) stopSnapshotFallback();
+  } catch (error) {
+    netState = "database read failed · retrying";
+    notify();
+    console.error("[Inauguration] Could not load Supabase inauguration state; retrying.", error);
     if (hydrated) {
       for (const payload of pendingChanges) applyDatabaseChange(payload);
       pendingChanges = [];
       flushPendingWrites();
-      notify();
-    } else {
-      startSnapshotFallback();
     }
-    return;
+    startSnapshotFallback();
+  } finally {
+    loadingSnapshot = false;
   }
-
-  S = {};
-  for (const row of data || []) setPath(row.state_key, row.value);
-  for (const payload of pendingChanges) applyDatabaseChange(payload);
-  pendingChanges = [];
-  for (const write of pendingWrites.values()) setPath(write.path, write.value);
-  hydrated = true;
-  netState = realtimeConnected ? "online" : "online · polling";
-  notify();
-  flushPendingWrites();
 }
 
 function startSnapshotFallback() {

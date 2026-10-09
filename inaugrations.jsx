@@ -32,6 +32,8 @@ const notify = () => subs.forEach((f) => f(S));
 let netState = supabase ? "connecting…" : "database not configured";
 let hydrated = false;
 let loadingSnapshot = false;
+let realtimeConnected = false;
+let snapshotInterval = null;
 let pendingChanges = [];
 const pendingWrites = new Map();
 
@@ -94,7 +96,7 @@ function flushPendingWrites() {
 async function loadSnapshot() {
   if (!supabase || loadingSnapshot) return;
   loadingSnapshot = true;
-  netState = "syncing…";
+  netState = realtimeConnected ? "syncing…" : "syncing (polling)…";
   notify();
   const { data, error } = await supabase
     .from(STATE_TABLE)
@@ -110,6 +112,8 @@ async function loadSnapshot() {
       pendingChanges = [];
       flushPendingWrites();
       notify();
+    } else {
+      startSnapshotFallback();
     }
     return;
   }
@@ -120,9 +124,21 @@ async function loadSnapshot() {
   pendingChanges = [];
   for (const write of pendingWrites.values()) setPath(write.path, write.value);
   hydrated = true;
-  netState = "online";
+  netState = realtimeConnected ? "online" : "online · polling";
   notify();
   flushPendingWrites();
+}
+
+function startSnapshotFallback() {
+  if (snapshotInterval !== null) return;
+  void loadSnapshot();
+  snapshotInterval = setInterval(() => { void loadSnapshot(); }, 750);
+}
+
+function stopSnapshotFallback() {
+  if (snapshotInterval === null) return;
+  clearInterval(snapshotInterval);
+  snapshotInterval = null;
 }
 
 function put(path, value) {
@@ -157,13 +173,18 @@ if (supabase) {
     })
     .subscribe((status, error) => {
       if (status === "SUBSCRIBED") {
+        realtimeConnected = true;
+        stopSnapshotFallback();
         void loadSnapshot();
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        realtimeConnected = false;
         netState = "reconnecting…";
         notify();
         if (error) console.error("[Inauguration] Supabase realtime connection failed.", error);
+        startSnapshotFallback();
       }
     });
+  if (!realtimeConnected) startSnapshotFallback();
 }
 
 /** Re-render the component whenever shared state changes. */
@@ -538,8 +559,20 @@ function Stage() {
         if (c !== lastC[n]) { lastC[n] = c; seenC[n] = now(); }
       }
     };
-    const holding = (n) => S.p && S.p[n] && S.p[n].h === 1 && now() - (seen[n] || 0) < 1300;
+    const holding = (n) => S.p && S.p[n] && S.p[n].h === 1 && now() - (seen[n] || 0) < 2200;
     const live = (n) => now() - (seenC[n] || -1e9) < 7000;
+    const syncPhase = (sharedPhase) => {
+      if (phaseRef.current === sharedPhase) return;
+      phaseRef.current = sharedPhase;
+      lastCount = -1;
+      setPhaseState(sharedPhase);
+      if (sharedPhase === "lit") {
+        litAt = now();
+        burstRef.current(6);
+      } else if (sharedPhase === "welcome") {
+        burstRef.current(14);
+      }
+    };
 
     // tap a circle / press keys 1-5 on the stage to hold/release that person (testing / backup)
     const simSet = (n, on) => {
@@ -562,10 +595,12 @@ function Stage() {
     const sub = (st) => {
       track(st);
       const ph = st.phase || "idle";
+      syncPhase(ph);
       if (ph === "lit" || ph === "welcome" || (ph === "idle" && !st.p))
         for (let n = 1; n <= 5; n++) if (simOn[n]) simSet(n, false);
     };
     subs.add(sub);
+    sub(S);
 
     const onKey = (e) => {
       if (!e.repeat) {
@@ -578,12 +613,6 @@ function Stage() {
       if (k === "l" && phaseRef.current === "open") ignite();                         // manual: light lamp
     };
     window.addEventListener("keydown", onKey);
-
-    // restore after a stage refresh
-    const restore = setTimeout(() => {
-      if (S.phase === "open") setPhase("open"); else setPhase("idle");
-      put("p", null);
-    }, 900);
 
     const tick = setInterval(() => {
       const h = [1, 2, 3, 4, 5].map((n) => (holding(n) ? 1 : 0));
@@ -649,7 +678,6 @@ function Stage() {
       subs.delete(sub);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", fit);
-      clearTimeout(restore);
       clearInterval(tick);
       cancelAnimationFrame(raf);
       for (const n in simHb) clearInterval(simHb[n]);

@@ -477,7 +477,7 @@ export default function CheckResultExperience() {
                           ? "Your team has been selected after Phase 1 of Quant-A-Maze 3.0. Further details will be shared with the team lead shortly."
                           : waitingListed
                             ? "Your team is currently on the Phase 1 waiting list. We will contact the team lead if a place becomes available."
-                            : "We could not find a team with these details in the Phase 1 results. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
+                            : "We could not find a team with these details in the Phase 1 selected teams list. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
                       </p>
 
                       <div className={styles.actions}>

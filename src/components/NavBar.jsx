@@ -261,8 +261,9 @@ export default function NavBar() {
 
         {/* Desktop Nav Links */}
         <nav
-          className="hidden items-center gap-0.5 sm:flex"
+          className="hidden min-w-0 max-w-full flex-1 items-center justify-end gap-6 overflow-x-auto overscroll-x-contain whitespace-nowrap sm:flex"
           aria-label="Main Navigation"
+          style={{ scrollbarWidth: "none", paddingLeft: "24px", paddingRight: "24px" }}
         >
           {navLinks.map((link) => {
             const isActive = pathname === "/" && activeSection === link.href.slice(1);
@@ -272,7 +273,7 @@ export default function NavBar() {
                 key={link.href}
                 href={link.href}
                 onClick={(event) => handleNavigation(event, link.href)}
-                className={`nav-link relative px-3 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 cursor-pointer sm:px-2.5 ${
+                className={`nav-link relative shrink-0 px-0 py-2 text-sm font-medium tracking-[0.01em] transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? "text-[#F5590A]"
                     : "text-stone-300 hover:text-[#FFA94D]"

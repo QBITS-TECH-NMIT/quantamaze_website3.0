@@ -125,6 +125,70 @@ export async function POST(request) {
   }
 }
 
+export async function PUT(request) {
+  try {
+    const admin = await getResultsAdmin(request);
+    if (admin.error) return authResponse(admin.error);
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse({ error: "Request body must be valid JSON." }, { status: 400 });
+    }
+
+    const id = typeof body?.id === "string" ? body.id : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      return jsonResponse({ error: "A valid team ID is required." }, { status: 400 });
+    }
+
+    const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const track = typeof body?.track === "string" ? body.track : "";
+    const status = body?.status;
+    const members = Array.isArray(body?.members)
+      ? body.members.map((member) => typeof member === "string" ? member.trim() : "")
+      : [];
+
+    if (!name || name.length > MAX_LENGTH) {
+      return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
+    }
+    if (members.length < 2 || members.length > MAX_MEMBERS || members.some((member) => !member || member.length > MAX_LENGTH)) {
+      return jsonResponse({ error: `Enter a name for each team member (2–${MAX_MEMBERS} members, 60 characters per name).` }, { status: 400 });
+    }
+    if (!VALID_STATUSES.has(status)) {
+      return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
+    }
+    if (!RESULT_TRACKS.includes(track)) {
+      return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
+    }
+
+    const memberRecords = members.map((member, index) => ({
+      name: member,
+      role: index === 0 ? "Team Lead" : "Member",
+    }));
+    const { data, error } = await admin.supabase
+      .from(RESULTS_TABLE_NAME)
+      .update({
+        name,
+        team_lead_name: members[0],
+        members: memberRecords,
+        track,
+        status,
+      })
+      .eq("id", id)
+      .select("id, name, team_lead_name, members, track, status, created_at")
+      .maybeSingle();
+    if (error?.code === "23505") {
+      return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
+    }
+    if (error) throw error;
+    if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
+    return jsonResponse({ team: data });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
 export async function DELETE(request) {
   try {
     const admin = await getResultsAdmin(request);

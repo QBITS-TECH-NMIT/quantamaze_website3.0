@@ -48,6 +48,8 @@
 
 .signOut,
 .submit,
+.editButton,
+.cancelEdit,
 .deleteButton {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
@@ -62,6 +64,8 @@
 }
 
 .signOut:hover,
+.editButton:hover,
+.cancelEdit:hover,
 .deleteButton:hover {
   border-color: rgba(255, 138, 61, 0.7);
 }
@@ -129,6 +133,8 @@
 
 .submit:disabled,
 .deleteButton:disabled,
+.editButton:disabled,
+.cancelEdit:disabled,
 .signOut:disabled {
   cursor: wait;
   opacity: 0.62;
@@ -204,6 +210,20 @@
   padding: 8px 10px;
   color: #ffaaa0;
   font-size: 13px;
+}
+
+.editButton,
+.cancelEdit {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  color: #ffd0ae;
+  font-size: 13px;
+}
+
+.cancelEdit {
+  min-height: 46px;
+  align-self: end;
+  padding: 0 18px;
 }
 
 .empty,

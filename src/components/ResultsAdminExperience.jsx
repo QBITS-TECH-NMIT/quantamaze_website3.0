@@ -36,6 +36,7 @@ export default function ResultsAdminExperience() {
   const [teams, setTeams] = useState([]);
   const [busy, setBusy] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [editingTeamId, setEditingTeamId] = useState("");
   const [notice, setNotice] = useState(() => (
     supabase ? "" : "Admin sign-in is not configured. Set the Supabase public URL and anon key, then restart the app."
   ));
@@ -59,23 +60,44 @@ export default function ResultsAdminExperience() {
     if (!supabase) return undefined;
 
     let active = true;
-    supabase.auth.getSession().then(async ({ data, error }) => {
+    let restoreTimedOut = false;
+    const restoreTimeout = window.setTimeout(() => {
       if (!active) return;
-      if (error) showNotice("Could not restore your admin session. Please sign in again.", true);
-      const restoredSession = data?.session || null;
-      setSession(restoredSession);
-      if (restoredSession?.access_token) {
-        try {
-          await loadTeams(restoredSession.access_token);
-        } catch (loadError) {
-          if (active) showNotice(loadError.message, true);
-        }
-      }
+      restoreTimedOut = true;
       setAuthReady(true);
-    });
+      showNotice("Could not restore your admin session. Please sign in again.", true);
+    }, 10000);
+
+    const restoreSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!active) return;
+        window.clearTimeout(restoreTimeout);
+        if (error) showNotice("Could not restore your admin session. Please sign in again.", true);
+        else if (restoreTimedOut) showNotice("");
+
+        const restoredSession = data?.session || null;
+        setSession(restoredSession);
+        setAuthReady(true);
+        if (restoredSession?.access_token) {
+          loadTeams(restoredSession.access_token).catch((loadError) => {
+            if (active) showNotice(loadError.message, true);
+          });
+        }
+      } catch (restoreError) {
+        if (!active) return;
+        window.clearTimeout(restoreTimeout);
+        console.error("Could not restore results admin session:", restoreError);
+        showNotice("Could not restore your admin session. Please sign in again.", true);
+        setAuthReady(true);
+      }
+    };
+    restoreSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return;
       setSession(nextSession);
+      setAuthReady(true);
       if (nextSession?.access_token) {
         loadTeams(nextSession.access_token).catch((error) => showNotice(error.message, true));
       } else {
@@ -84,6 +106,7 @@ export default function ResultsAdminExperience() {
     });
     return () => {
       active = false;
+      window.clearTimeout(restoreTimeout);
       subscription.unsubscribe();
     };
   }, [loadTeams, showNotice, supabase]);
@@ -127,7 +150,15 @@ export default function ResultsAdminExperience() {
     showNotice("You have signed out.");
   };
 
-  const handleAddTeam = async (event) => {
+  const resetTeamForm = () => {
+    setTeamName("");
+    setMembers(["", ""]);
+    setStatus("selected");
+    setTrack(RESULT_TRACKS[0]);
+    setEditingTeamId("");
+  };
+
+  const handleSaveTeam = async (event) => {
     event.preventDefault();
     if (!session?.access_token) return;
     const normalizedMembers = members.map((member) => member.trim());
@@ -139,23 +170,42 @@ export default function ResultsAdminExperience() {
     setNotice("");
     try {
       const response = await fetch("/api/results", {
-        method: "POST",
+        method: editingTeamId ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ name: teamName, members: normalizedMembers, status, track }),
+        body: JSON.stringify({
+          ...(editingTeamId ? { id: editingTeamId } : {}),
+          name: teamName,
+          members: normalizedMembers,
+          status,
+          track,
+        }),
       });
       await readResponse(response);
-      setTeamName("");
-      setMembers(["", ""]);
+      const wasEditing = Boolean(editingTeamId);
+      resetTeamForm();
       await loadTeams(session.access_token);
-      showNotice("Team result added.");
+      showNotice(wasEditing ? "Team result updated." : "Team result added.");
     } catch (error) {
       showNotice(error.message, true);
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleEdit = (team) => {
+    const teamMembers = Array.isArray(team.members)
+      ? team.members.map((member) => typeof member?.name === "string" ? member.name : "")
+      : [];
+    setEditingTeamId(team.id);
+    setTeamName(team.name);
+    setMembers(teamMembers.length >= 2 ? teamMembers : [team.team_lead_name || "", ""]);
+    setStatus(team.status);
+    setTrack(RESULT_TRACKS.includes(team.track) ? team.track : RESULT_TRACKS[0]);
+    setNotice("");
+    document.getElementById("add-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleDelete = async (team) => {
@@ -218,7 +268,7 @@ export default function ResultsAdminExperience() {
           <div>
             <p className={styles.eyebrow}>Q-Bits · Phase 1 results management</p>
             <h1 className={styles.title}>Phase 1 team results</h1>
-            <p className={styles.subheading}>Add results, review both lists, or remove a team.</p>
+            <p className={styles.subheading}>Add or edit results, review both lists, or remove a team.</p>
           </div>
           <button className={styles.signOut} type="button" onClick={handleSignOut} disabled={busy}>Sign out</button>
         </header>
@@ -226,8 +276,8 @@ export default function ResultsAdminExperience() {
         {notice && <p className={`${styles.notice} ${noticeIsError ? styles.noticeError : ""}`} role={noticeIsError ? "alert" : "status"}>{notice}</p>}
 
         <section className={styles.formPanel} aria-labelledby="add-team-heading">
-          <h2 className={styles.formTitle} id="add-team-heading">Add a team result</h2>
-          <form className={styles.form} onSubmit={handleAddTeam}>
+          <h2 className={styles.formTitle} id="add-team-heading">{editingTeamId ? "Edit team result" : "Add a team result"}</h2>
+          <form className={styles.form} onSubmit={handleSaveTeam}>
             <label className={styles.field}>
               Team name
               <input maxLength={60} required value={teamName} onChange={(event) => setTeamName(event.target.value)} />
@@ -270,8 +320,13 @@ export default function ResultsAdminExperience() {
               </select>
             </label>
             <button className={styles.submit} type="submit" disabled={busy}>
-              {busy ? "Saving…" : "Add team"}
+              {busy ? "Saving…" : editingTeamId ? "Save changes" : "Add team"}
             </button>
+            {editingTeamId && (
+              <button className={styles.cancelEdit} type="button" onClick={resetTeamForm} disabled={busy}>
+                Cancel edit
+              </button>
+            )}
           </form>
         </section>
 
@@ -298,6 +353,15 @@ export default function ResultsAdminExperience() {
                       ))}
                       <span className={styles.teamLead}>Track: {team.track || "Not assigned"}</span>
                     </div>
+                    <button
+                      className={styles.editButton}
+                      type="button"
+                      onClick={() => handleEdit(team)}
+                      disabled={busy || Boolean(deletingId)}
+                      aria-label={`Edit ${team.name}`}
+                    >
+                      Edit
+                    </button>
                     <button
                       className={styles.deleteButton}
                       type="button"

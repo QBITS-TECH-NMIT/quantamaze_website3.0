@@ -15,9 +15,21 @@ create table if not exists public.phase_one_results (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(trim(name)) between 1 and 60),
   team_lead_name text not null check (char_length(trim(team_lead_name)) between 1 and 60),
+  members jsonb not null default '[]'::jsonb,
+  track text,
   status text not null check (status in ('selected', 'waiting_list')),
   created_at timestamptz not null default now()
 );
+
+alter table public.phase_one_results
+  add column if not exists members jsonb not null default '[]'::jsonb,
+  add column if not exists track text;
+
+update public.phase_one_results
+set members = jsonb_build_array(
+  jsonb_build_object('name', team_lead_name, 'role', 'Team Lead')
+)
+where members = '[]'::jsonb;
 
 create unique index if not exists phase_one_results_name_unique
   on public.phase_one_results (lower(name));

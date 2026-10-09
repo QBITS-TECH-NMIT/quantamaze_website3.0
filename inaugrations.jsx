@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 /* =====================================================================
    Quant-A-Maze 3.0 · Inauguration
@@ -6,13 +7,11 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
      (no params)        -> landing page with the stage + phone links
      ?role=stage        -> auditorium display
      ?p=1 ... ?p=5      -> a guest's phone (optional &n1=Name label)
-   Realtime sync: Firebase Realtime Database over REST + EventSource.
-   Leave CONFIG.databaseURL empty for demo mode (BroadcastChannel, same browser only).
+   Realtime sync: Supabase Postgres changes for the shared qam3 room.
    ===================================================================== */
 
 const CONFIG = {
-  databaseURL: "https://qam3-7cbc6-default-rtdb.asia-southeast1.firebasedatabase.app/",
-  room: "qam3",      // change per event / rehearsal
+  room: "qam3",
   showStatus: false, // true = show the five circles + bar on the stage (or add &hud=1)
   holdMs: 1500,      // how long all five must hold together
   flameMs: 3000,     // how long flames burn before the welcome
@@ -21,10 +20,20 @@ const CONFIG = {
 
 /* ---------------- tiny realtime layer (module-level) ---------------- */
 const Q = new URLSearchParams(window.location.search);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const STATE_TABLE = "inauguration_state";
+const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 let S = {}; // shared state mirror
 const subs = new Set();
 const notify = () => subs.forEach((f) => f(S));
-let netState = "";
+let netState = supabase ? "connecting…" : "database not configured";
+let hydrated = false;
+let loadingSnapshot = false;
+let pendingChanges = [];
+const pendingWrites = new Map();
 
 function setPath(path, val) {
   const k = path.split("/").filter(Boolean);
@@ -37,37 +46,124 @@ function setPath(path, val) {
   else o[k[k.length - 1]] = val;
 }
 
-let put;
-if (CONFIG.databaseURL) {
-  const base = CONFIG.databaseURL.replace(/\/$/, "") + "/" + CONFIG.room;
-  put = (path, val) => {
-    setPath(path, val);
+function applyDatabaseChange(payload) {
+  const isDelete = payload.eventType === "DELETE";
+  const record = isDelete ? payload.old : payload.new;
+  if (!record || typeof record.state_key !== "string") {
+    console.error("[Inauguration] Received a malformed Supabase realtime event.", payload);
+    return;
+  }
+  setPath(record.state_key, isDelete ? null : record.value);
+}
+
+async function persistWrite({ path, value }) {
+  let result;
+  if (value === null || value === undefined) {
+    let query = supabase
+      .from(STATE_TABLE)
+      .delete()
+      .eq("room_id", CONFIG.room);
+    query = path === "p"
+      ? query.like("state_key", "p/%")
+      : query.eq("state_key", path);
+    result = await query;
+  } else {
+    result = await supabase
+      .from(STATE_TABLE)
+      .upsert({
+        room_id: CONFIG.room,
+        state_key: path,
+        value,
+      }, { onConflict: "room_id,state_key" });
+  }
+  if (result.error) throw result.error;
+}
+
+function flushPendingWrites() {
+  const writes = [...pendingWrites.values()];
+  pendingWrites.clear();
+  for (const write of writes) {
+    persistWrite(write).catch((error) => {
+      netState = "write failed";
+      notify();
+      console.error(`[Inauguration] Supabase write failed for "${write.path}". Check the database migration and RLS policies.`, error);
+    });
+  }
+}
+
+async function loadSnapshot() {
+  if (!supabase || loadingSnapshot) return;
+  loadingSnapshot = true;
+  netState = "syncing…";
+  notify();
+  const { data, error } = await supabase
+    .from(STATE_TABLE)
+    .select("state_key, value")
+    .eq("room_id", CONFIG.room);
+  loadingSnapshot = false;
+  if (error) {
+    netState = "database read failed";
     notify();
-    fetch(`${base}/${path}.json`, { method: "PUT", body: JSON.stringify(val), keepalive: true }).catch(() => {});
-  };
-  const es = new EventSource(base + ".json");
-  const apply = (e, patch) => {
-    const m = JSON.parse(e.data);
-    if (patch) for (const k in m.data) setPath(m.path + "/" + k, m.data[k]);
-    else setPath(m.path, m.data);
-    notify();
-  };
-  es.addEventListener("put", (e) => apply(e, false));
-  es.addEventListener("patch", (e) => apply(e, true));
-  es.onopen = () => { netState = "online"; notify(); };
-  es.onerror = () => { netState = "reconnecting…"; notify(); };
-} else {
-  const bc = new BroadcastChannel("qam-demo-" + CONFIG.room);
-  put = (path, val) => { setPath(path, val); notify(); bc.postMessage({ path, val }); };
-  bc.onmessage = (e) => {
-    const d = e.data;
-    if (d.sync) { bc.postMessage({ full: S }); return; }
-    if (d.full) { if (!Object.keys(S).length) { S = d.full; notify(); } return; }
-    setPath(d.path, d.val);
-    notify();
-  };
-  bc.postMessage({ sync: 1 });
-  netState = "demo";
+    console.error("[Inauguration] Could not load Supabase inauguration state.", error);
+    if (hydrated) {
+      for (const payload of pendingChanges) applyDatabaseChange(payload);
+      pendingChanges = [];
+      flushPendingWrites();
+      notify();
+    }
+    return;
+  }
+
+  S = {};
+  for (const row of data || []) setPath(row.state_key, row.value);
+  for (const payload of pendingChanges) applyDatabaseChange(payload);
+  pendingChanges = [];
+  for (const write of pendingWrites.values()) setPath(write.path, write.value);
+  hydrated = true;
+  netState = "online";
+  notify();
+  flushPendingWrites();
+}
+
+function put(path, value) {
+  setPath(path, value);
+  notify();
+  if (!supabase) return;
+  const write = { path, value };
+  if (!hydrated || loadingSnapshot) pendingWrites.set(path, write);
+  else {
+    persistWrite(write).catch((error) => {
+      netState = "write failed";
+      notify();
+      console.error(`[Inauguration] Supabase write failed for "${path}". Check the database migration and RLS policies.`, error);
+    });
+  }
+}
+
+if (supabase) {
+  supabase
+    .channel(`inauguration:${CONFIG.room}`)
+    .on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: STATE_TABLE,
+      filter: `room_id=eq.${CONFIG.room}`,
+    }, (payload) => {
+      if (!hydrated || loadingSnapshot) pendingChanges.push(payload);
+      else {
+        applyDatabaseChange(payload);
+        notify();
+      }
+    })
+    .subscribe((status, error) => {
+      if (status === "SUBSCRIBED") {
+        void loadSnapshot();
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        netState = "reconnecting…";
+        notify();
+        if (error) console.error("[Inauguration] Supabase realtime connection failed.", error);
+      }
+    });
 }
 
 /** Re-render the component whenever shared state changes. */
@@ -148,6 +244,7 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 #phone header h1{font-family:var(--display);font-size:22px;color:var(--gold);letter-spacing:.12em}
 #phone header p{margin-top:6px;font-size:15px;font-weight:300;opacity:.8}
 #who{font-size:26px;font-weight:700;margin-top:18px}
+#phone #net{position:fixed;top:12px;right:12px;font-size:12px;opacity:.65}
 #btn{position:relative;width:min(70vw,46vh);aspect-ratio:1;border-radius:50%;border:3px solid var(--gold);background:radial-gradient(circle at 50% 35%,#24201e,#111111);color:var(--ivory);font:700 22px var(--display);letter-spacing:.14em;display:grid;place-items:center;touch-action:none;transition:transform .12s,box-shadow .2s;box-shadow:0 0 0 10px rgba(245,89,10,.08);-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #btn.down{transform:scale(.94);background:radial-gradient(circle at 50% 35%,var(--flame2),var(--flame) 55%,#a33b0c);color:#0a0a0a;box-shadow:0 0 90px 18px rgba(245,89,10,.55)}
 #btn:disabled{opacity:.35}
@@ -295,6 +392,7 @@ function Home() {
               <div className="name-field">
                 <input
                   placeholder={CONFIG.names[n - 1]}
+                  maxLength={80}
                   value={names[n] || ""}
                   onChange={(e) => setNames((s) => ({ ...s, [n]: e.target.value }))}
                 />
@@ -370,6 +468,7 @@ function Phone({ n }) {
         <p>Inauguration</p>
         <div id="who">{nameOf(n)}</div>
       </header>
+      <div id="net" role="status" aria-live="polite">{netState || "connecting…"}</div>
       <button
         id="btn"
         className={pressed ? "down" : ""}
@@ -668,8 +767,8 @@ export default function Inaugurations() {
     <>
       <style>{CSS}</style>
       {view}
-      {!CONFIG.databaseURL && (
-        <div id="banner">DEMO MODE · no database set · works across tabs of this browser only</div>
+      {!supabase && (
+        <div id="banner">DATABASE NOT CONFIGURED · set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY</div>
       )}
     </>
   );

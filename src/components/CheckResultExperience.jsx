@@ -10,6 +10,7 @@ import resultStyles from "@/app/results/results.module.css";
 import styles from "@/app/check-result/check-result.module.css";
 
 const MAX_LENGTH = 60;
+const REQUEST_TIMEOUT_MS = 15_000;
 const STATUS_LINES = [
   "> Locating team…",
   "> Verifying team lead…",
@@ -146,6 +147,12 @@ export default function CheckResultExperience() {
 
     setView("verifying");
     const delay = reduceMotion ? 800 : 3000;
+    const controller = new AbortController();
+    let requestTimedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      requestTimedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
     // Remove the preview query override before launch.
     const preview = new URLSearchParams(window.location.search).get("preview") === "true";
 
@@ -157,6 +164,7 @@ export default function CheckResultExperience() {
         teamLeadName: teamLeadName.trim(),
         preview,
       }),
+      signal: controller.signal,
     })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
@@ -165,32 +173,48 @@ export default function CheckResultExperience() {
       .catch(() => ({
         ok: false,
         status: 0,
-        data: { message: "Could not connect to the results service. Please check your connection and try again." },
-      }));
+        data: {
+          message: requestTimedOut
+            ? "The results check took too long. Please try again."
+            : "Could not connect to the results service. Please check your connection and try again.",
+        },
+      }))
+      .finally(() => window.clearTimeout(timeoutId));
 
-    const [{ ok, status, data }] = await Promise.all([
-      request,
-      new Promise((resolve) => window.setTimeout(resolve, delay)),
-    ]);
+    try {
+      const [{ ok, status, data }] = await Promise.all([
+        request,
+        new Promise((resolve) => window.setTimeout(resolve, delay)),
+      ]);
 
-    if (status === 429) {
-      setFormError("Too many checks. Please wait a moment and try again.");
+      if (status === 429) {
+        setFormError("Too many checks. Please wait a moment and try again.");
+        setView("form");
+        return;
+      }
+
+      if (
+        !ok ||
+        !["selected", "waiting_list", "not_selected"].includes(data.status) ||
+        typeof data.teamName !== "string" ||
+        !data.teamName
+      ) {
+        setFormError(
+          status === 403 && data.error === "locked"
+            ? "Result checking is not open yet. Please try again later."
+            : data.message || "We could not complete the check. Please try again."
+        );
+        setView("form");
+        return;
+      }
+
+      setResult(data);
+      setView("result");
+    } catch (error) {
+      console.error("Could not complete the team result check:", error);
+      setFormError("We could not complete the check. Please try again.");
       setView("form");
-      return;
     }
-
-    if (!ok || !["selected", "waiting_list", "not_selected"].includes(data.status)) {
-      setFormError(
-        status === 403 && data.error === "locked"
-          ? "Result checking is not open yet. Please try again later."
-          : data.message || "We could not complete the check. Please try again."
-      );
-      setView("form");
-      return;
-    }
-
-    setResult(data);
-    setView("result");
   };
 
   const selected = result?.status === "selected";

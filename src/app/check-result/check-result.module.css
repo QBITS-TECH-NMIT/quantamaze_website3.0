@@ -210,6 +210,13 @@
   font-size: 12px;
 }
 
+.errorNotOpen {
+  border: 1px solid rgba(255, 168, 112, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
 .submit {
   display: inline-flex;
   min-height: 52px;

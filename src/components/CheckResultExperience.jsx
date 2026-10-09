@@ -147,6 +147,7 @@ export default function CheckResultExperience() {
 
     setView("verifying");
     const delay = reduceMotion ? 800 : 3000;
+    const requestStartedAt = Date.now();
     const controller = new AbortController();
     let requestTimedOut = false;
     const timeoutId = window.setTimeout(() => {
@@ -187,6 +188,16 @@ export default function CheckResultExperience() {
         new Promise((resolve) => window.setTimeout(resolve, delay)),
       ]);
 
+      if (status === 403 && data.error === "locked") {
+        const remainingLoadingTime = 1500 - (Date.now() - requestStartedAt);
+        if (remainingLoadingTime > 0) {
+          await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingTime));
+        }
+        setFormError("Result checking is not open yet. Please try again later.");
+        setView("form");
+        return;
+      }
+
       if (status === 429) {
         setFormError("Too many checks. Please wait a moment and try again.");
         setView("form");
@@ -199,11 +210,7 @@ export default function CheckResultExperience() {
         typeof data.teamName !== "string" ||
         !data.teamName
       ) {
-        setFormError(
-          status === 403 && data.error === "locked"
-            ? "Result checking is not open yet. Please try again later."
-            : data.message || "We could not complete the check. Please try again."
-        );
+        setFormError(data.message || "We could not complete the check. Please try again.");
         setView("form");
         return;
       }
@@ -367,7 +374,14 @@ export default function CheckResultExperience() {
                         )}
                       </div>
 
-                      {formError && <p className={styles.error}>{formError}</p>}
+                      {formError && (
+                        <p
+                          className={`${styles.error} ${formError === "Result checking is not open yet. Please try again later." ? styles.errorNotOpen : ""}`}
+                          role="alert"
+                        >
+                          {formError}
+                        </p>
+                      )}
 
                       <button className={styles.submit} type="submit" disabled={view === "verifying"}>
                         Check Status

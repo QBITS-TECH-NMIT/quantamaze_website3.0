@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import LoadingScreen from "@/components/LoadingScreen";
-import CountdownTimer from "@/components/CountdownTimer";
+import CountdownTimer, { REGISTRATION_CUTOFF } from "@/components/CountdownTimer";
 import AboutPage from "@/app/about/page";
 import TracksPage from "@/app/tracks/page";
 import TimelinePage from "@/app/timeline/page";
@@ -58,7 +58,11 @@ export default function HomePage() {
   const reducedMotion = useReducedMotion();
   const [siteReady, setSiteReady] = useState(false);
   const [isLowPowerDevice, setIsLowPowerDevice] = useState(false);
+  const [registrationIsOpen, setRegistrationIsOpen] = useState(
+    () => Date.now() < new Date(REGISTRATION_CUTOFF).getTime(),
+  );
   const handleLoaderComplete = useCallback(() => setSiteReady(true), []);
+  const handleRegistrationOpenChange = useCallback((isOpen) => setRegistrationIsOpen(isOpen), []);
 
   useEffect(() => {
     const checkLowPower = () => {
@@ -316,23 +320,27 @@ export default function HomePage() {
             >
               <CountdownTimer
                 accentColor="#f5590a"
+                onRegistrationOpenChange={handleRegistrationOpenChange}
               />
             </motion.div>
 
             {/* Register CTA linking to the global contact footer */}
-            <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
+            {registrationIsOpen && (
+              <motion.div variants={staggerItem} className="relative z-20 mt-8 mb-2 sm:mt-10 sm:mb-4">
               <Link
                 href={REGISTRATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] active:scale-[0.97] sm:px-8 sm:py-4"
+                aria-label="Register for Quant-A-Maze"
+                className="group relative inline-flex min-h-[48px] min-w-[44px] items-center justify-center gap-3 rounded-sm bg-[#F5590A] px-7 py-3.5 text-sm font-bold text-[#0A0A0A] transition-all duration-200 hover:bg-[#ff7b3f] hover:shadow-[0_0_30px_rgba(245,89,10,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FFB27E] active:scale-[0.97] sm:px-8 sm:py-4"
               >
                 <span>Register Now</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">
                   →
                 </span>
               </Link>
-            </motion.div>
+              </motion.div>
+            )}
           </motion.div>
           </section>
         </SectionTransition>

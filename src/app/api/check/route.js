@@ -1,4 +1,3 @@
-import { findShortlistedTeam } from "@/lib/findShortlistedTeam";
 import { RESULTS_UNLOCK_AT } from "@/lib/results";
 import { findManagedResult, ResultsConfigurationError } from "@/lib/resultsAdmin";
 
@@ -108,12 +107,6 @@ export async function POST(request) {
     }, { status: 503 });
   }
 
-  const match = findShortlistedTeam(teamName, teamLeadName);
-
-  // Never return member lists or which field failed — only status + a display name.
-  if (match) {
-    return Response.json({ status: "selected", teamName: match.name });
-  }
-
+  // The admin-managed database is the source of truth for every result status.
   return Response.json({ status: "not_selected", teamName });
 }

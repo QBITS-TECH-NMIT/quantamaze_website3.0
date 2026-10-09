@@ -10,6 +10,7 @@ import resultStyles from "@/app/results/results.module.css";
 import styles from "@/app/check-result/check-result.module.css";
 
 const MAX_LENGTH = 60;
+const REQUEST_TIMEOUT_MS = 15_000;
 const STATUS_LINES = [
   "> Locating team…",
   "> Verifying team lead…",
@@ -146,6 +147,13 @@ export default function CheckResultExperience() {
 
     setView("verifying");
     const delay = reduceMotion ? 800 : 3000;
+    const requestStartedAt = Date.now();
+    const controller = new AbortController();
+    let requestTimedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      requestTimedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
     // Remove the preview query override before launch.
     const preview = new URLSearchParams(window.location.search).get("preview") === "true";
 
@@ -157,32 +165,63 @@ export default function CheckResultExperience() {
         teamLeadName: teamLeadName.trim(),
         preview,
       }),
+      signal: controller.signal,
     })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         return { ok: response.ok, status: response.status, data };
       })
-      .catch(() => ({ ok: false, status: 0, data: {} }));
+      .catch(() => ({
+        ok: false,
+        status: 0,
+        data: {
+          message: requestTimedOut
+            ? "The results check took too long. Please try again."
+            : "Could not connect to the results service. Please check your connection and try again.",
+        },
+      }))
+      .finally(() => window.clearTimeout(timeoutId));
 
-    const [{ ok, status, data }] = await Promise.all([
-      request,
-      new Promise((resolve) => window.setTimeout(resolve, delay)),
-    ]);
+    try {
+      const [{ ok, status, data }] = await Promise.all([
+        request,
+        new Promise((resolve) => window.setTimeout(resolve, delay)),
+      ]);
 
-    if (status === 429) {
-      setFormError("Too many checks. Please wait a moment and try again.");
-      setView("form");
-      return;
-    }
+      if (status === 403 && data.error === "locked") {
+        const remainingLoadingTime = 1500 - (Date.now() - requestStartedAt);
+        if (remainingLoadingTime > 0) {
+          await new Promise((resolve) => window.setTimeout(resolve, remainingLoadingTime));
+        }
+        setFormError("Result checking is not open yet. Please try again later.");
+        setView("form");
+        return;
+      }
 
-    if (!ok || !["selected", "waiting_list", "not_selected"].includes(data.status)) {
+      if (status === 429) {
+        setFormError("Too many checks. Please wait a moment and try again.");
+        setView("form");
+        return;
+      }
+
+      if (
+        !ok ||
+        !["selected", "waiting_list", "not_selected"].includes(data.status) ||
+        typeof data.teamName !== "string" ||
+        !data.teamName
+      ) {
+        setFormError(data.message || "We could not complete the check. Please try again.");
+        setView("form");
+        return;
+      }
+
+      setResult(data);
+      setView("result");
+    } catch (error) {
+      console.error("Could not complete the team result check:", error);
       setFormError("We could not complete the check. Please try again.");
       setView("form");
-      return;
     }
-
-    setResult(data);
-    setView("result");
   };
 
   const selected = result?.status === "selected";
@@ -335,7 +374,14 @@ export default function CheckResultExperience() {
                         )}
                       </div>
 
-                      {formError && <p className={styles.error}>{formError}</p>}
+                      {formError && (
+                        <p
+                          className={`${styles.error} ${formError === "Result checking is not open yet. Please try again later." ? styles.errorNotOpen : ""}`}
+                          role="alert"
+                        >
+                          {formError}
+                        </p>
+                      )}
 
                       <button className={styles.submit} type="submit" disabled={view === "verifying"}>
                         Check Status
@@ -431,7 +477,7 @@ export default function CheckResultExperience() {
                           ? "Your team has been selected after Phase 1 of Quant-A-Maze 3.0. Further details will be shared with the team lead shortly."
                           : waitingListed
                             ? "Your team is currently on the Phase 1 waiting list. We will contact the team lead if a place becomes available."
-                            : "We could not find a team with these details in the Phase 1 results. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
+                            : "We could not find a team with these details in the Phase 1 selected teams list. Please check that the team name and team lead name match your registration exactly. If you believe this is a mistake, please contact the organizing team. We sincerely appreciate your effort and hope to see you at our future events."}
                       </p>
 
                       <div className={styles.actions}>

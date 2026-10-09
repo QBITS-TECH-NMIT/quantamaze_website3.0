@@ -4,14 +4,15 @@ import {
   RESULTS_TABLE_NAME,
   ResultsConfigurationError,
 } from "@/lib/resultsAdmin";
-import { RESULTS_UNLOCK_AT } from "@/lib/results";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { RESULT_TRACKS } from "@/lib/resultTracks";
 
 export const runtime = "nodejs";
 
 const MAX_LENGTH = 60;
-const MAX_MEMBERS = 4;
+const MAX_RESULT_RANK = 15;
 const VALID_STATUSES = new Set(["selected", "waiting_list"]);
+const PUBLIC_RESULTS_CACHE_TAG = "phase-one-public-results";
 
 function jsonResponse(body, init = {}) {
   const headers = new Headers(init.headers);
@@ -29,23 +30,29 @@ function isResultsSchemaMismatch(error) {
     );
 }
 
-function withLegacyTeamFields(teams) {
-  return teams.map((team) => ({
+function withLegacyTrackAndRankFields(teams) {
+  return teams.map((team, index) => ({
     ...team,
-    members: [{ name: team.team_lead_name, role: "Team Lead" }],
     track: null,
+    result_rank: index + 1,
   }));
 }
 
-async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
+async function selectTeamsWithLegacyFallback(supabase) {
   const buildQuery = (legacySchema) => {
-    let query = supabase
+    const query = supabase
       .from(RESULTS_TABLE_NAME)
       .select(legacySchema
         ? "id, name, team_lead_name, status, created_at"
-        : "id, name, team_lead_name, members, track, status, created_at");
-    if (!isAdmin) query = query.eq("status", "selected");
-    return query.order(isAdmin ? "created_at" : "name", { ascending: isAdmin ? false : true });
+        : "id, name, team_lead_name, track, result_rank, status, created_at");
+    if (legacySchema) {
+      return query.order("created_at", { ascending: true }).order("id", { ascending: true });
+    }
+    return query
+      .order("track", { ascending: true, nullsFirst: false })
+      .order("result_rank", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
   };
 
   const { data, error } = await buildQuery(false);
@@ -55,10 +62,28 @@ async function selectTeamsWithLegacyFallback(supabase, isAdmin) {
   const legacyResult = await buildQuery(true);
   if (legacyResult.error) return { data: null, error: legacyResult.error, legacySchema: true };
   return {
-    data: withLegacyTeamFields(legacyResult.data),
+    data: withLegacyTrackAndRankFields(legacyResult.data),
     error: null,
     legacySchema: true,
   };
+}
+
+const getCachedPublicTeams = unstable_cache(
+  async () => {
+    const supabase = getResultsServiceClient();
+    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase);
+    if (error) throw error;
+    if (legacySchema) {
+      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track and rank assignments.");
+    }
+    return data;
+  },
+  ["phase-one-public-results"],
+  { revalidate: 60, tags: [PUBLIC_RESULTS_CACHE_TAG] },
+);
+
+function invalidatePublicResultsCache() {
+  revalidateTag(PUBLIC_RESULTS_CACHE_TAG, { expire: 0 });
 }
 
 function errorResponse(error, exposeDetails = false) {
@@ -99,25 +124,15 @@ export async function GET(request) {
       const admin = await getResultsAdmin(request);
       if (admin.error) return authResponse(admin.error);
 
-      const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase, true);
+      const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(admin.supabase);
       if (error) throw error;
       if (legacySchema) {
-        console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team editing.");
+        console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable track editing.");
       }
       return jsonResponse({ teams: data });
     }
 
-    if (Date.now() < Date.parse(RESULTS_UNLOCK_AT)) {
-      return jsonResponse({ teams: [] });
-    }
-
-    const supabase = getResultsServiceClient();
-    const { data, error, legacySchema } = await selectTeamsWithLegacyFallback(supabase, false);
-    if (error) throw error;
-    if (legacySchema) {
-      console.warn("Results database is using the legacy schema; run supabase/results-admin.sql to enable full team results.");
-    }
-    return jsonResponse({ teams: data });
+    return jsonResponse({ teams: await getCachedPublicTeams() });
   } catch (error) {
     return errorResponse(error, request.headers.has("authorization"));
   }
@@ -136,39 +151,37 @@ export async function POST(request) {
     }
 
     const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
-    const members = Array.isArray(body?.members)
-      ? body.members.map((member) => typeof member === "string" ? member.trim() : "")
-      : [];
+    const resultRank = Number(body?.result_rank);
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
     }
-    if (members.length < 2 || members.length > MAX_MEMBERS || members.some((member) => !member || member.length > MAX_LENGTH)) {
-      return jsonResponse({ error: `Enter a name for each team member (2–${MAX_MEMBERS} members, 60 characters per name).` }, { status: 400 });
+    if (!teamLeadName || teamLeadName.length > MAX_LENGTH) {
+      return jsonResponse({ error: "Team lead name is required and must be 60 characters or fewer." }, { status: 400 });
     }
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
+    }
+    if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
+      return jsonResponse({ error: "Rank must be between 1 and 15 within the selected track." }, { status: 400 });
     }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
     }
 
-    const memberRecords = members.map((member, index) => ({
-      name: member,
-      role: index === 0 ? "Team Lead" : "Member",
-    }));
-    const teamLeadName = members[0];
     const { data, error } = await admin.supabase
       .from(RESULTS_TABLE_NAME)
-      .insert({ name, team_lead_name: teamLeadName, members: memberRecords, track, status })
-      .select("id, name, team_lead_name, members, track, status, created_at")
+      .insert({ name, team_lead_name: teamLeadName, track, result_rank: resultRank, status })
+      .select("id, name, team_lead_name, track, result_rank, status, created_at")
       .single();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
     }
     if (error) throw error;
+    invalidatePublicResultsCache();
     return jsonResponse({ team: data }, { status: 201 });
   } catch (error) {
     return errorResponse(error, true);
@@ -193,46 +206,45 @@ export async function PUT(request) {
     }
 
     const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const teamLeadName = typeof body?.team_lead_name === "string" ? body.team_lead_name.trim() : "";
     const track = typeof body?.track === "string" ? body.track : "";
     const status = body?.status;
-    const members = Array.isArray(body?.members)
-      ? body.members.map((member) => typeof member === "string" ? member.trim() : "")
-      : [];
+    const resultRank = Number(body?.result_rank);
 
     if (!name || name.length > MAX_LENGTH) {
       return jsonResponse({ error: "Team name is required and must be 60 characters or fewer." }, { status: 400 });
     }
-    if (members.length < 2 || members.length > MAX_MEMBERS || members.some((member) => !member || member.length > MAX_LENGTH)) {
-      return jsonResponse({ error: `Enter a name for each team member (2–${MAX_MEMBERS} members, 60 characters per name).` }, { status: 400 });
+    if (!teamLeadName || teamLeadName.length > MAX_LENGTH) {
+      return jsonResponse({ error: "Team lead name is required and must be 60 characters or fewer." }, { status: 400 });
     }
     if (!VALID_STATUSES.has(status)) {
       return jsonResponse({ error: "Choose Selected or Waiting list." }, { status: 400 });
+    }
+    if (!Number.isInteger(resultRank) || resultRank < 1 || resultRank > MAX_RESULT_RANK) {
+      return jsonResponse({ error: "Rank must be between 1 and 15 within the selected track." }, { status: 400 });
     }
     if (!RESULT_TRACKS.includes(track)) {
       return jsonResponse({ error: "Choose a valid track." }, { status: 400 });
     }
 
-    const memberRecords = members.map((member, index) => ({
-      name: member,
-      role: index === 0 ? "Team Lead" : "Member",
-    }));
     const { data, error } = await admin.supabase
       .from(RESULTS_TABLE_NAME)
       .update({
         name,
-        team_lead_name: members[0],
-        members: memberRecords,
+        team_lead_name: teamLeadName,
         track,
+        result_rank: resultRank,
         status,
       })
       .eq("id", id)
-      .select("id, name, team_lead_name, members, track, status, created_at")
+      .select("id, name, team_lead_name, track, result_rank, status, created_at")
       .maybeSingle();
     if (error?.code === "23505") {
       return jsonResponse({ error: "A result for this team already exists." }, { status: 409 });
     }
     if (error) throw error;
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
+    invalidatePublicResultsCache();
     return jsonResponse({ team: data });
   } catch (error) {
     return errorResponse(error, true);
@@ -264,6 +276,7 @@ export async function DELETE(request) {
       .maybeSingle();
     if (error) throw error;
     if (!data) return jsonResponse({ error: "That team result no longer exists." }, { status: 404 });
+    invalidatePublicResultsCache();
     return jsonResponse({ deleted: true });
   } catch (error) {
     return errorResponse(error, true);

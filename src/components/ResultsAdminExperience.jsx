@@ -17,6 +17,20 @@ function getSupabaseClient() {
   return createClient(url, anonKey);
 }
 
+function sortByRank(teams) {
+  return [...teams].sort((first, second) => (
+    RESULT_TRACKS.indexOf(first.track) - RESULT_TRACKS.indexOf(second.track) ||
+    first.result_rank - second.result_rank
+  ));
+}
+
+function getNextRank(teams, selectedTrack, excludedTeamId = "") {
+  const rank = teams
+    .filter((team) => team.track === selectedTrack && team.id !== excludedTeamId)
+    .reduce((highestRank, team) => Math.max(highestRank, Number(team.result_rank) || 0), 0) + 1;
+  return String(Math.min(rank, 15));
+}
+
 async function readResponse(response) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error || "The request could not be completed.");
@@ -30,7 +44,8 @@ export default function ResultsAdminExperience() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [teamName, setTeamName] = useState("");
-  const [members, setMembers] = useState(["", ""]);
+  const [teamLeadName, setTeamLeadName] = useState("");
+  const [resultRank, setResultRank] = useState("1");
   const [status, setStatus] = useState("selected");
   const [track, setTrack] = useState(RESULT_TRACKS[0]);
   const [teams, setTeams] = useState([]);
@@ -53,7 +68,8 @@ export default function ResultsAdminExperience() {
       cache: "no-store",
     });
     const data = await readResponse(response);
-    setTeams(data.teams);
+    setTeams(sortByRank(data.teams));
+    return data.teams;
   }, []);
 
   useEffect(() => {
@@ -82,6 +98,8 @@ export default function ResultsAdminExperience() {
         if (restoredSession?.access_token) {
           loadTeams(restoredSession.access_token).catch((loadError) => {
             if (active) showNotice(loadError.message, true);
+          }).then((loadedTeams) => {
+            if (active && loadedTeams) setResultRank(getNextRank(loadedTeams, RESULT_TRACKS[0]));
           });
         }
       } catch (restoreError) {
@@ -99,7 +117,11 @@ export default function ResultsAdminExperience() {
       setSession(nextSession);
       setAuthReady(true);
       if (nextSession?.access_token) {
-        loadTeams(nextSession.access_token).catch((error) => showNotice(error.message, true));
+        loadTeams(nextSession.access_token)
+          .then((loadedTeams) => {
+            if (active) setResultRank(getNextRank(loadedTeams, RESULT_TRACKS[0]));
+          })
+          .catch((error) => showNotice(error.message, true));
       } else {
         setTeams([]);
       }
@@ -150,9 +172,10 @@ export default function ResultsAdminExperience() {
     showNotice("You have signed out.");
   };
 
-  const resetTeamForm = () => {
+  const resetTeamForm = (currentTeams = teams) => {
     setTeamName("");
-    setMembers(["", ""]);
+    setTeamLeadName("");
+    setResultRank(getNextRank(currentTeams, RESULT_TRACKS[0]));
     setStatus("selected");
     setTrack(RESULT_TRACKS[0]);
     setEditingTeamId("");
@@ -161,9 +184,8 @@ export default function ResultsAdminExperience() {
   const handleSaveTeam = async (event) => {
     event.preventDefault();
     if (!session?.access_token) return;
-    const normalizedMembers = members.map((member) => member.trim());
-    if (normalizedMembers.some((member) => !member)) {
-      showNotice("Enter a name for every team member.", true);
+    if (!teamLeadName.trim()) {
+      showNotice("Enter the team lead's name.", true);
       return;
     }
     setBusy(true);
@@ -178,15 +200,49 @@ export default function ResultsAdminExperience() {
         body: JSON.stringify({
           ...(editingTeamId ? { id: editingTeamId } : {}),
           name: teamName,
-          members: normalizedMembers,
+          team_lead_name: teamLeadName,
+          result_rank: Number(resultRank),
           status,
           track,
         }),
       });
-      await readResponse(response);
       const wasEditing = Boolean(editingTeamId);
-      resetTeamForm();
-      await loadTeams(session.access_token);
+      const oldTeam = wasEditing ? teams.find((team) => team.id === editingTeamId) : null;
+      const oldRank = Number(oldTeam?.result_rank);
+      const { team: savedTeam } = await readResponse(response);
+      const targetRank = Number(savedTeam.result_rank);
+      const nextTeams = wasEditing
+        ? sortByRank(teams.map((team) => {
+          if (team.id === savedTeam.id) return savedTeam;
+          if (oldTeam?.track === savedTeam.track) {
+            if (team.track !== savedTeam.track) return team;
+            if (targetRank < oldRank && team.result_rank >= targetRank && team.result_rank < oldRank) {
+              return { ...team, result_rank: team.result_rank + 1 };
+            }
+            if (targetRank > oldRank && team.result_rank > oldRank && team.result_rank <= targetRank) {
+              return { ...team, result_rank: team.result_rank - 1 };
+            }
+          } else {
+            if (team.track === oldTeam?.track && team.result_rank > oldRank) {
+              return { ...team, result_rank: team.result_rank - 1 };
+            }
+            if (team.track === savedTeam.track && team.result_rank >= targetRank) {
+              return { ...team, result_rank: team.result_rank + 1 };
+            }
+          }
+          return team;
+        }))
+        : sortByRank([
+          ...teams.map((team) => (
+            team.track === savedTeam.track && team.result_rank >= targetRank
+              ? { ...team, result_rank: team.result_rank + 1 }
+              : team
+          )),
+          savedTeam,
+        ]);
+      setTeams(nextTeams);
+      setTrack(RESULT_TRACKS[0]);
+      resetTeamForm(nextTeams);
       showNotice(wasEditing ? "Team result updated." : "Team result added.");
     } catch (error) {
       showNotice(error.message, true);
@@ -196,17 +252,31 @@ export default function ResultsAdminExperience() {
   };
 
   const handleEdit = (team) => {
-    const teamMembers = Array.isArray(team.members)
-      ? team.members.map((member) => typeof member?.name === "string" ? member.name : "")
-      : [];
     setEditingTeamId(team.id);
     setTeamName(team.name);
-    setMembers(teamMembers.length >= 2 ? teamMembers : [team.team_lead_name || "", ""]);
+    setTeamLeadName(team.team_lead_name || "");
+    setResultRank(String(team.result_rank));
     setStatus(team.status);
     setTrack(RESULT_TRACKS.includes(team.track) ? team.track : RESULT_TRACKS[0]);
     setNotice("");
     document.getElementById("add-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  const handleTrackChange = (nextTrack) => {
+    setTrack(nextTrack);
+    setResultRank((currentRank) => {
+      const availableRanks = teams.filter(
+        (team) => team.track === nextTrack && team.id !== editingTeamId,
+      ).length + 1;
+      const rank = Number(currentRank);
+      return String(Math.max(1, Math.min(rank, availableRanks, 15)));
+    });
+  };
+
+  const selectedTrackCount = teams.filter(
+    (team) => team.track === track && team.id !== editingTeamId,
+  ).length;
+  const trackIsFull = selectedTrackCount >= 15;
 
   const handleDelete = async (team) => {
     if (!session?.access_token || !window.confirm(`Delete the result for ${team.name}?`)) return;
@@ -222,7 +292,13 @@ export default function ResultsAdminExperience() {
         body: JSON.stringify({ id: team.id }),
       });
       await readResponse(response);
-      await loadTeams(session.access_token);
+      setTeams(sortByRank(teams
+        .filter((existingTeam) => existingTeam.id !== team.id)
+        .map((existingTeam) => (
+            existingTeam.track === team.track && existingTeam.result_rank > team.result_rank
+            ? { ...existingTeam, result_rank: existingTeam.result_rank - 1 }
+            : existingTeam
+        ))));
       showNotice("Team result deleted.");
     } catch (error) {
       showNotice(error.message, true);
@@ -283,30 +359,9 @@ export default function ResultsAdminExperience() {
               <input maxLength={60} required value={teamName} onChange={(event) => setTeamName(event.target.value)} />
             </label>
             <label className={styles.field}>
-              Number of members
-              <select
-                value={members.length}
-                onChange={(event) => {
-                  const count = Number(event.target.value);
-                  setMembers((current) => Array.from({ length: count }, (_, index) => current[index] || ""));
-                }}
-              >
-                {[2, 3, 4].map((count) => <option value={count} key={count}>{count} members</option>)}
-              </select>
+              Team lead name
+              <input maxLength={60} required value={teamLeadName} onChange={(event) => setTeamLeadName(event.target.value)} />
             </label>
-            {members.map((member, index) => (
-              <label className={styles.field} key={index}>
-                {index === 0 ? "Member 1 (Team lead)" : `Member ${index + 1}`}
-                <input
-                  maxLength={60}
-                  required
-                  value={member}
-                  onChange={(event) => setMembers((current) => current.map((name, memberIndex) => (
-                    memberIndex === index ? event.target.value : name
-                  )))}
-                />
-              </label>
-            ))}
             <label className={styles.field}>
               Result column
               <select value={status} onChange={(event) => setStatus(event.target.value)}>
@@ -315,12 +370,23 @@ export default function ResultsAdminExperience() {
             </label>
             <label className={styles.field}>
               Track
-              <select value={track} onChange={(event) => setTrack(event.target.value)}>
+              <select value={track} onChange={(event) => handleTrackChange(event.target.value)}>
                 {RESULT_TRACKS.map((resultTrack) => <option value={resultTrack} key={resultTrack}>{resultTrack}</option>)}
               </select>
             </label>
-            <button className={styles.submit} type="submit" disabled={busy}>
-              {busy ? "Saving…" : editingTeamId ? "Save changes" : "Add team"}
+            <label className={styles.field}>
+              Rank in this track
+              <select required value={resultRank} onChange={(event) => setResultRank(event.target.value)}>
+                {Array.from({
+                  length: Math.min(
+                    15,
+                    teams.filter((team) => team.track === track && team.id !== editingTeamId).length + 1,
+                  ),
+                }, (_, index) => index + 1).map((rank) => <option value={rank} key={rank}>{rank}</option>)}
+              </select>
+            </label>
+            <button className={styles.submit} type="submit" disabled={busy || trackIsFull}>
+              {busy ? "Saving…" : trackIsFull ? "Track is full (15 teams)" : editingTeamId ? "Save changes" : "Add team"}
             </button>
             {editingTeamId && (
               <button className={styles.cancelEdit} type="button" onClick={resetTeamForm} disabled={busy}>
@@ -346,11 +412,8 @@ export default function ResultsAdminExperience() {
                   <article className={styles.teamRow} key={team.id}>
                     <div className={styles.teamCopy}>
                       <span className={styles.teamName}>{team.name}</span>
-                      {(team.members || [{ name: team.team_lead_name, role: "Team Lead" }]).map((member, index) => (
-                        <span className={styles.teamLead} key={`${team.id}-${index}`}>
-                          {member.role === "Team Lead" ? "Lead" : `Member ${index + 1}`}: {member.name}
-                        </span>
-                      ))}
+                      <span className={styles.teamLead}>Rank in {team.track || "unassigned track"}: {team.result_rank}</span>
+                      <span className={styles.teamLead}>Team lead: {team.team_lead_name}</span>
                       <span className={styles.teamLead}>Track: {team.track || "Not assigned"}</span>
                     </div>
                     <button

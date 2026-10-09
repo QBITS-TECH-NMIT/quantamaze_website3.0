@@ -9,6 +9,16 @@ const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 20;
 const hitsByIp = new Map();
 
+function isResultsSchemaMismatch(error) {
+  return error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    error?.code === "42703" ||
+    error?.code === "PGRST204" ||
+    /column .* does not exist|could not find the .* column/i.test(
+      `${error?.message || ""} ${error?.details || ""}`
+    );
+}
+
 function clientIp(request) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
@@ -73,10 +83,29 @@ export async function POST(request) {
   } catch (error) {
     if (error instanceof ResultsConfigurationError) {
       console.error("Results check storage is not configured:", error.message);
-    } else {
-      console.error("Could not check managed results:", error);
+      return Response.json({
+        error: "results_unavailable",
+        message: "Result checking is not configured right now. Please contact the organizers.",
+      }, { status: 503 });
     }
-    return Response.json({ error: "results_unavailable" }, { status: 503 });
+
+    console.error("Could not check managed results:", error);
+    if (isResultsSchemaMismatch(error)) {
+      return Response.json({
+        error: "results_unavailable",
+        message: "The results database needs an update. Please contact the organizers.",
+      }, { status: 503 });
+    }
+    if (error?.code === "42501") {
+      return Response.json({
+        error: "results_unavailable",
+        message: "The results database is temporarily unavailable. Please contact the organizers.",
+      }, { status: 503 });
+    }
+    return Response.json({
+      error: "results_unavailable",
+      message: "We could not access the results right now. Please try again shortly.",
+    }, { status: 503 });
   }
 
   const match = findShortlistedTeam(teamName, teamLeadName);

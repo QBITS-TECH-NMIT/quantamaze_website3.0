@@ -162,7 +162,11 @@ export default function CheckResultExperience() {
         const data = await response.json().catch(() => ({}));
         return { ok: response.ok, status: response.status, data };
       })
-      .catch(() => ({ ok: false, status: 0, data: {} }));
+      .catch(() => ({
+        ok: false,
+        status: 0,
+        data: { message: "Could not connect to the results service. Please check your connection and try again." },
+      }));
 
     const [{ ok, status, data }] = await Promise.all([
       request,
@@ -176,7 +180,11 @@ export default function CheckResultExperience() {
     }
 
     if (!ok || !["selected", "waiting_list", "not_selected"].includes(data.status)) {
-      setFormError("We could not complete the check. Please try again.");
+      setFormError(
+        status === 403 && data.error === "locked"
+          ? "Result checking is not open yet. Please try again later."
+          : data.message || "We could not complete the check. Please try again."
+      );
       setView("form");
       return;
     }

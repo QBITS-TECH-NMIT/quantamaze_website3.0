@@ -1,4 +1,4 @@
-export const RESULTS_UNLOCK_AT = "2026-10-03T00:00:00+05:30";
+export const RESULTS_UNLOCK_AT = "2026-10-09T11:00:00+05:30";
 
 export function getResultsCountdown(now) {
   const totalSeconds = Math.max(0, Math.floor((Date.parse(RESULTS_UNLOCK_AT) - now) / 1000));

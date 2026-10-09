@@ -11,14 +11,32 @@
  *   accentColor {string}         – CSS colour token for glows/bar. Defaults to site orange.
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import { RESULTS_UNLOCK_AT } from "@/lib/results";
+import styles from "./ResultsAnnouncement.module.css";
+
+const resultsDisplayFont = Bricolage_Grotesque({
+  variable: "--results-font-bricolage",
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  display: "swap",
+  adjustFontFallback: true,
+});
+
+const resultsMonoFont = JetBrains_Mono({
+  variable: "--results-font-jetbrains",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+  adjustFontFallback: true,
+});
 
 export const COUNTDOWN_PHASES = [
   { heading: "LAUNCHING IN", startDate: "2026-08-08T00:00:00+05:30", targetDate: "2026-09-07T00:00:00+05:30" },
   { heading: "SUBMISSIONS CLOSE IN", startDate: "2026-09-07T00:00:00+05:30", targetDate: "2026-10-05T23:59:59+05:30" },
-  { heading: "PHASE 1 RESULTS IN", startDate: "2026-09-29T00:00:00+05:30", targetDate: "2026-10-03T00:00:00+05:30" },
+  { heading: "PHASE 1 RESULTS IN", startDate: "2026-10-05T23:59:59+05:30", targetDate: "2026-10-09T11:00:00+05:30" },
   { heading: "EVENT STARTS IN", startDate: "2026-10-03T00:00:00+05:30", targetDate: "2026-10-28T00:00:00+05:30" },
   { heading: "FINAL RESULTS IN", startDate: "2026-10-28T00:00:00+05:30", targetDate: "2026-10-30T23:59:59+05:30" },
 ];
@@ -324,6 +342,26 @@ export default function CountdownTimer({
   const [progress, setProgress] = useState(0);
   const [phaseIndex, setPhaseIndex] = useState(null);
   const [announcementState, setAnnouncementState] = useState(null);
+  const [announcementEntered, setAnnouncementEntered] = useState(false);
+  const announcementRef = useRef(null);
+
+  useEffect(() => {
+    if (!announcementState?.showResultsButton) return undefined;
+
+    const announcement = announcementRef.current;
+    if (!announcement || !("IntersectionObserver" in window)) {
+      setAnnouncementEntered(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setAnnouncementEntered(true);
+      observer.disconnect();
+    }, { threshold: 0.15 });
+    observer.observe(announcement);
+    return () => observer.disconnect();
+  }, [announcementState?.showResultsButton]);
 
   useEffect(() => {
     function tick() {
@@ -397,10 +435,13 @@ export default function CountdownTimer({
       {/* Radial background glow */}
       <div
         aria-hidden
+        className={announcementState?.showResultsButton ? styles.breathingGlow : undefined}
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 75% 65% at 50% 50%, ${accentColor}18 0%, transparent 72%)`,
+          background: announcementState?.showResultsButton
+            ? "radial-gradient(ellipse 380px 300px at 50% 50%, rgba(249,115,22,1) 0%, transparent 72%)"
+            : `radial-gradient(ellipse 75% 65% at 50% 50%, ${accentColor}18 0%, transparent 72%)`,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -465,6 +506,10 @@ export default function CountdownTimer({
         {announcementState ? (
           <motion.div
             key="results-announcement"
+            ref={announcementRef}
+            className={announcementState.showResultsButton
+              ? `${styles.liveAnnouncement} ${styles.liveVignette} ${resultsDisplayFont.variable} ${resultsMonoFont.variable} ${announcementEntered ? styles.entered : ""}`
+              : undefined}
             initial={reducedMotion ? false : { opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reducedMotion ? undefined : { opacity: 0, y: -18, scale: 0.98 }}
@@ -483,7 +528,13 @@ export default function CountdownTimer({
               padding: "18px 12px 8px",
             }}
           >
+            {announcementState.showResultsButton && (
+              <div aria-hidden="true" className={styles.ambientDots}>
+                {Array.from({ length: 9 }, (_, index) => <span key={index} />)}
+              </div>
+            )}
             <motion.span
+              className={announcementState.showResultsButton ? styles.badge : undefined}
               initial={reducedMotion ? false : { opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.08, ease: "easeOut" }}
@@ -501,14 +552,15 @@ export default function CountdownTimer({
                 fontWeight: 700,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                fontFamily: "var(--font-geist-mono, monospace)",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-mono)"
+                  : "var(--font-geist-mono, monospace)",
               }}
             >
-              {announcementState.showResultsButton && !reducedMotion && (
-                <motion.span
+              {announcementState.showResultsButton && (
+                <span
                   aria-hidden="true"
-                  animate={{ opacity: [1, 0.45, 1], scale: [1, 0.86, 1] }}
-                  transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  className={styles.liveIndicator}
                   style={{ width: 7, height: 7, marginRight: 9, borderRadius: "50%", background: "var(--accent-light)", boxShadow: "0 0 12px rgba(255,138,61,0.8)" }}
                 />
               )}
@@ -517,6 +569,8 @@ export default function CountdownTimer({
 
             {/* Fluid headline and orange live accent establish the announcement hierarchy. */}
             <motion.h2
+              className={announcementState.showResultsButton ? styles.title : undefined}
+              aria-label={announcementState.showResultsButton ? announcementState.title : undefined}
               initial={reducedMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.16, ease: "easeOut" }}
@@ -527,15 +581,25 @@ export default function CountdownTimer({
                 lineHeight: 1.1,
                 fontWeight: 800,
                 letterSpacing: "-0.02em",
-                fontFamily: "var(--font-geist-sans, sans-serif)",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-display)"
+                  : "var(--font-geist-sans, sans-serif)",
               }}
             >
               {announcementState.showResultsButton ? (
-                <>Phase 1 results are <span style={{ color: "var(--accent-light)", backgroundImage: "linear-gradient(100deg, #F25C05, #FFB27E)", backgroundClip: "text", WebkitTextFillColor: "transparent", textDecoration: "underline", textDecorationColor: "rgba(255,138,61,0.55)", textUnderlineOffset: "8px" }}>live.</span></>
+                <>
+                  <span className={styles.headlineLine}>Phase 1 results are </span>
+                  <span className={styles.headlineLine}>
+                    <span className={styles.liveWord}>
+                      live.<span aria-hidden="true" className={styles.liveUnderline} />
+                    </span>
+                  </span>
+                </>
               ) : announcementState.title}
             </motion.h2>
 
             <motion.p
+              className={announcementState.showResultsButton ? styles.subtitle : undefined}
               initial={reducedMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.24, ease: "easeOut" }}
@@ -545,9 +609,11 @@ export default function CountdownTimer({
                 color: "var(--text-muted)",
                 fontSize: "clamp(12px, 1.4vw, 14px)",
                 lineHeight: 1.6,
-                letterSpacing: "0.1em",
+                letterSpacing: announcementState.showResultsButton ? "0.12em" : "0.1em",
                 textTransform: "uppercase",
-                fontFamily: "var(--font-geist-mono, monospace)",
+                fontFamily: announcementState.showResultsButton
+                  ? "var(--results-font-mono)"
+                  : "var(--font-geist-mono, monospace)",
               }}
             >
               {announcementState.subtitle}
@@ -555,12 +621,13 @@ export default function CountdownTimer({
 
             {announcementState.showResultsButton && (
               <motion.a
+                className={styles.resultsButton}
                 href={announcementState.buttonLink}
                 aria-label="View the Phase 1 selected teams"
                 initial={reducedMotion ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.32, ease: "easeOut" }}
-                whileHover={reducedMotion ? undefined : { y: -2, boxShadow: "0 0 0 4px rgba(242,92,5,0.2), 0 14px 34px rgba(242,92,5,0.3)" }}
+                whileHover={reducedMotion ? undefined : { y: -2, scale: 1.02 }}
                 whileTap={reducedMotion ? undefined : { scale: 0.98, y: 0 }}
                 style={{
                   display: "inline-flex",
@@ -577,16 +644,16 @@ export default function CountdownTimer({
                   background: "linear-gradient(110deg, #F25C05, #FF8A3D)",
                   color: "#16100C",
                   fontSize: "16px",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   letterSpacing: "0.01em",
                   padding: "16px 28px",
                   textDecoration: "none",
                   boxShadow: "0 0 0 1px rgba(255,255,255,0.1), 0 10px 28px rgba(242,92,5,0.22)",
-                  fontFamily: "var(--font-geist-sans, sans-serif)",
+                  fontFamily: "var(--results-font-display)",
                 }}
               >
-                {announcementState.buttonLabel}
-                <span aria-hidden="true" style={{ display: "inline-flex", transition: reducedMotion ? "none" : "transform 180ms ease" }} className="results-button-arrow">↗</span>
+                <span className={styles.buttonLabel}>{announcementState.buttonLabel}</span>
+                <span aria-hidden="true" className={styles.buttonArrow}>↗</span>
               </motion.a>
             )}
           </motion.div>
@@ -628,6 +695,9 @@ export default function CountdownTimer({
       {/* Completed results use an accessible status bar instead of a stale elapsed percentage. */}
       {announcementState ? (
         <motion.div
+          className={announcementState.showResultsButton
+            ? `${styles.progressRow} ${resultsMonoFont.variable} ${announcementEntered ? styles.entered : ""}`
+            : undefined}
           role="progressbar"
           aria-label="Phase 1 completion status"
           aria-valuemin={0}
@@ -638,15 +708,15 @@ export default function CountdownTimer({
           transition={reducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.4, ease: "easeOut" }}
           style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "480px", color: "#E5E7EB" }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#E5E7EB", fontFamily: "var(--font-geist-mono, monospace)" }}>
-            <span aria-hidden="true" style={{ display: "inline-flex", width: 18, height: 18, alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(242,92,5,0.16)", color: "#FF9B5B" }}>
+          <div className={announcementState.showResultsButton ? styles.progressLabel : undefined} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#E5E7EB", fontFamily: announcementState.showResultsButton ? "var(--results-font-mono)" : "var(--font-geist-mono, monospace)" }}>
+            <span aria-hidden="true" className={announcementState.showResultsButton ? styles.checkIcon : undefined} style={{ display: "inline-flex", width: 18, height: 18, alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(242,92,5,0.16)", color: "#FF9B5B" }}>
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 8 3 3 7-7" /></svg>
             </span>
             <span>PHASE 1 <span aria-hidden="true" style={{ color: "#FF8A3D" }}>·</span> COMPLETED</span>
           </div>
-          <div aria-hidden="true" style={{ height: 4, marginTop: 10, overflow: "hidden", borderRadius: 999, background: "rgba(255,255,255,0.12)" }}>
-            <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: "inherit", background: "linear-gradient(90deg, #F25C05, #FF8A3D)" }}>
-              {!reducedMotion && <motion.span aria-hidden="true" initial={{ x: "-110%" }} animate={{ x: "400%" }} transition={{ duration: 1.25, ease: "easeInOut" }} style={{ position: "absolute", inset: 0, width: "30%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }} />}
+          <div aria-hidden="true" className={announcementState.showResultsButton ? styles.progressTrack : undefined} style={{ height: 4, marginTop: 10, overflow: "hidden", borderRadius: 999, background: "rgba(255,255,255,0.12)" }}>
+            <div className={announcementState.showResultsButton ? styles.progressFill : undefined} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: "inherit", background: "linear-gradient(90deg, #F25C05, #FF8A3D)" }}>
+              {!announcementState.showResultsButton && !reducedMotion && <motion.span aria-hidden="true" initial={{ x: "-110%" }} animate={{ x: "400%" }} transition={{ duration: 1.25, ease: "easeInOut" }} style={{ position: "absolute", inset: 0, width: "30%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent)" }} />}
             </div>
           </div>
         </motion.div>

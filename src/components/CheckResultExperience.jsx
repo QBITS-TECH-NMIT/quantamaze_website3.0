@@ -247,7 +247,7 @@ export default function CheckResultExperience() {
                 </svg>
               </span>
               <h2>Phase 1 results unlock soon</h2>
-              <p className={resultStyles.unlockMessage}>Results unlock on 3 October</p>
+              <p className={resultStyles.unlockMessage}>Results unlock on 9 October at 11:00 AM IST</p>
               <ResultsCountdown
                 remaining={remaining}
                 ready={mounted}

@@ -1,0 +1,379 @@
+.liveAnnouncement {
+  --results-font-display: var(--results-font-bricolage), sans-serif;
+  --results-font-mono: var(--results-font-jetbrains), monospace;
+  isolation: isolate;
+}
+
+.liveAnnouncement > :not(.ambientDots) {
+  position: relative;
+  z-index: 1;
+}
+
+.liveVignette::before {
+  position: absolute;
+  z-index: 0;
+  inset: -8px 0;
+  background: radial-gradient(ellipse 76% 78% at 50% 48%, transparent 48%, rgba(0, 0, 0, 0.2) 100%);
+  content: "";
+  pointer-events: none;
+}
+
+.ambientDots {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambientDots span {
+  position: absolute;
+  bottom: -8px;
+  left: 12%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fb923c;
+  opacity: 0.24;
+  animation: floatDot 8s ease-in-out infinite;
+}
+
+.ambientDots span:nth-child(2) { left: 22%; width: 2px; height: 2px; animation-delay: -2s; }
+.ambientDots span:nth-child(3) { left: 31%; width: 4px; height: 4px; animation-delay: -5s; }
+.ambientDots span:nth-child(4) { left: 40%; width: 2px; height: 2px; animation-delay: -1s; }
+.ambientDots span:nth-child(5) { left: 52%; width: 3px; height: 3px; animation-delay: -6s; }
+.ambientDots span:nth-child(6) { left: 63%; width: 2px; height: 2px; animation-delay: -3s; }
+.ambientDots span:nth-child(7) { left: 73%; width: 4px; height: 4px; animation-delay: -7s; }
+.ambientDots span:nth-child(8) { left: 83%; width: 2px; height: 2px; animation-delay: -4s; }
+.ambientDots span:nth-child(9) { left: 91%; width: 3px; height: 3px; animation-delay: -1.5s; }
+
+.breathingGlow {
+  transform-origin: center;
+  animation: breathe 8s ease-in-out infinite;
+}
+
+.badge {
+  position: relative;
+  font-family: var(--results-font-mono);
+}
+
+.badge::after {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 15%, rgba(251, 146, 60, 0.8) 50%, transparent 85%);
+  background-size: 200% 100%;
+  content: "";
+  opacity: 0.65;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: borderShimmer 6s linear infinite;
+}
+
+.liveIndicator {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.liveIndicator::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(251, 146, 60, 0.8);
+  border-radius: inherit;
+  content: "";
+  opacity: 0;
+  animation: liveRing 2s ease-out infinite;
+}
+
+.title {
+  line-height: 1.03 !important;
+  font-family: var(--results-font-display) !important;
+  font-feature-settings: "kern", "liga", "calt";
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.headlineLine {
+  display: block;
+}
+
+.liveWord {
+  position: relative;
+  display: inline-block;
+  color: transparent;
+  background-image: linear-gradient(100deg, #f97316, #fb923c, #f97316);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientDrift 4s ease-in-out 720ms infinite alternate;
+}
+
+.liveUnderline {
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  height: 2px;
+  border-radius: 99px;
+  background: #fb923c;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.5);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.entered .headlineLine {
+  animation: lineReveal 600ms ease-out both;
+}
+
+.entered .headlineLine:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.entered .liveUnderline {
+  animation: underlineDraw 700ms ease-out 820ms both;
+}
+
+.subtitle {
+  opacity: 0.9 !important;
+  font-family: var(--results-font-mono) !important;
+  transition: opacity 180ms ease;
+}
+
+.liveAnnouncement:hover .subtitle {
+  opacity: 1 !important;
+}
+
+.entered .subtitle {
+  animation: subtitleReveal 450ms ease-out 400ms both;
+}
+
+.resultsButton {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--results-font-display) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 28px rgba(242, 92, 5, 0.22);
+  animation: buttonGlow 2.4s ease-in-out infinite;
+  transition: transform 180ms ease;
+}
+
+.resultsButton::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.38) 50%, transparent 70%);
+  content: "";
+  pointer-events: none;
+  transform: translateX(-120%);
+}
+
+.resultsButton:hover::after {
+  transform: translateX(120%);
+  transition: transform 700ms ease;
+}
+
+.buttonLabel,
+.buttonArrow {
+  position: relative;
+  z-index: 1;
+}
+
+.buttonArrow {
+  display: inline-flex;
+  transition: transform 180ms ease;
+}
+
+.resultsButton:hover .buttonArrow {
+  transform: translate(3px, -3px);
+}
+
+.liveAnnouncement .resultsButton:focus-visible {
+  outline: 3px solid #f97316;
+  outline-offset: 4px;
+}
+
+.progressRow {
+  --results-font-mono: var(--results-font-jetbrains), monospace;
+  font-family: var(--results-font-mono);
+}
+
+.progressLabel {
+  font-family: var(--results-font-mono) !important;
+}
+
+.checkIcon {
+  position: relative;
+}
+
+.checkIcon::after {
+  position: absolute;
+  inset: -2px;
+  border: 1px solid rgba(249, 115, 22, 0.75);
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+}
+
+.entered .checkIcon {
+  animation: checkPop 400ms ease-out both;
+}
+
+.entered .checkIcon::after {
+  animation: checkRing 500ms ease-out 120ms both;
+}
+
+.progressTrack {
+  position: relative;
+}
+
+.progressFill {
+  overflow: visible !important;
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.entered .progressFill {
+  animation: fillProgress 1.2s ease-out both;
+}
+
+.progressFill::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 32%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  content: "";
+  opacity: 0;
+  transform: translateX(-120%);
+}
+
+.entered .progressFill::before {
+  animation: progressShimmer 3.4s linear 1.2s infinite;
+}
+
+.progressFill::after {
+  position: absolute;
+  top: -1px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffd0a8;
+  box-shadow: 0 0 8px 2px rgba(249, 115, 22, 0.65);
+  content: "";
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50% { opacity: 0.18; transform: scale(1.08); }
+}
+
+@keyframes borderShimmer {
+  to { background-position: 200% 0; }
+}
+
+@keyframes liveRing {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+@keyframes lineReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradientDrift {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+@keyframes underlineDraw {
+  to { transform: scaleX(1); }
+}
+
+@keyframes subtitleReveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes buttonGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 28px rgba(249, 115, 22, 0.25); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 32px rgba(249, 115, 22, 0.5); }
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0.6); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkRing {
+  0% { opacity: 0.7; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(1.65); }
+}
+
+@keyframes fillProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes progressShimmer {
+  0% { opacity: 0; transform: translateX(-120%); }
+  15% { opacity: 0.75; }
+  75% { opacity: 0.75; }
+  100% { opacity: 0; transform: translateX(340%); }
+}
+
+@keyframes floatDot {
+  from { opacity: 0; transform: translateY(0); }
+  20% { opacity: 0.24; }
+  to { opacity: 0; transform: translateY(-110px); }
+}
+
+@media (max-width: 640px) {
+  .ambientDots {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathingGlow,
+  .badge::after,
+  .liveIndicator::after,
+  .liveWord,
+  .resultsButton,
+  .ambientDots span,
+  .entered .headlineLine,
+  .entered .liveUnderline,
+  .entered .subtitle,
+  .entered .checkIcon,
+  .entered .checkIcon::after,
+  .entered .progressFill,
+  .entered .progressFill::before {
+    animation: none !important;
+  }
+
+  .liveUnderline {
+    transform: scaleX(1);
+  }
+
+  .progressFill {
+    transform: scaleX(1);
+  }
+
+  .resultsButton,
+  .buttonArrow,
+  .resultsButton::after,
+  .subtitle {
+    transition: none !important;
+  }
+
+  .resultsButton::after {
+    transform: translateX(-120%);
+  }
+}

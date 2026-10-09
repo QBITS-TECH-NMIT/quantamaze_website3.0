@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import styles from "@/app/admin/results/results-admin.module.css";
 import { RESULT_TRACKS } from "@/lib/resultTracks";
@@ -346,7 +347,10 @@ export default function ResultsAdminExperience() {
             <h1 className={styles.title}>Phase 1 team results</h1>
             <p className={styles.subheading}>Add or edit results, review both lists, or remove a team.</p>
           </div>
-          <button className={styles.signOut} type="button" onClick={handleSignOut} disabled={busy}>Sign out</button>
+          <div className={styles.toolbar}>
+            <Link className={styles.editButton} href="/admin/sponsors">Manage sponsors</Link>
+            <button className={styles.signOut} type="button" onClick={handleSignOut} disabled={busy}>Sign out</button>
+          </div>
         </header>
 
         {notice && <p className={`${styles.notice} ${noticeIsError ? styles.noticeError : ""}`} role={noticeIsError ? "alert" : "status"}>{notice}</p>}

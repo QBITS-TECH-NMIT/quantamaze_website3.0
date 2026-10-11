@@ -10,7 +10,7 @@ The inauguration stage and Phone 1–5 views synchronize through Supabase Realti
 
 ## Lighting sequence
 
-Keep all five phone pages open and have each guest press and hold their own `HOLD` button. Once all five are holding together for 1.5 seconds, the stage lights the lamp automatically. Releasing any button before then resets the hold timer. The stage can also be opened with `O`, lit manually with `L` while open, and reset with `R`.
+Open at least one phone page and press and hold its `HOLD` button for 1.5 seconds to light the lamp. Multiple guests can hold their own buttons together; releasing every button before the timer completes resets it. The stage can also be lit manually with `L` while open and reset with `R`.
 
 This is intentionally a no-sign-in setup: anyone with the site links can participate in the `qam3` event. State and guest names in that room are readable by anonymous clients. Remove `qam3` rows from the table after the event if the state is no longer needed.
 

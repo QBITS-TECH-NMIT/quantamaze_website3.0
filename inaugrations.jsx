@@ -13,7 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 const CONFIG = {
   room: "qam3",
   showStatus: false, // true = show the five circles + bar on the stage (or add &hud=1)
-  holdMs: 1500,      // how long all five must hold together
+  holdMs: 1500,      // how long one or more guests must hold
   flameMs: 3000,     // how long flames burn before the welcome
   names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student"], // fallback labels for 1..5
 };
@@ -515,7 +515,7 @@ function Phone({ n }) {
   useEffect(() => { if (disabled) up(); /* eslint-disable-next-line */ }, [disabled]);
 
   let status;
-  if (ph === "idle") status = pressed ? "Curtains are opening…" : "Press and hold to open the curtains";
+  if (ph === "idle") status = pressed ? "Keep holding to light the lamp…" : "Press and hold to light the lamp";
   else if (ph === "open") {
     const c = s.count || 0;
     status = pressed ? `Keep holding · ${c} of 5 holding` : `Press and hold · ${c} of 5 holding`;
@@ -668,7 +668,7 @@ function Stage() {
       if (phaseRef.current === "open") {
         if (cnt !== lastCount) { lastCount = cnt; put("count", cnt); }
         const bar = barRef.current;
-        if (cnt === 5) {
+        if (cnt > 0) {
           if (!holdStart) holdStart = now();
           const pr = Math.min(1, (now() - holdStart) / CONFIG.holdMs);
           if (bar) bar.style.width = pr * 100 + "%";
@@ -799,7 +799,7 @@ function Stage() {
           ))}
         </div>
         <div id="bar"><b ref={barRef} /></div>
-        <div id="hint">PRESS AND HOLD ALL FIVE BUTTONS TOGETHER</div>
+        <div id="hint">PRESS AND HOLD A PHONE BUTTON TO LIGHT THE LAMP</div>
       </div>
 
       <div id="welcome">

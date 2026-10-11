@@ -286,14 +286,31 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 
 #welcome{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(10,10,10,.55),rgba(10,10,10,.92));transition:opacity .6s}
 #stage.welcome #welcome{opacity:1}
-#welcome small{font-family:var(--display);font-size:5vh;letter-spacing:.5em;color:var(--ivory)}
-#welcome h2{font-family:var(--display);font-weight:900;font-size:13vh;line-height:1.1;margin-top:2vh;color:var(--gold)}
-#welcome h2 span{display:inline-block;opacity:0;transform:translateY(5vh) scale(.6);filter:blur(12px)}
-#stage.welcome #welcome h2 span{animation:letter .6s cubic-bezier(.2,1.2,.3,1) forwards;animation-delay:calc(var(--i)*45ms + .1s)}
-@keyframes letter{to{opacity:1;transform:none;filter:none;text-shadow:0 0 50px rgba(245,89,10,.7)}}
-#welcome p{margin-top:4vh;font-size:3vh;font-weight:300;letter-spacing:.3em;opacity:0}
-#stage.welcome #welcome p{animation:fade .6s 1.1s forwards}
-@keyframes fade{to{opacity:.9}}
+#welcome small{display:flex;align-items:center;gap:clamp(12px,2vw,28px);font-family:var(--display);font-size:clamp(18px,2.5vw,36px);letter-spacing:.38em;color:var(--ivory);opacity:0;transform:translateY(14px)}
+#welcome small::before,#welcome small::after{width:clamp(24px,5vw,72px);height:1px;content:"";background:linear-gradient(90deg,transparent,var(--flame2))}
+#welcome small::after{transform:rotate(180deg)}
+#stage.welcome #welcome small{animation:welcome-kicker-in .8s cubic-bezier(.16,1,.3,1) .12s forwards}
+#welcome h2{position:relative;display:flex;flex-direction:column;align-items:center;gap:.02em;margin-top:clamp(14px,2.4vh,28px);font-family:var(--display);font-weight:900;font-size:clamp(52px,11.5vw,176px);line-height:.98;letter-spacing:.035em;background:linear-gradient(180deg,#fff8ef 0%,#ffbd83 38%,var(--gold) 78%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 8px 32px rgba(245,89,10,.22))}
+#welcome .welcome-title-line{display:block;white-space:nowrap}
+#welcome .welcome-title-line-accent{font-size:.76em;letter-spacing:.2em}
+#welcome .welcome-letter{display:inline-block;opacity:0;transform:translate3d(0,.42em,0) rotateX(-65deg) scale(.84);transform-origin:50% 100%;filter:blur(10px)}
+#stage.welcome #welcome .welcome-letter{animation:welcome-letter-in .78s cubic-bezier(.16,1,.3,1) forwards;animation-delay:calc(var(--i)*38ms + 260ms)}
+#welcome h2::after{position:absolute;right:12%;bottom:-.16em;left:12%;height:2px;content:"";transform:scaleX(0);transform-origin:center;background:linear-gradient(90deg,transparent,var(--flame2),#fff4df,var(--flame2),transparent);filter:drop-shadow(0 0 8px var(--flame))}
+#stage.welcome #welcome h2::after{animation:welcome-rule-in .9s cubic-bezier(.16,1,.3,1) 780ms forwards}
+@keyframes welcome-kicker-in{to{opacity:.9;transform:translateY(0)}}
+@keyframes welcome-letter-in{to{opacity:1;transform:translate3d(0,0,0) rotateX(0) scale(1);filter:blur(0);text-shadow:0 0 34px rgba(245,89,10,.48)}}
+@keyframes welcome-rule-in{to{transform:scaleX(1)}}
+#welcome p{margin-top:clamp(28px,6vh,72px);font-size:clamp(13px,1.8vw,24px);font-weight:500;letter-spacing:.42em;color:rgba(242,242,242,.88);opacity:0;transform:translateY(12px)}
+#stage.welcome #welcome p{animation:welcome-tagline-in .8s cubic-bezier(.16,1,.3,1) 1.15s forwards}
+@keyframes welcome-tagline-in{to{opacity:.9;transform:translateY(0)}}
+@media (max-width:720px){
+ #welcome h2{font-size:clamp(42px,11.5vw,82px)}
+ #welcome small{font-size:clamp(15px,4vw,24px);letter-spacing:.24em}
+ #welcome p{max-width:90vw;font-size:clamp(11px,3vw,16px);letter-spacing:.24em}
+}
+@media (prefers-reduced-motion:reduce){
+ #stage.welcome #welcome small,#stage.welcome #welcome .welcome-letter,#stage.welcome #welcome h2::after,#stage.welcome #welcome p{animation:none;opacity:1;transform:none;filter:none}
+}
 #fx{position:absolute;inset:0;z-index:9;pointer-events:none}
 #net{position:absolute;right:1.5vw;top:10.5vh;z-index:10;font-size:1.5vh;opacity:.5}
 
@@ -753,9 +770,23 @@ function Stage() {
 
       <div id="welcome">
         <small>WELCOME TO</small>
-        <h2>
-          {[...TITLE].map((c, i) => (
-            <span key={i} style={{ "--i": i }}>{c === " " ? "\u00a0" : c}</span>
+        <h2 aria-label={TITLE}>
+          {TITLE.split(" ").map((word, wordIndex) => (
+            <span
+              className={`welcome-title-line${wordIndex ? " welcome-title-line-accent" : ""}`}
+              key={word}
+              aria-hidden="true"
+            >
+              {[...word].map((character, characterIndex) => (
+                <span
+                  className="welcome-letter"
+                  key={`${word}-${characterIndex}`}
+                  style={{ "--i": wordIndex ? 13 + characterIndex : characterIndex }}
+                >
+                  {character}
+                </span>
+              ))}
+            </span>
           ))}
         </h2>
         <p>LET THE MAZE BEGIN</p>

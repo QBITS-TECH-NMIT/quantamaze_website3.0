@@ -290,21 +290,23 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 #welcome small::before,#welcome small::after{width:clamp(24px,5vw,72px);height:1px;content:"";background:linear-gradient(90deg,transparent,var(--flame2))}
 #welcome small::after{transform:rotate(180deg)}
 #stage.welcome #welcome small{animation:welcome-kicker-in .8s cubic-bezier(.16,1,.3,1) .12s forwards}
-#welcome h2{position:relative;display:flex;flex-direction:column;align-items:center;gap:.02em;margin-top:clamp(14px,2.4vh,28px);font-family:var(--display);font-weight:900;font-size:clamp(52px,11.5vw,176px);line-height:.98;letter-spacing:.035em;background:linear-gradient(180deg,#fff8ef 0%,#ffbd83 38%,var(--gold) 78%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 8px 32px rgba(245,89,10,.22))}
+#welcome h2{position:relative;display:flex;flex-direction:column;align-items:center;gap:.02em;width:min(94vw,1320px);margin-top:clamp(14px,2.4vh,28px);padding:clamp(10px,1.8vh,22px) 12px;font-family:var(--display);font-weight:900;font-size:clamp(38px,9vw,136px);line-height:.98;letter-spacing:.035em;background:linear-gradient(90deg,transparent,rgba(5,5,5,.92) 12%,rgba(5,5,5,.92) 88%,transparent);border-top:1px solid rgba(255,140,58,.62);border-bottom:1px solid rgba(255,140,58,.62);box-shadow:0 14px 44px rgba(0,0,0,.54);color:#fff4e8;text-shadow:0 3px 0 #502008,0 7px 25px rgba(0,0,0,.95),0 0 38px rgba(245,89,10,.44);-webkit-text-fill-color:currentColor}
 #welcome .welcome-title-line{display:block;white-space:nowrap}
-#welcome .welcome-title-line-accent{font-size:.76em;letter-spacing:.2em}
-#welcome .welcome-letter{display:inline-block;opacity:0;transform:translate3d(0,.42em,0) rotateX(-65deg) scale(.84);transform-origin:50% 100%;filter:blur(10px)}
+#welcome .welcome-title-line-accent{font-size:.64em;letter-spacing:.24em;color:#ff8c3a;-webkit-text-fill-color:#ff8c3a}
+#welcome .welcome-letter{display:inline-block;color:inherit;-webkit-text-fill-color:currentColor;opacity:0;transform:translate3d(0,.28em,0) scale(.9);transform-origin:50% 100%;filter:blur(5px)}
 #stage.welcome #welcome .welcome-letter{animation:welcome-letter-in .78s cubic-bezier(.16,1,.3,1) forwards;animation-delay:calc(var(--i)*38ms + 260ms)}
 #welcome h2::after{position:absolute;right:12%;bottom:-.16em;left:12%;height:2px;content:"";transform:scaleX(0);transform-origin:center;background:linear-gradient(90deg,transparent,var(--flame2),#fff4df,var(--flame2),transparent);filter:drop-shadow(0 0 8px var(--flame))}
 #stage.welcome #welcome h2::after{animation:welcome-rule-in .9s cubic-bezier(.16,1,.3,1) 780ms forwards}
 @keyframes welcome-kicker-in{to{opacity:.9;transform:translateY(0)}}
-@keyframes welcome-letter-in{to{opacity:1;transform:translate3d(0,0,0) rotateX(0) scale(1);filter:blur(0);text-shadow:0 0 34px rgba(245,89,10,.48)}}
+@keyframes welcome-letter-in{to{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}}
 @keyframes welcome-rule-in{to{transform:scaleX(1)}}
 #welcome p{margin-top:clamp(28px,6vh,72px);font-size:clamp(13px,1.8vw,24px);font-weight:500;letter-spacing:.42em;color:rgba(242,242,242,.88);opacity:0;transform:translateY(12px)}
 #stage.welcome #welcome p{animation:welcome-tagline-in .8s cubic-bezier(.16,1,.3,1) 1.15s forwards}
 @keyframes welcome-tagline-in{to{opacity:.9;transform:translateY(0)}}
 @media (max-width:720px){
- #welcome h2{font-size:clamp(42px,11.5vw,82px)}
+ #welcome h2{font-size:clamp(34px,9vw,66px);width:96vw;padding:14px 4px}
+ #welcome .welcome-title-line{letter-spacing:.015em}
+ #welcome .welcome-title-line-accent{font-size:.68em;letter-spacing:.2em}
  #welcome small{font-size:clamp(15px,4vw,24px);letter-spacing:.24em}
  #welcome p{max-width:90vw;font-size:clamp(11px,3vw,16px);letter-spacing:.24em}
 }
@@ -771,7 +773,7 @@ function Stage() {
       <div id="welcome">
         <small>WELCOME TO</small>
         <h2 aria-label={TITLE}>
-          {TITLE.split(" ").map((word, wordIndex) => (
+          {["QUANT-A-MAZE", "3.0"].map((word, wordIndex) => (
             <span
               className={`welcome-title-line${wordIndex ? " welcome-title-line-accent" : ""}`}
               key={word}

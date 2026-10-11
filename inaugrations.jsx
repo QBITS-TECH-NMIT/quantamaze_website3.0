@@ -24,7 +24,13 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const STATE_TABLE = "inauguration_state";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    })
   : null;
 let S = {}; // shared state mirror
 const subs = new Set();
@@ -36,6 +42,10 @@ let realtimeConnected = false;
 let snapshotInterval = null;
 let pendingChanges = [];
 const pendingWrites = new Map();
+const writeQueue = new Map();
+const activeWrites = new Set();
+const retryTimers = new Map();
+const failedWrites = new Set();
 
 function setPath(path, val) {
   const k = path.split("/").filter(Boolean);
@@ -84,13 +94,46 @@ async function persistWrite({ path, value }) {
 function flushPendingWrites() {
   const writes = [...pendingWrites.values()];
   pendingWrites.clear();
-  for (const write of writes) {
-    persistWrite(write).catch((error) => {
-      netState = "write failed";
-      notify();
-      console.error(`[Inauguration] Supabase write failed for "${write.path}". Check the database migration and RLS policies.`, error);
-    });
+  for (const write of writes) queuePersist(write);
+}
+
+async function drainWriteQueue(path) {
+  if (activeWrites.has(path) || retryTimers.has(path)) return;
+  activeWrites.add(path);
+
+  try {
+    while (writeQueue.has(path)) {
+      const write = writeQueue.get(path);
+      writeQueue.delete(path);
+      try {
+        await persistWrite(write);
+        failedWrites.delete(path);
+        if (!failedWrites.size && netState === "write failed") {
+          netState = realtimeConnected ? "online" : "online · polling";
+          notify();
+        }
+      } catch (error) {
+        failedWrites.add(path);
+        netState = "write failed";
+        notify();
+        console.error(`[Inauguration] Supabase write failed for "${path}". Check the database migration and RLS policies. Retrying.`, error);
+        if (!writeQueue.has(path)) writeQueue.set(path, write);
+        retryTimers.set(path, setTimeout(() => {
+          retryTimers.delete(path);
+          void drainWriteQueue(path);
+        }, 1000));
+        break;
+      }
+    }
+  } finally {
+    activeWrites.delete(path);
+    if (writeQueue.has(path) && !retryTimers.has(path)) void drainWriteQueue(path);
   }
+}
+
+function queuePersist(write) {
+  writeQueue.set(write.path, write);
+  void drainWriteQueue(write.path);
 }
 
 async function loadSnapshot() {
@@ -111,7 +154,9 @@ async function loadSnapshot() {
     pendingChanges = [];
     for (const write of pendingWrites.values()) setPath(write.path, write.value);
     hydrated = true;
-    netState = realtimeConnected ? "online" : "online · polling";
+    netState = failedWrites.size
+      ? "write failed"
+      : realtimeConnected ? "online" : "online · polling";
     notify();
     flushPendingWrites();
     if (realtimeConnected) stopSnapshotFallback();
@@ -148,13 +193,7 @@ function put(path, value) {
   if (!supabase) return;
   const write = { path, value };
   if (!hydrated || loadingSnapshot) pendingWrites.set(path, write);
-  else {
-    persistWrite(write).catch((error) => {
-      netState = "write failed";
-      notify();
-      console.error(`[Inauguration] Supabase write failed for "${path}". Check the database migration and RLS policies.`, error);
-    });
-  }
+  else queuePersist(write);
 }
 
 if (supabase) {

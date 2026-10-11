@@ -7,7 +7,7 @@ create table if not exists public.inauguration_state (
   constraint inauguration_state_room_check check (room_id = 'qam3'),
   constraint inauguration_state_key_check check (
     state_key in ('phase', 'count')
-    or state_key ~ '^(p|names|c)/[1-5]$'
+    or state_key ~ '^(p|names|c|lit)/[1-5]$'
   ),
   constraint inauguration_state_value_check check (
     (state_key = 'phase' and value in ('"idle"'::jsonb, '"open"'::jsonb, '"lit"'::jsonb, '"welcome"'::jsonb))
@@ -37,8 +37,55 @@ create table if not exists public.inauguration_state (
       state_key ~ '^c/[1-5]$'
       and jsonb_typeof(value) = 'number'
     )
+    or (
+      state_key ~ '^lit/[1-5]$'
+      and jsonb_typeof(value) = 'boolean'
+    )
   )
 );
+
+alter table public.inauguration_state
+  drop constraint if exists inauguration_state_key_check,
+  drop constraint if exists inauguration_state_value_check;
+
+alter table public.inauguration_state
+  add constraint inauguration_state_key_check check (
+    state_key in ('phase', 'count')
+    or state_key ~ '^(p|names|c|lit)/[1-5]$'
+  ),
+  add constraint inauguration_state_value_check check (
+    (state_key = 'phase' and value in ('"idle"'::jsonb, '"open"'::jsonb, '"lit"'::jsonb, '"welcome"'::jsonb))
+    or (
+      state_key = 'count'
+      and case
+        when jsonb_typeof(value) = 'number' then (value #>> '{}')::numeric between 0 and 5
+        else false
+      end
+    )
+    or (
+      state_key ~ '^p/[1-5]$'
+      and jsonb_typeof(value) = 'object'
+      and value ?& array['h', 't']
+      and value->'h' in ('0'::jsonb, '1'::jsonb)
+      and jsonb_typeof(value->'t') = 'number'
+      and value - 'h' - 't' = '{}'::jsonb
+    )
+    or (
+      state_key ~ '^names/[1-5]$'
+      and case
+        when jsonb_typeof(value) = 'string' then char_length(value #>> '{}') <= 80
+        else false
+      end
+    )
+    or (
+      state_key ~ '^c/[1-5]$'
+      and jsonb_typeof(value) = 'number'
+    )
+    or (
+      state_key ~ '^lit/[1-5]$'
+      and jsonb_typeof(value) = 'boolean'
+    )
+  );
 
 alter table public.inauguration_state enable row level security;
 alter table public.inauguration_state replica identity full;

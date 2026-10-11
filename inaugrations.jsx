@@ -13,8 +13,6 @@ import { createClient } from "@supabase/supabase-js";
 const CONFIG = {
   room: "qam3",
   showStatus: false, // true = show the five circles + bar on the stage (or add &hud=1)
-  holdMs: 1500,      // how long one or more guests must hold
-  flameMs: 3000,     // how long flames burn before the welcome
   names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student"], // fallback labels for 1..5
 };
 
@@ -256,13 +254,13 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 #stage.open #lampWrap{transform:translate(-50%,0)}
 #lampWrap svg{width:100%;height:100%;overflow:visible}
 .flame{transform-box:fill-box;transform-origin:50% 100%;transform:scale(0);opacity:0}
-#stage.lit .flame,#stage.welcome .flame{opacity:1;animation:ignite .9s ease-out forwards,flick 1.3s ease-in-out .9s infinite}
-#stage.lit .flame:nth-child(2n),#stage.welcome .flame:nth-child(2n){animation-duration:.9s,1.1s}
-#stage.lit .flame:nth-child(3n),#stage.welcome .flame:nth-child(3n){animation-duration:.9s,1.6s}
+.flame.active{opacity:1;animation:ignite .9s ease-out forwards,flick 1.3s ease-in-out .9s infinite}
+.flame.active:nth-child(2n){animation-duration:.9s,1.1s}
+.flame.active:nth-child(3n){animation-duration:.9s,1.6s}
 @keyframes ignite{to{transform:scale(1)}}
 @keyframes flick{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.94,1.08) skewX(2deg)}60%{transform:scale(1.04,.95) skewX(-2deg)}}
-.glow{opacity:0;transition:opacity 1.5s}
-#stage.lit .glow,#stage.welcome .glow{opacity:1}
+.glow circle{opacity:0;transition:opacity 1.5s}
+.glow circle.active{opacity:1}
 
 .curtain{position:absolute;top:0;bottom:0;width:50.5%;z-index:5;transition:transform 3s cubic-bezier(.7,0,.2,1);
   background:repeating-linear-gradient(90deg,var(--velvet) 0,var(--velvet2) 5%,var(--velvet) 10%,#090909 14%,var(--velvet) 18%);box-shadow:inset 0 -80px 120px rgba(0,0,0,.55)}
@@ -275,7 +273,7 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 #stage.open #idleMsg{opacity:0;pointer-events:none}
 
 #hud{position:absolute;z-index:4;left:0;right:0;bottom:3vh;display:flex;flex-direction:column;align-items:center;gap:1.6vh;opacity:0;transition:opacity 1s 3s}
-#stage.open:not(.lit):not(.welcome) #hud{opacity:1}
+#stage.open:not(.welcome) #hud{opacity:1}
 #slots{display:flex;gap:2.4vw}
 .slot{cursor:pointer;width:9vh;text-align:center;font-size:1.7vh;font-weight:500;opacity:.55;transition:.25s}
 .slot i{display:block;width:5.6vh;height:5.6vh;margin:0 auto 1vh;border-radius:50%;border:2px solid var(--gold);transition:.2s}
@@ -471,26 +469,14 @@ function Home() {
    ===================================================================== */
 function Phone({ n }) {
   const s = useShared();
-  const [pressed, setPressed] = useState(false);
-  const hold = useRef(false);
-  const hb = useRef(null);
+  const isLit = Boolean(s.lit && s.lit[n]);
+  const litCount = [1, 2, 3, 4, 5].filter((number) => s.lit && s.lit[number]).length;
 
-  const up = () => {
-    if (!hold.current) return;
-    hold.current = false;
-    setPressed(false);
-    clearInterval(hb.current);
-    put(`p/${n}`, { h: 0, t: Date.now() });
-  };
-  const down = (e) => {
-    e.preventDefault();
-    if (hold.current) return;
-    hold.current = true;
-    setPressed(true);
+  const lightDiya = () => {
+    if (isLit) return;
     if (navigator.vibrate) navigator.vibrate(40);
-    const beat = () => put(`p/${n}`, { h: 1, t: Date.now() });
-    beat();
-    hb.current = setInterval(beat, 350);
+    if (!s.phase || s.phase === "idle" || s.phase === "lit") put("phase", "open");
+    put(`lit/${n}`, true);
   };
 
   useEffect(() => {
@@ -498,29 +484,12 @@ function Phone({ n }) {
     const ping = () => put(`c/${n}`, Date.now());
     ping();
     const iv = setInterval(ping, 2500);
-    const release = () => up();
-    window.addEventListener("blur", release);
-    document.addEventListener("visibilitychange", release);
-    return () => {
-      clearInterval(iv);
-      clearInterval(hb.current);
-      window.removeEventListener("blur", release);
-      document.removeEventListener("visibilitychange", release);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => clearInterval(iv);
   }, [n]);
 
-  const ph = s.phase || "idle";
-  const disabled = ph === "lit" || ph === "welcome";
-  useEffect(() => { if (disabled) up(); /* eslint-disable-next-line */ }, [disabled]);
-
-  let status;
-  if (ph === "idle") status = pressed ? "Keep holding to light the lamp…" : "Press and hold to light the lamp";
-  else if (ph === "open") {
-    const c = s.count || 0;
-    status = pressed ? `Keep holding · ${c} of 5 holding` : `Press and hold · ${c} of 5 holding`;
-  } else if (ph === "lit") status = "The lamp is lit ✨";
-  else status = "Welcome to Quant-A-Maze 3.0";
+  const status = isLit
+    ? "Your diya is lit ✨"
+    : `${litCount} of 5 diyas lit · tap to light yours`;
 
   return (
     <div id="phone">
@@ -532,16 +501,11 @@ function Phone({ n }) {
       <div id="net" role="status" aria-live="polite">{netState || "connecting…"}</div>
       <button
         id="btn"
-        className={pressed ? "down" : ""}
-        disabled={disabled}
-        onPointerDown={(e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} down(e); }}
-        onPointerUp={up}
-        onPointerCancel={up}
-        onPointerLeave={up}
-        onLostPointerCapture={up}
-        onContextMenu={(e) => e.preventDefault()}
+        className={isLit ? "down" : ""}
+        disabled={isLit}
+        onClick={lightDiya}
       >
-        HOLD
+        {isLit ? "LIT" : "LIGHT"}
       </button>
       <div id="status">{status}</div>
     </div>
@@ -558,7 +522,7 @@ const TITLE = "Quant-A-Maze 3.0";
 function Stage() {
   const s = useShared();
   const [phase, setPhaseState] = useState("idle");
-  const [ui, setUi] = useState({ h: [0, 0, 0, 0, 0], live: [0, 0, 0, 0, 0], net: "" });
+  const [ui, setUi] = useState({ lit: [0, 0, 0, 0, 0], live: [0, 0, 0, 0, 0], net: "" });
   const phaseRef = useRef("idle");
   const barRef = useRef(null);
   const cvRef = useRef(null);
@@ -577,10 +541,9 @@ function Stage() {
   );
 
   useEffect(() => {
-    const seen = {}, seenC = {}, last = {}, lastC = {};
-    const simOn = {}, simHb = {};
+    const seenC = {}, lastC = {};
     const now = () => performance.now();
-    let holdStart = 0, litAt = 0, lastCount = -1;
+    let lastCount = -1;
 
     const setPhase = (p) => {
       phaseRef.current = p;
@@ -588,56 +551,46 @@ function Stage() {
       setPhaseState(p);
       put("phase", p);
     };
-    const ignite = () => { setPhase("lit"); litAt = now(); burstRef.current(6); };
 
-    // presence tracking by LOCAL receive time (immune to phone clock skew)
+    // Presence uses local receive time so phones do not need synchronized clocks.
     const track = (st) => {
       for (let n = 1; n <= 5; n++) {
-        const t = st.p && st.p[n] ? st.p[n].t : undefined;
-        if (t !== last[n]) { last[n] = t; seen[n] = now(); }
         const c = st.c && st.c[n];
         if (c !== lastC[n]) { lastC[n] = c; seenC[n] = now(); }
       }
     };
-    const holding = (n) => S.p && S.p[n] && S.p[n].h === 1 && now() - (seen[n] || 0) < 2200;
+    const isLit = (n) => Boolean(S.lit && S.lit[n]);
     const live = (n) => now() - (seenC[n] || -1e9) < 7000;
     const syncPhase = (sharedPhase) => {
       if (phaseRef.current === sharedPhase) return;
       phaseRef.current = sharedPhase;
       lastCount = -1;
       setPhaseState(sharedPhase);
-      if (sharedPhase === "lit") {
-        litAt = now();
-        burstRef.current(6);
-      } else if (sharedPhase === "welcome") {
+      if (sharedPhase === "welcome") {
         burstRef.current(14);
       }
     };
 
-    // tap a circle / press keys 1-5 on the stage to hold/release that person (testing / backup)
-    const simSet = (n, on) => {
-      if (!!simOn[n] === on) return;
-      if (on) {
-        const ph = S.phase || "idle";
-        if (ph === "lit" || ph === "welcome") return;
-        simOn[n] = 1;
-        const beat = () => put(`p/${n}`, { h: 1, t: Date.now() });
-        beat();
-        simHb[n] = setInterval(beat, 350);
-      } else {
-        simOn[n] = 0;
-        clearInterval(simHb[n]);
-        put(`p/${n}`, { h: 0, t: Date.now() });
-      }
+    // Stage slots and number keys simulate lighting a specific guest's diya.
+    const lightDiya = (n) => {
+      if (isLit(n) || S.phase === "welcome") return;
+      if (!S.phase || S.phase === "idle" || S.phase === "lit") setPhase("open");
+      put(`lit/${n}`, true);
     };
-    window.__qamSim = (n) => simSet(n, !simOn[n]); // used by the slot onPointerDown
+    window.__qamSim = lightDiya;
 
     const sub = (st) => {
       track(st);
-      const ph = st.phase || "idle";
-      syncPhase(ph);
-      if (ph === "lit" || ph === "welcome" || (ph === "idle" && !st.p))
-        for (let n = 1; n <= 5; n++) if (simOn[n]) simSet(n, false);
+      const litCount = [1, 2, 3, 4, 5].filter((n) => st.lit && st.lit[n]).length;
+      if (st.phase === "welcome" && litCount < 5) {
+        setPhase(litCount ? "open" : "idle");
+        return;
+      }
+      if (st.phase === "lit") {
+        setPhase("open");
+        return;
+      }
+      syncPhase(st.phase || "idle");
     };
     subs.add(sub);
     sub(S);
@@ -645,42 +598,37 @@ function Stage() {
     const onKey = (e) => {
       if (!e.repeat) {
         const m = /^(?:Digit|Numpad)([1-5])$/.exec(e.code);
-        if (m) { e.preventDefault(); simSet(+m[1], !simOn[+m[1]]); }
+        if (m) { e.preventDefault(); lightDiya(+m[1]); }
       }
       const k = e.key.toLowerCase();
-      if (k === "r") { setPhase("idle"); put("p", null); }                          // reset for rehearsal
-      if (k === "o" && phaseRef.current === "idle") setPhase("open");                 // manual: open curtains
-      if (k === "l" && phaseRef.current === "open") ignite();                         // manual: light lamp
+      if (k === "r") {
+        for (let n = 1; n <= 5; n++) put(`lit/${n}`, false);
+        put("count", 0);
+        setPhase("idle");
+        put("p", null);
+      }
+      if (k === "o" && phaseRef.current === "idle") setPhase("open");
     };
     window.addEventListener("keydown", onKey);
 
     const tick = setInterval(() => {
-      const h = [1, 2, 3, 4, 5].map((n) => (holding(n) ? 1 : 0));
+      const lit = [1, 2, 3, 4, 5].map((n) => (isLit(n) ? 1 : 0));
       const lv = [1, 2, 3, 4, 5].map((n) => (live(n) ? 1 : 0));
-      const cnt = h.reduce((a, b) => a + b, 0);
+      const cnt = lit.reduce((a, b) => a + b, 0);
       const net = (netState ? netState + " · " : "") + lv.filter(Boolean).length + "/5 phones";
       setUi((u) =>
-        u.net === net && u.h.join() === h.join() && u.live.join() === lv.join() ? u : { h, live: lv, net }
+        u.net === net && u.lit.join() === lit.join() && u.live.join() === lv.join() ? u : { lit, live: lv, net }
       );
 
-      const ph = phaseRef.current;
-      if (ph === "idle" && cnt > 0) setPhase("open");
+      if ((phaseRef.current === "idle" || phaseRef.current === "lit") && cnt > 0) setPhase("open");
       if (phaseRef.current === "open") {
         if (cnt !== lastCount) { lastCount = cnt; put("count", cnt); }
         const bar = barRef.current;
-        if (cnt > 0) {
-          if (!holdStart) holdStart = now();
-          const pr = Math.min(1, (now() - holdStart) / CONFIG.holdMs);
-          if (bar) bar.style.width = pr * 100 + "%";
-          if (pr >= 1) { holdStart = 0; ignite(); }
-        } else {
-          holdStart = 0;
-          if (bar) bar.style.width = "0";
+        if (bar) bar.style.width = `${cnt * 20}%`;
+        if (cnt === 5) {
+          setPhase("welcome");
+          burstRef.current(14);
         }
-      }
-      if (phaseRef.current === "lit" && now() - litAt > CONFIG.flameMs) {
-        setPhase("welcome");
-        burstRef.current(14);
       }
     }, 80);
 
@@ -720,14 +668,13 @@ function Stage() {
       window.removeEventListener("resize", fit);
       clearInterval(tick);
       cancelAnimationFrame(raf);
-      for (const n in simHb) clearInterval(simHb[n]);
       delete window.__qamSim;
     };
   }, []);
 
   const cls = [
     phase !== "idle" && "open",
-    (phase === "lit" || phase === "welcome") && phase,
+    phase === "welcome" && "welcome",
     !CONFIG.showStatus && Q.get("hud") !== "1" && "nohud",
   ].filter(Boolean).join(" ");
 
@@ -760,7 +707,9 @@ function Stage() {
             </radialGradient>
           </defs>
           <g className="glow">
-            {CUP_X.map((x) => <circle key={x} cx={x} cy={215} r={90} fill="url(#gl)" />)}
+            {CUP_X.map((x, i) => (
+              <circle key={x} className={ui.lit[i] ? "active" : ""} cx={x} cy={215} r={90} fill="url(#gl)" />
+            ))}
           </g>
           <path d="M285 300h30v280h-30z" fill="url(#brass)" />
           <ellipse cx="300" cy="360" rx="34" ry="14" fill="url(#brass)" />
@@ -778,8 +727,8 @@ function Stage() {
             ))}
           </g>
           <g>
-            {CUP_X.map((x) => (
-              <path key={x} className="flame" fill="url(#fg)"
+            {CUP_X.map((x, i) => (
+              <path key={x} className={`flame${ui.lit[i] ? " active" : ""}`} fill="url(#fg)"
                 d={`M${x} 262c-20-14-24-40-8-62 4-6 6-14 6-26 16 14 30 34 24 56-3 14-10 24-22 32z`} />
             ))}
           </g>
@@ -791,7 +740,7 @@ function Stage() {
           {[1, 2, 3, 4, 5].map((n) => (
             <div
               key={n}
-              className={"slot" + (ui.h[n - 1] ? " on" : "") + (ui.live[n - 1] && !ui.h[n - 1] ? " live" : "")}
+              className={"slot" + (ui.lit[n - 1] ? " on" : "") + (ui.live[n - 1] && !ui.lit[n - 1] ? " live" : "")}
               onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); window.__qamSim && window.__qamSim(n); }}
             >
               <i /><span>{nameOf(n)}</span>
@@ -799,7 +748,7 @@ function Stage() {
           ))}
         </div>
         <div id="bar"><b ref={barRef} /></div>
-        <div id="hint">PRESS AND HOLD A PHONE BUTTON TO LIGHT THE LAMP</div>
+        <div id="hint">EACH PHONE LIGHTS ITS OWN DIYA · ALL FIVE TO REVEAL THE WELCOME</div>
       </div>
 
       <div id="welcome">

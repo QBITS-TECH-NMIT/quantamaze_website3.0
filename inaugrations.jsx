@@ -1,19 +1,41 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import HandWithCandle from "./src/components/inauguration/HandWithCandle";
+import LampViewport from "./src/components/inauguration/LampViewport";
 
 /* =====================================================================
    Quant-A-Maze 3.0 · Inauguration
    One component, three views, chosen by the URL:
      (no params)        -> landing page with the stage + phone links
      ?role=stage        -> auditorium display
-     ?p=1 ... ?p=5      -> a guest's phone (optional &n1=Name label)
+     ?p=1 ... ?p={NUM_DIYAS} -> a guest's phone (optional &n1=Name label)
    Realtime sync: Supabase Postgres changes for the shared qam3 room.
    ===================================================================== */
 
+const NUM_DIYAS = 7; // single cap for diyas and guest phones (was 5)
+const GUEST_IDS = Array.from({ length: NUM_DIYAS }, (_, i) => i + 1);
+const BOWL_RX = 38; // measured bowl half-width — do not shrink
+const BOWL_W = BOWL_RX * 2;
+const GLOW_R = 90;
+const GLOW_DY = 47; // original glow cy 215 vs rim 262
+const RING_R = 2.3 * BOWL_W; // --ring-radius; 2.0*W let neighbor glows clip bowls
+const RING_CX = 300;
+const RING_CY = 135; // sits above the unchanged discs (360 / 440 / 520) and dome
+const RING_BAND = 36;
+const HUB_R = 24;
+const RING_POSITIONS = GUEST_IDS.map((_, i) => {
+  const angle = ((-90 + i * (360 / NUM_DIYAS)) * Math.PI) / 180; // 0 at top, then clockwise
+  return { x: RING_CX + RING_R * Math.cos(angle), y: RING_CY + RING_R * Math.sin(angle), angle };
+});
+const LAMP_VIEW_X = 0;
+const LAMP_VIEW_Y = Math.floor(RING_CY - RING_R - GLOW_DY - GLOW_R - 8);
+const LAMP_VIEW_W = 600;
+const LAMP_VIEW_H = 700 - LAMP_VIEW_Y;
+
 const CONFIG = {
   room: "qam3",
-  showStatus: false, // true = show the five circles + bar on the stage (or add &hud=1)
-  names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student"], // fallback labels for 1..5
+  showStatus: false, // true = show the guest circles + bar on the stage (or add &hud=1)
+  names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student", "Student", "Student"], // fallback labels for 1..NUM_DIYAS
 };
 
 /* ---------------- tiny realtime layer (module-level) ---------------- */
@@ -244,15 +266,22 @@ const CSS = `
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family:var(--body);overflow:hidden;touch-action:none}
+body.qam-screen-display>header,body.qam-screen-display>footer,body.qam-screen-display>nav.mobile-taskbar{display:none!important}
+body.qam-screen-display>.mobile-page-shell{padding-bottom:0!important}
+body.qam-screen-display #valance{display:none}
 
 /* STAGE */
 #stage{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 85%,#1a1512 0%,var(--ink) 65%)}
-#math{position:absolute;inset:0;overflow:hidden;opacity:.14}
+#math{position:absolute;inset:0;overflow:hidden;opacity:.14;pointer-events:none}
 #math span{position:absolute;font-family:var(--display);color:var(--gold);animation:drift linear infinite}
 @keyframes drift{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-20vh) rotate(40deg)}}
-#lampWrap{position:absolute;left:50%;bottom:-2vh;height:92vh;aspect-ratio:600/700;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
+#lampWrap{position:absolute;left:50%;bottom:6vh;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
 #stage.open #lampWrap{transform:translate(-50%,0)}
+#lampLayer{position:relative;width:100%;height:100%;overflow:hidden;--ring-radius:${RING_R};--ring-cx:${RING_CX};--ring-cy:${RING_CY}}
+#stage.zoom-expanded #lampWrap{z-index:7;bottom:-10vh;width:120vw;height:120vh;aspect-ratio:auto;transition:width .35s ease,height .35s ease,bottom .35s ease}
+#stage.zoom-expanded #lampLayer{overflow:visible}
 #lampWrap svg{width:100%;height:100%;overflow:visible}
+#lampLayer canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none}
 .flame{transform-box:fill-box;transform-origin:50% 100%;transform:scale(0);opacity:0}
 .flame.active{opacity:1;animation:ignite .9s ease-out forwards,flick 1.3s ease-in-out .9s infinite}
 .flame.active:nth-child(2n){animation-duration:.9s,1.1s}
@@ -371,7 +400,9 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
 #home .phone-card:nth-child(2){animation-delay:280ms}
 #home .phone-card:nth-child(3){animation-delay:350ms}
 #home .phone-card:nth-child(4){animation-delay:420ms}
-#home .phone-card:nth-child(5){grid-column:1/-1;width:calc(50% - 7px);justify-self:center;animation-delay:490ms}
+#home .phone-card:nth-child(5){animation-delay:490ms}
+#home .phone-card:nth-child(6){animation-delay:560ms}
+#home .phone-card:nth-child(7){grid-column:1/-1;width:calc(50% - 7px);justify-self:center;animation-delay:630ms}
 #home .phone-card .home-card-link{min-height:56px;padding-top:15px;padding-bottom:15px;font-size:16px}
 #home .name-field{position:relative;padding:0 18px 12px 22px}
 #home .name-field::after{position:absolute;right:18px;bottom:8px;left:22px;height:1px;content:"";background:rgba(245,89,10,.55);transform:scaleX(.35);transform-origin:center;transition:transform 220ms cubic-bezier(.16,1,.3,1)}
@@ -388,7 +419,7 @@ html,body,#root{height:100%;background:var(--ink);color:var(--ivory);font-family
  #home .home-stage{min-height:120px}
  #home .home-sphere-wrap{top:30%;right:-26vw;width:76vw;opacity:.2}
  #home .phone-grid{grid-template-columns:minmax(0,1fr);gap:12px}
- #home .phone-card:nth-child(5){grid-column:auto;width:auto}
+ #home .phone-card:nth-child(7){grid-column:auto;width:auto}
  #home .phone-card .home-card-link{min-height:48px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -460,7 +491,7 @@ function Home() {
           <span className="card-arrow" aria-hidden="true">↗</span>
         </a>
         <div className="phone-grid">
-          {[1, 2, 3, 4, 5].map((n) => (
+          {GUEST_IDS.map((n) => (
             <div className="home-card phone-card" key={n}>
               <a className="home-card-link" href={link(n)} target="_blank" rel="noreferrer">
                 <span className="card-sweep" aria-hidden="true" />
@@ -489,7 +520,7 @@ function Home() {
 function Phone({ n }) {
   const s = useShared();
   const isLit = Boolean(s.lit && s.lit[n]);
-  const litCount = [1, 2, 3, 4, 5].filter((number) => s.lit && s.lit[number]).length;
+  const litCount = GUEST_IDS.filter((number) => s.lit && s.lit[number]).length;
 
   const lightDiya = () => {
     if (isLit) return;
@@ -508,7 +539,7 @@ function Phone({ n }) {
 
   const status = isLit
     ? "Your diya is lit ✨"
-    : `${litCount} of 5 diyas lit · tap to light yours`;
+    : `${litCount} of ${NUM_DIYAS} diyas lit · tap to light yours`;
 
   return (
     <div id="phone">
@@ -535,13 +566,27 @@ function Phone({ n }) {
    STAGE
    ===================================================================== */
 const SYMBOLS = ["∑", "∫", "π", "√", "∞", "Δ", "θ", "λ", "≈", "φ", "∂", "Ω"];
-const CUP_X = [90, 195, 300, 405, 510];
 const TITLE = "Quant-A-Maze 3.0";
 
 function Stage() {
   const s = useShared();
   const [phase, setPhaseState] = useState("idle");
-  const [ui, setUi] = useState({ lit: [0, 0, 0, 0, 0], live: [0, 0, 0, 0, 0], net: "" });
+  const [zoomExpanded, setZoomExpanded] = useState(false);
+  const [ui, setUi] = useState({ lit: Array(NUM_DIYAS).fill(0), live: Array(NUM_DIYAS).fill(0), net: "" });
+  const [visualLit, setVisualLit] = useState(() => Array(NUM_DIYAS).fill(0));
+  const lampRef = useRef(null);
+  const fallbackDiyaRefs = useRef([]);
+  const diyaRefs = useRef([]);
+  const rotateLampRef = useRef(null);
+  const fallbackDiyaRefCallbacks = useMemo(
+    () => GUEST_IDS.map((_, i) => (element) => { fallbackDiyaRefs.current[i] = element; }),
+    []
+  );
+  const diyaRefCallbacks = useMemo(
+    () => GUEST_IDS.map((_, i) => (element) => { diyaRefs.current[i] = element; }),
+    []
+  );
+  const enqueueLightRef = useRef(() => {});
   const phaseRef = useRef("idle");
   const barRef = useRef(null);
   const cvRef = useRef(null);
@@ -573,7 +618,7 @@ function Stage() {
 
     // Presence uses local receive time so phones do not need synchronized clocks.
     const track = (st) => {
-      for (let n = 1; n <= 5; n++) {
+      for (const n of GUEST_IDS) {
         const c = st.c && st.c[n];
         if (c !== lastC[n]) { lastC[n] = c; seenC[n] = now(); }
       }
@@ -600,8 +645,8 @@ function Stage() {
 
     const sub = (st) => {
       track(st);
-      const litCount = [1, 2, 3, 4, 5].filter((n) => st.lit && st.lit[n]).length;
-      if (st.phase === "welcome" && litCount < 5) {
+      const litCount = GUEST_IDS.filter((n) => st.lit && st.lit[n]).length;
+      if (st.phase === "welcome" && litCount < NUM_DIYAS) {
         setPhase(litCount ? "open" : "idle");
         return;
       }
@@ -616,12 +661,12 @@ function Stage() {
 
     const onKey = (e) => {
       if (!e.repeat) {
-        const m = /^(?:Digit|Numpad)([1-5])$/.exec(e.code);
+        const m = new RegExp(`^(?:Digit|Numpad)([1-${NUM_DIYAS}])$`).exec(e.code);
         if (m) { e.preventDefault(); lightDiya(+m[1]); }
       }
       const k = e.key.toLowerCase();
       if (k === "r") {
-        for (let n = 1; n <= 5; n++) put(`lit/${n}`, false);
+        for (const n of GUEST_IDS) put(`lit/${n}`, false);
         put("count", 0);
         setPhase("idle");
         put("p", null);
@@ -631,23 +676,22 @@ function Stage() {
     window.addEventListener("keydown", onKey);
 
     const tick = setInterval(() => {
-      const lit = [1, 2, 3, 4, 5].map((n) => (isLit(n) ? 1 : 0));
-      const lv = [1, 2, 3, 4, 5].map((n) => (live(n) ? 1 : 0));
+      const lit = GUEST_IDS.map((n) => (isLit(n) ? 1 : 0));
+      const lv = GUEST_IDS.map((n) => (live(n) ? 1 : 0));
       const cnt = lit.reduce((a, b) => a + b, 0);
-      const net = (netState ? netState + " · " : "") + lv.filter(Boolean).length + "/5 phones";
+      const net = (netState ? netState + " · " : "") + lv.filter(Boolean).length + "/" + NUM_DIYAS + " phones";
       setUi((u) =>
         u.net === net && u.lit.join() === lit.join() && u.live.join() === lv.join() ? u : { lit, live: lv, net }
       );
+
+      // Reuse the existing shared-lit trigger; the hand queue delays the flame until the wick is touched.
+      lit.forEach((on, i) => { if (on) enqueueLightRef.current(i); });
 
       if ((phaseRef.current === "idle" || phaseRef.current === "lit") && cnt > 0) setPhase("open");
       if (phaseRef.current === "open") {
         if (cnt !== lastCount) { lastCount = cnt; put("count", cnt); }
         const bar = barRef.current;
-        if (bar) bar.style.width = `${cnt * 20}%`;
-        if (cnt === 5) {
-          setPhase("welcome");
-          burstRef.current(14);
-        }
+        if (bar) bar.style.width = `${(cnt / NUM_DIYAS) * 100}%`;
       }
     }, 80);
 
@@ -691,13 +735,33 @@ function Stage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (visualLit.reduce((a, b) => a + b, 0) !== NUM_DIYAS) return;
+    if (phaseRef.current === "welcome") return;
+    phaseRef.current = "welcome";
+    setPhaseState("welcome");
+    put("phase", "welcome");
+    burstRef.current(14);
+  }, [visualLit]);
+
   const cls = [
     phase !== "idle" && "open",
+    zoomExpanded && "zoom-expanded",
     phase === "welcome" && "welcome",
     !CONFIG.showStatus && Q.get("hud") !== "1" && "nohud",
   ].filter(Boolean).join(" ");
 
-  const onStageDown = () => { if (phaseRef.current === "idle") { phaseRef.current = "open"; setPhaseState("open"); put("phase", "open"); } };
+  const onStageDown = () => {
+    if (phaseRef.current !== "idle") return;
+    phaseRef.current = "open";
+    setPhaseState("open");
+    put("phase", "open");
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch((error) => {
+        console.warn("[Inauguration] Fullscreen mode could not be enabled.", error);
+      });
+    }
+  };
 
   return (
     <div id="stage" className={cls} onPointerDown={onStageDown}>
@@ -712,7 +776,33 @@ function Stage() {
       <div id="idleMsg"><h1>Quant-A-Maze 3.0</h1><p>THE INAUGURATION BEGINS WITH ONE TOUCH</p></div>
 
       <div id="lampWrap">
-        <svg viewBox="0 0 600 700" aria-hidden="true">
+        <div id="lampLayer" ref={lampRef}>
+        <LampViewport
+          fallbackDiyaRefs={fallbackDiyaRefs}
+          diyaRefs={diyaRefs}
+          diyaRefCallbacks={diyaRefCallbacks}
+          rotateLampRef={rotateLampRef}
+          onZoomChange={setZoomExpanded}
+          lit={visualLit}
+          overlay={(activeDiyaRefs) => (
+            <HandWithCandle
+              containerRef={lampRef}
+              diyaRefs={activeDiyaRefs}
+              rotateLampRef={rotateLampRef}
+              enqueueLightRef={enqueueLightRef}
+              sharedLitKey={GUEST_IDS.map((n) => (s.lit && s.lit[n] ? "1" : "0")).join("")}
+              onIgnite={(i) => setVisualLit((prev) => {
+                if (prev[i]) return prev;
+                const next = prev.slice();
+                next[i] = 1;
+                return next;
+              })}
+              onClear={() => setVisualLit(Array(NUM_DIYAS).fill(0))}
+            />
+          )}
+          fallback={
+          <>
+        <svg viewBox={`${LAMP_VIEW_X} ${LAMP_VIEW_Y} ${LAMP_VIEW_W} ${LAMP_VIEW_H}`} aria-hidden="true">
           <defs>
             <linearGradient id="brass" x1="0" x2="1">
               <stop offset="0" stopColor="#752605" /><stop offset=".35" stopColor="#ff8c3a" />
@@ -726,37 +816,65 @@ function Stage() {
             </radialGradient>
           </defs>
           <g className="glow">
-            {CUP_X.map((x, i) => (
-              <circle key={x} className={ui.lit[i] ? "active" : ""} cx={x} cy={215} r={90} fill="url(#gl)" />
+            {RING_POSITIONS.map((p, i) => (
+              <circle key={i} className={visualLit[i] ? "active" : ""} cx={p.x} cy={p.y - GLOW_DY} r={GLOW_R} fill="url(#gl)" />
             ))}
           </g>
-          <path d="M285 300h30v280h-30z" fill="url(#brass)" />
+          {/* Pole behind the ring; passes between bottom diyas 3 and 4. Discs + dome unchanged. */}
+          <path d={`M285 ${RING_CY}h30v${580 - RING_CY}h-30z`} fill="url(#brass)" />
           <ellipse cx="300" cy="360" rx="34" ry="14" fill="url(#brass)" />
           <ellipse cx="300" cy="440" rx="42" ry="16" fill="url(#brass)" />
           <ellipse cx="300" cy="520" rx="34" ry="14" fill="url(#brass)" />
           <path d="M180 690c0-70 50-110 120-110s120 40 120 110z" fill="url(#brass)" />
           <ellipse cx="300" cy="582" rx="62" ry="12" fill="url(#brass)" />
-          <path d="M40 270h520c0 26-24 40-50 40H90c-26 0-50-14-50-40z" fill="url(#brass)" />
+          {/* Circular copper band + hub + spokes (replaces the horizontal bar). */}
+          <circle cx={RING_CX} cy={RING_CY} r={RING_R} fill="none" stroke="url(#brass)" strokeWidth={RING_BAND} />
+          {RING_POSITIONS.map((p, i) => (
+            <line
+              key={`spoke-${i}`}
+              x1={RING_CX + HUB_R * Math.cos(p.angle)}
+              y1={RING_CY + HUB_R * Math.sin(p.angle)}
+              x2={RING_CX + (RING_R - RING_BAND / 2) * Math.cos(p.angle)}
+              y2={RING_CY + (RING_R - RING_BAND / 2) * Math.sin(p.angle)}
+              stroke="url(#brass)"
+              strokeWidth="3"
+              opacity="0.85"
+            />
+          ))}
+          <circle cx={RING_CX} cy={RING_CY} r={HUB_R} fill="url(#brass)" />
+          <circle cx={RING_CX} cy={RING_CY} r={HUB_R * 0.45} fill="url(#brass)" opacity="0.55" />
           <g>
-            {CUP_X.map((x) => (
-              <g key={x}>
-                <path d={`M${x - 38} 262c0 22 16 34 38 34s38-12 38-34z`} fill="url(#brass)" />
-                <ellipse cx={x} cy={262} rx={38} ry={7} fill="#3a1b10" />
+            {RING_POSITIONS.map((p, i) => (
+              <g key={i} data-diya-index={i} transform={`translate(${p.x} ${p.y})`}>
+                <path d={`M${-BOWL_RX} 0c0 22 16 34 ${BOWL_RX} 34s${BOWL_RX}-12 ${BOWL_RX}-34z`} fill="url(#brass)" />
+                <ellipse
+                  ref={fallbackDiyaRefCallbacks[i]}
+                  data-diya-index={i}
+                  cx={0}
+                  cy={0}
+                  rx={BOWL_RX}
+                  ry={7}
+                  fill="#3a1b10"
+                />
               </g>
             ))}
           </g>
           <g>
-            {CUP_X.map((x, i) => (
-              <path key={x} className={`flame${ui.lit[i] ? " active" : ""}`} fill="url(#fg)"
-                d={`M${x} 262c-20-14-24-40-8-62 4-6 6-14 6-26 16 14 30 34 24 56-3 14-10 24-22 32z`} />
+            {RING_POSITIONS.map((p, i) => (
+              <path key={i} className={`flame${visualLit[i] ? " active" : ""}`} fill="url(#fg)"
+                d={`M${p.x} ${p.y}c-20-14-24-40-8-62 4-6 6-14 6-26 16 14 30 34 24 56-3 14-10 24-22 32z`} />
             ))}
           </g>
         </svg>
+          </>
+          }
+        />
+        </div>
       </div>
 
       <div id="hud">
         <div id="slots">
-          {[1, 2, 3, 4, 5].map((n) => (
+          {GUEST_IDS.map((n) => (
             <div
               key={n}
               className={"slot" + (ui.lit[n - 1] ? " on" : "") + (ui.live[n - 1] && !ui.lit[n - 1] ? " live" : "")}
@@ -803,14 +921,17 @@ function Stage() {
    ROOT
    ===================================================================== */
 export default function Inaugurations() {
-  useEffect(() => { document.title = "Quant-A-Maze 3.0 · Inauguration"; }, []);
-
   const role = Q.get("role");
   const pid = parseInt(Q.get("p"), 10);
+  useEffect(() => {
+    document.title = "Quant-A-Maze 3.0 · Inauguration";
+    document.body.classList.toggle("qam-screen-display", role === "stage");
+    return () => document.body.classList.remove("qam-screen-display");
+  }, [role]);
 
   let view;
   if (role === "stage") view = <Stage />;
-  else if (pid >= 1 && pid <= 5) view = <Phone n={pid} />;
+  else if (pid >= 1 && pid <= NUM_DIYAS) view = <Phone n={pid} />;
   else view = <Home />;
 
   return (

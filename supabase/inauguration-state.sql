@@ -1,3 +1,4 @@
+-- Guest slots and diyas are 1..7 (NUM_DIYAS). Re-run this file after raising the cap.
 create table if not exists public.inauguration_state (
   room_id text not null default 'qam3',
   state_key text not null,
@@ -7,19 +8,19 @@ create table if not exists public.inauguration_state (
   constraint inauguration_state_room_check check (room_id = 'qam3'),
   constraint inauguration_state_key_check check (
     state_key in ('phase', 'count')
-    or state_key ~ '^(p|names|c|lit)/[1-5]$'
+    or state_key ~ '^(p|names|c|lit)/[1-7]$'
   ),
   constraint inauguration_state_value_check check (
     (state_key = 'phase' and value in ('"idle"'::jsonb, '"open"'::jsonb, '"lit"'::jsonb, '"welcome"'::jsonb))
     or (
       state_key = 'count'
       and case
-        when jsonb_typeof(value) = 'number' then (value #>> '{}')::numeric between 0 and 5
+        when jsonb_typeof(value) = 'number' then (value #>> '{}')::numeric between 0 and 7
         else false
       end
     )
     or (
-      state_key ~ '^p/[1-5]$'
+      state_key ~ '^p/[1-7]$'
       and jsonb_typeof(value) = 'object'
       and value ?& array['h', 't']
       and value->'h' in ('0'::jsonb, '1'::jsonb)
@@ -27,18 +28,18 @@ create table if not exists public.inauguration_state (
       and value - 'h' - 't' = '{}'::jsonb
     )
     or (
-      state_key ~ '^names/[1-5]$'
+      state_key ~ '^names/[1-7]$'
       and case
         when jsonb_typeof(value) = 'string' then char_length(value #>> '{}') <= 80
         else false
       end
     )
     or (
-      state_key ~ '^c/[1-5]$'
+      state_key ~ '^c/[1-7]$'
       and jsonb_typeof(value) = 'number'
     )
     or (
-      state_key ~ '^lit/[1-5]$'
+      state_key ~ '^lit/[1-7]$'
       and jsonb_typeof(value) = 'boolean'
     )
   )
@@ -51,19 +52,19 @@ alter table public.inauguration_state
 alter table public.inauguration_state
   add constraint inauguration_state_key_check check (
     state_key in ('phase', 'count')
-    or state_key ~ '^(p|names|c|lit)/[1-5]$'
+    or state_key ~ '^(p|names|c|lit)/[1-7]$'
   ),
   add constraint inauguration_state_value_check check (
     (state_key = 'phase' and value in ('"idle"'::jsonb, '"open"'::jsonb, '"lit"'::jsonb, '"welcome"'::jsonb))
     or (
       state_key = 'count'
       and case
-        when jsonb_typeof(value) = 'number' then (value #>> '{}')::numeric between 0 and 5
+        when jsonb_typeof(value) = 'number' then (value #>> '{}')::numeric between 0 and 7
         else false
       end
     )
     or (
-      state_key ~ '^p/[1-5]$'
+      state_key ~ '^p/[1-7]$'
       and jsonb_typeof(value) = 'object'
       and value ?& array['h', 't']
       and value->'h' in ('0'::jsonb, '1'::jsonb)
@@ -71,18 +72,18 @@ alter table public.inauguration_state
       and value - 'h' - 't' = '{}'::jsonb
     )
     or (
-      state_key ~ '^names/[1-5]$'
+      state_key ~ '^names/[1-7]$'
       and case
         when jsonb_typeof(value) = 'string' then char_length(value #>> '{}') <= 80
         else false
       end
     )
     or (
-      state_key ~ '^c/[1-5]$'
+      state_key ~ '^c/[1-7]$'
       and jsonb_typeof(value) = 'number'
     )
     or (
-      state_key ~ '^lit/[1-5]$'
+      state_key ~ '^lit/[1-7]$'
       and jsonb_typeof(value) = 'boolean'
     )
   );

@@ -1,0 +1,126 @@
+diff --git a/src/components/MembersSection.jsx b/src/components/MembersSection.jsx
+index 3928fba..e747bcf 100644
+--- a/src/components/MembersSection.jsx
++++ b/src/components/MembersSection.jsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { memo, useState } from "react";
++import { memo, useEffect, useState } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
+ import dynamic from "next/dynamic";
+ import {
+@@ -180,6 +180,57 @@ export const DOMAINS_DATA = Array.isArray(GENERATED_DOMAINS_DATA) && GENERATED_D
+ // ANIMATION VARIANTS
+ // ─────────────────────────────────────────────────────────────────
+ 
++// ─────────────────────────────────────────────────────────────────
++// LIVE ROSTER (Supabase, managed from /admin/members)
++// Falls back to the generated static roster above if the fetch fails
++// or the table is empty.
++// ─────────────────────────────────────────────────────────────────
++
++function rowToMember(row) {
++  return {
++    name: row.name,
++    role: row.role,
++    code: row.code || undefined,
++    photo: row.photo_url || null,
++    photoUrl: row.photo_url || null,
++    isHead: row.is_head || undefined,
++    isTopLeadership: row.is_top_leadership || undefined,
++    imagePosition: row.image_position || undefined,
++  };
++}
++
++function buildLiveRoster(rows) {
++  if (!Array.isArray(rows) || rows.length === 0) return null;
++  const byGroup = (id) => rows.filter((row) => row.group_id === id).map(rowToMember);
++  const domains = DOMAINS_DATA
++    .map((domain) => ({ ...domain, members: byGroup(domain.id) }))
++    .filter((domain) => domain.members.length > 0);
++  return { faculty: byGroup("faculty"), leadership: byGroup("leadership"), domains };
++}
++
++function useLiveRoster() {
++  const [state, setState] = useState({ status: "loading", roster: null });
++
++  useEffect(() => {
++    let active = true;
++    fetch("/api/members")
++      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("members request failed"))))
++      .then((data) => {
++        if (!active) return;
++        const roster = buildLiveRoster(data.members);
++        setState({ status: roster ? "ready" : "fallback", roster });
++      })
++      .catch(() => {
++        if (active) setState({ status: "fallback", roster: null });
++      });
++    return () => {
++      active = false;
++    };
++  }, []);
++
++  return state;
++}
++
+ const easeOut = [0.16, 1, 0.3, 1];
+ 
+ const sectionVariants = {
+@@ -543,7 +594,7 @@ export function ViewToggle({ view, onChange }) {
+ // QUICK DOMAIN JUMP NAVIGATOR CHIPS
+ // ─────────────────────────────────────────────────────────────────
+ 
+-function DomainQuickBar({ compact = false }) {
++function DomainQuickBar({ compact = false, domains = DOMAINS_DATA }) {
+   const scrollTo = (id) => {
+     const el = document.getElementById(id);
+     if (el) {
+@@ -571,7 +622,7 @@ function DomainQuickBar({ compact = false }) {
+         >
+           Leadership
+         </button>
+-        {DOMAINS_DATA.map((d) => (
++        {domains.map((d) => (
+           <button
+             key={d.id}
+             type="button"
+@@ -592,6 +643,8 @@ function DomainQuickBar({ compact = false }) {
+ 
+ export default function MembersSection({ showHeader = true, compact = false }) {
+   const [view, setView] = useState("2d");
++  const { status, roster } = useLiveRoster();
++  const data = roster || { faculty: FACULTY_DATA, leadership: LEADERSHIP_DATA, domains: DOMAINS_DATA };
+ 
+   return (
+     <div className={`relative w-full ${compact ? "py-2" : "py-4"}`}>
+@@ -639,11 +692,13 @@ export default function MembersSection({ showHeader = true, compact = false }) {
+       )}
+ 
+       {/* Quick Domain Navigation Bar */}
+-      {view === "2d" && <DomainQuickBar compact={compact} />}
++      {view === "2d" && status !== "loading" && <DomainQuickBar compact={compact} domains={data.domains} />}
+ 
+       {/* Smooth Crossfade View Switcher */}
+       <AnimatePresence mode="wait">
+-        {view === "2d" ? (
++        {status === "loading" ? (
++          <div key="roster-loading" className="min-h-[60vh]" role="status" aria-label="Loading members" />
++        ) : view === "2d" ? (
+           <motion.div
+             key="view-2d"
+             variants={viewTransitionVariants}
+@@ -651,10 +706,10 @@ export default function MembersSection({ showHeader = true, compact = false }) {
+             animate="visible"
+             exit="exit"
+           >
+-            <View2D />
++            <View2D leadership={data.leadership} faculty={data.faculty} domains={data.domains} />
+           </motion.div>
+         ) : (
+-          <View3D key="view-3d" view={view} onViewChange={setView} />
++          <View3D key="view-3d" leadership={data.leadership} faculty={data.faculty} domains={data.domains} view={view} onViewChange={setView} />
+         )}
+       </AnimatePresence>
+     </div>

@@ -272,9 +272,7 @@ body.qam-screen-display #valance{display:none}
 
 /* STAGE */
 #stage{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 85%,#1a1512 0%,var(--ink) 65%)}
-#math{position:absolute;inset:0;overflow:hidden;opacity:.14;pointer-events:none}
-#math span{position:absolute;font-family:var(--display);color:var(--gold);animation:drift linear infinite}
-@keyframes drift{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-20vh) rotate(40deg)}}
+#quantum-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:.82}
 #lampWrap{position:absolute;left:50%;bottom:6vh;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
 #stage.open #lampWrap{transform:translate(-50%,0)}
 #lampLayer{position:relative;width:100%;height:100%;overflow:hidden;--ring-radius:${RING_R};--ring-cx:${RING_CX};--ring-cy:${RING_CY}}
@@ -354,6 +352,10 @@ body.qam-screen-display #valance{display:none}
 #phone #net{position:fixed;top:12px;right:12px;font-size:12px;opacity:.65}
 #btn{position:relative;width:min(70vw,46vh);aspect-ratio:1;border-radius:50%;border:3px solid var(--gold);background:radial-gradient(circle at 50% 35%,#24201e,#111111);color:var(--ivory);font:700 22px var(--display);letter-spacing:.14em;display:grid;place-items:center;touch-action:none;transition:transform .12s,box-shadow .2s;box-shadow:0 0 0 10px rgba(245,89,10,.08);-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #btn.down{transform:scale(.94);background:radial-gradient(circle at 50% 35%,var(--flame2),var(--flame) 55%,#a33b0c);color:#0a0a0a;box-shadow:0 0 90px 18px rgba(245,89,10,.55)}
+#btn.holding{overflow:hidden}
+#btn .hold-progress{position:absolute;left:18%;right:18%;bottom:22%;height:4px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden}
+#btn .hold-progress i{display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left;background:#fff2d6;animation:hold-fill 2.5s linear forwards}
+@keyframes hold-fill{to{transform:scaleX(1)}}
 #btn:disabled{opacity:.35}
 #status{font-size:17px;font-weight:300;text-align:center;min-height:48px;letter-spacing:.04em}
 
@@ -431,7 +433,7 @@ body.qam-screen-display #valance{display:none}
  #home .home-card::after,#home .card-sweep{display:none}
 }
 #banner{position:fixed;left:0;right:0;bottom:0;z-index:99;background:#f5590a;color:#0a0a0a;font-size:12px;text-align:center;padding:4px}
-@media (prefers-reduced-motion:reduce){#math{display:none}}
+@media (prefers-reduced-motion:reduce){#quantum-backdrop{opacity:.68}}
 `;
 
 /* =====================================================================
@@ -521,6 +523,8 @@ function Phone({ n }) {
   const s = useShared();
   const isLit = Boolean(s.lit && s.lit[n]);
   const litCount = GUEST_IDS.filter((number) => s.lit && s.lit[number]).length;
+  const holdTimerRef = useRef(null);
+  const [holding, setHolding] = useState(false);
 
   const lightDiya = () => {
     if (isLit) return;
@@ -528,6 +532,24 @@ function Phone({ n }) {
     if (!s.phase || s.phase === "idle" || s.phase === "lit") put("phase", "open");
     put(`lit/${n}`, true);
   };
+
+  const cancelHold = () => {
+    window.clearTimeout(holdTimerRef.current);
+    holdTimerRef.current = null;
+    setHolding(false);
+  };
+  const startHold = (event) => {
+    if (isLit || holdTimerRef.current) return;
+    event.preventDefault();
+    setHolding(true);
+    holdTimerRef.current = window.setTimeout(() => {
+      holdTimerRef.current = null;
+      setHolding(false);
+      lightDiya();
+    }, 2500);
+  };
+
+  useEffect(() => () => window.clearTimeout(holdTimerRef.current), []);
 
   useEffect(() => {
     put(`names/${n}`, Q.get("n" + n) || null);
@@ -551,13 +573,18 @@ function Phone({ n }) {
       <div id="net" role="status" aria-live="polite">{netState || "connecting…"}</div>
       <button
         id="btn"
-        className={isLit ? "down" : ""}
+        className={`${isLit ? "down" : ""}${holding ? " holding" : ""}`}
         disabled={isLit}
-        onClick={lightDiya}
+        onPointerDown={startHold}
+        onPointerUp={cancelHold}
+        onPointerCancel={cancelHold}
+        onPointerLeave={cancelHold}
+        onContextMenu={(event) => event.preventDefault()}
       >
-        {isLit ? "LIT" : "LIGHT"}
+        <span>{isLit ? "LIT" : holding ? "HOLD" : "LIGHT"}</span>
+        {holding ? <span className="hold-progress" aria-hidden="true"><i /></span> : null}
       </button>
-      <div id="status">{status}</div>
+      <div id="status">{isLit ? status : holding ? "Keep holding to light your diya…" : "Press and hold for 2.5 seconds to light your diya"}</div>
     </div>
   );
 }
@@ -565,8 +592,82 @@ function Phone({ n }) {
 /* =====================================================================
    STAGE
    ===================================================================== */
-const SYMBOLS = ["∑", "∫", "π", "√", "∞", "Δ", "θ", "λ", "≈", "φ", "∂", "Ω"];
 const TITLE = "Quant-A-Maze 3.0";
+
+/* =====================================================================
+   QUANTUM BACKDROP — replaces the old floating-math-symbols layer only.
+   Canvas-drawn, three-depth quantum motifs stay behind the unchanged lamp/HUD.
+   ===================================================================== */
+function QuantumBackdrop() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d", { alpha: true });
+    if (!ctx) return undefined;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motifs = [
+      { kind: "bloch", x: .12, y: .31, r: 49, depth: 0, tint: "34,211,238" },
+      { kind: "atom", x: .83, y: .24, r: 43, depth: 1, tint: "139,92,246" },
+      { kind: "pair", x: .19, y: .72, r: 10, depth: 1, tint: "34,211,238" },
+      { kind: "bloch", x: .88, y: .69, r: 34, depth: 2, tint: "255,180,82" },
+      { kind: "atom", x: .09, y: .53, r: 25, depth: 2, tint: "34,211,238" },
+      { kind: "circuit", x: .76, y: .48, r: 1, depth: 2, tint: "139,92,246" },
+      { kind: "notation", x: .31, y: .19, r: 1, depth: 1, tint: "255,190,100", text: "|ψ⟩  H  ⟨φ|" },
+      { kind: "notation", x: .69, y: .79, r: 1, depth: 0, tint: "34,211,238", text: "|0⟩   |1⟩   |+⟩" },
+      { kind: "circuit", x: .25, y: .43, r: 1, depth: 1, tint: "34,211,238" },
+    ];
+    const dust = Array.from({ length: 170 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .35 + Math.random() * .9, depth: Math.floor(Math.random() * 3) }));
+    let width = 1, height = 1, dpr = 1, raf = 0, pointerX = 0, pointerY = 0;
+    const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.5); canvas.width = width * dpr; canvas.height = height * dpr; };
+    const move = (e) => { pointerX = (e.clientX / width - .5); pointerY = (e.clientY / height - .5); };
+    const wire = (x, y, r, tint, angle, opacity) => {
+      ctx.strokeStyle = `rgba(${tint},${opacity})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(x, y, r, r * .34, angle, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x, y, r * .36, r, angle, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x, y, r, r * .68, angle, 0, Math.PI * 2); ctx.stroke();
+    };
+    const draw = (ms) => {
+      const t = ms * (reduce ? .00012 : .00035); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, height);
+      // Far-field interference ribbons
+      for (let band = 0; band < 3; band++) {
+        ctx.beginPath();
+        for (let x = -20; x <= width + 20; x += 12) { const y = height * (.17 + band * .29) + Math.sin(x * .009 + t * 2 + band) * (12 + band * 3) + Math.sin(x * .019 - t + band * 1.7) * 5; x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.strokeStyle = `rgba(${band === 1 ? "139,92,246" : "34,211,238"},${.035 + band * .008})`; ctx.lineWidth = 1; ctx.stroke();
+      }
+      // Quantum foam: one batched field of tiny twinkling points.
+      for (const p of dust) { const a = (.12 + .3 * (.5 + .5 * Math.sin(t * 3 + p.phase))) * (p.depth === 2 ? .45 : 1); ctx.fillStyle = p.phase > 3 ? `rgba(139,92,246,${a})` : `rgba(34,211,238,${a})`; ctx.beginPath(); ctx.arc(p.x * width + pointerX * (16 - p.depth * 5), p.y * height + pointerY * (12 - p.depth * 4), p.size, 0, 6.283); ctx.fill(); }
+      motifs.forEach((m, i) => {
+        const parallax = (3 - m.depth) * (reduce ? 2 : 9); const x = m.x * width + pointerX * parallax; const y = m.y * height + pointerY * parallax * .7;
+        const dim = m.depth === 2 ? .2 : m.depth === 1 ? .34 : .5; const phase = t * (reduce ? .25 : .8) + i * 1.7;
+        ctx.save(); ctx.filter = m.depth === 2 ? "blur(1.2px)" : "none"; ctx.shadowBlur = m.depth === 2 ? 4 : 12; ctx.shadowColor = `rgba(${m.tint},.45)`;
+        if (m.kind === "bloch") {
+          const r = m.r * (width < 700 ? .73 : 1); ctx.strokeStyle = `rgba(${m.tint},${dim})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.stroke(); wire(x, y, r, m.tint, phase * .12, dim * .72);
+          ctx.fillStyle = `rgba(${m.tint},.5)`; ctx.font = "10px Georgia"; ctx.fillText("|0⟩", x - 9, y - r - 8); ctx.fillText("|1⟩", x - 9, y + r + 15);
+          const a = phase; const ex = x + Math.cos(a) * r * .72; const ey = y - Math.sin(a) * r * .72; ctx.strokeStyle = `rgba(255,190,100,${dim + .14})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(ex, ey); ctx.stroke(); ctx.beginPath(); ctx.arc(ex, ey, 2.5, 0, 6.28); ctx.fillStyle = "rgba(255,210,140,.8)"; ctx.fill();
+        } else if (m.kind === "atom") {
+          for (let ring = 0; ring < 3; ring++) { const angle = ring * 1.04 + .35; ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.strokeStyle = `rgba(${m.tint},${dim * .85})`; ctx.beginPath(); ctx.ellipse(0, 0, m.r, m.r * .34, 0, 0, 6.28); ctx.stroke(); const a = phase * (ring % 2 ? -1 : 1) + ring * 2.1; const ex = Math.cos(a) * m.r, ey = Math.sin(a) * m.r * .34; ctx.shadowBlur = 12; ctx.fillStyle = "rgba(255,193,110,.8)"; ctx.beginPath(); ctx.arc(ex, ey, 2.2, 0, 6.28); ctx.fill(); ctx.restore(); }
+          const g = ctx.createRadialGradient(x, y, 0, x, y, m.r * .5); g.addColorStop(0, `rgba(${m.tint},.28)`); g.addColorStop(1, `rgba(${m.tint},0)`); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, m.r * .5, 0, 6.28); ctx.fill();
+        } else if (m.kind === "pair") {
+          const x2 = x + width * .27, y2 = y + Math.sin(phase) * 12; ctx.strokeStyle = `rgba(${m.tint},${dim * (.45 + .3 * Math.sin(phase * 2))})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke(); [x, x2].forEach((px, j) => { const py = j ? y2 : y; const g = ctx.createRadialGradient(px, py, 0, px, py, 14); g.addColorStop(0, `rgba(${j ? "139,92,246" : m.tint},.65)`); g.addColorStop(1, "rgba(34,211,238,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, 14, 0, 6.28); ctx.fill(); ctx.beginPath(); ctx.arc(px, py, 3, 0, 6.28); ctx.fillStyle = "rgba(220,250,255,.8)"; ctx.fill(); });
+        } else if (m.kind === "notation") {
+          ctx.font = `${m.depth === 0 ? 16 : 13}px Georgia`; ctx.fillStyle = `rgba(${m.tint},${dim})`; ctx.fillText(m.text, x, y + Math.sin(phase) * 3);
+        } else {
+          const start = x - width * .08, end = x + width * .08, yy = y;
+          ctx.strokeStyle = `rgba(${m.tint},${dim * .75})`; ctx.lineWidth = 1; [0, 10, 20].forEach((dy) => { ctx.beginPath(); ctx.moveTo(start, yy + dy); ctx.lineTo(end, yy + dy); ctx.stroke(); });
+          const gates = [[start + 22, yy, "H"], [start + 66, yy + 10, "X"], [start + 112, yy + 20, "Z"]];
+          gates.forEach(([gx, gy, label], n) => { const pulse = ((phase * 20 + n * 42) % 150) / 150; ctx.strokeStyle = `rgba(${m.tint},${dim})`; ctx.strokeRect(gx, gy - 7, 16, 14); ctx.fillStyle = `rgba(220,250,255,${dim * (.55 + .45 * Math.max(0, 1 - Math.abs(pulse - .5) * 2))})`; ctx.font = "9px sans-serif"; ctx.fillText(label, gx + 5, gy + 3); });
+        }
+        // Gentle two-state ghosting gives a few forms a superposition shimmer.
+        if (i === 0 || i === 3) { ctx.globalAlpha = .13 * (.5 + .5 * Math.sin(phase * 1.4)); ctx.strokeStyle = `rgba(${m.tint},.7)`; ctx.beginPath(); ctx.arc(x + Math.sin(phase) * 5, y, m.r, 0, 6.28); ctx.stroke(); }
+        ctx.restore();
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    fit(); window.addEventListener("resize", fit); window.addEventListener("pointermove", move, { passive: true }); raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", fit); window.removeEventListener("pointermove", move); };
+  }, []);
+  return <canvas id="quantum-backdrop" ref={canvasRef} aria-hidden="true" />;
+}
 
 function Stage() {
   const s = useShared();
@@ -591,18 +692,6 @@ function Stage() {
   const barRef = useRef(null);
   const cvRef = useRef(null);
   const burstRef = useRef(() => {});
-
-  const symbols = useMemo(
-    () =>
-      Array.from({ length: 26 }, (_, i) => ({
-        ch: SYMBOLS[i % SYMBOLS.length],
-        left: Math.random() * 100 + "%",
-        size: 3 + Math.random() * 7 + "vh",
-        dur: 22 + Math.random() * 30 + "s",
-        delay: -Math.random() * 40 + "s",
-      })),
-    []
-  );
 
   useEffect(() => {
     const seenC = {}, lastC = {};
@@ -765,11 +854,7 @@ function Stage() {
 
   return (
     <div id="stage" className={cls} onPointerDown={onStageDown}>
-      <div id="math">
-        {symbols.map((m, i) => (
-          <span key={i} style={{ left: m.left, fontSize: m.size, animationDuration: m.dur, animationDelay: m.delay }}>{m.ch}</span>
-        ))}
-      </div>
+      <QuantumBackdrop />
       <div id="valance">QUANT-A-MAZE 3.0</div>
       <div id="cL" className="curtain" />
       <div id="cR" className="curtain" />

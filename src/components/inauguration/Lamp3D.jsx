@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-const NUM_DIYAS = 7;
+const NUM_DIYAS = 9;
 const STEM_EXTENSION = 0.8;
 const PLATE_Y = 4.36 + STEM_EXTENSION;
 const DIYA_RING_R = 2.6;

@@ -12,7 +12,7 @@ import LampViewport from "./src/components/inauguration/LampViewport";
    Realtime sync: Supabase Postgres changes for the shared qam3 room.
    ===================================================================== */
 
-const NUM_DIYAS = 7; // single cap for diyas and guest phones (was 5)
+const NUM_DIYAS = 9; // shared cap for diyas and guest phones
 const GUEST_IDS = Array.from({ length: NUM_DIYAS }, (_, i) => i + 1);
 const BOWL_RX = 38; // measured bowl half-width — do not shrink
 const BOWL_W = BOWL_RX * 2;
@@ -35,7 +35,7 @@ const LAMP_VIEW_H = 700 - LAMP_VIEW_Y;
 const CONFIG = {
   room: "qam3",
   showStatus: false, // true = show the guest circles + bar on the stage (or add &hud=1)
-  names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student", "Student", "Student"], // fallback labels for 1..NUM_DIYAS
+  names: ["Chief Guest", "Chief Guest", "HOD", "HOD", "Student", "Student", "Student", "Student", "Student"], // fallback labels for 1..NUM_DIYAS
 };
 
 /* ---------------- tiny realtime layer (module-level) ---------------- */
@@ -301,9 +301,9 @@ body.qam-screen-display #valance{display:none}
 
 #hud{position:absolute;z-index:4;left:0;right:0;bottom:3vh;display:flex;flex-direction:column;align-items:center;gap:1.6vh;opacity:0;transition:opacity 1s 3s}
 #stage.open:not(.welcome) #hud{opacity:1}
-#slots{display:flex;gap:2.4vw}
-.slot{cursor:pointer;width:9vh;text-align:center;font-size:1.7vh;font-weight:500;opacity:.55;transition:.25s}
-.slot i{display:block;width:5.6vh;height:5.6vh;margin:0 auto 1vh;border-radius:50%;border:2px solid var(--gold);transition:.2s}
+#slots{display:flex;gap:clamp(6px,1.6vw,28px);max-width:96vw;justify-content:center}
+.slot{cursor:pointer;width:clamp(34px,6.8vw,9vh);text-align:center;font-size:clamp(8px,1.5vh,16px);font-weight:500;opacity:.55;transition:.25s}
+.slot i{display:block;width:clamp(24px,4.5vh,5.6vh);height:clamp(24px,4.5vh,5.6vh);margin:0 auto 1vh;border-radius:50%;border:2px solid var(--gold);transition:.2s}
 .slot.on{opacity:1}.slot.on i{background:var(--flame);box-shadow:0 0 28px var(--flame);border-color:var(--flame2)}
 .slot.live i{background:rgba(245,89,10,.25)}
 #bar{width:42vw;height:.9vh;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
@@ -352,10 +352,7 @@ body.qam-screen-display #valance{display:none}
 #phone #net{position:fixed;top:12px;right:12px;font-size:12px;opacity:.65}
 #btn{position:relative;width:min(70vw,46vh);aspect-ratio:1;border-radius:50%;border:3px solid var(--gold);background:radial-gradient(circle at 50% 35%,#24201e,#111111);color:var(--ivory);font:700 22px var(--display);letter-spacing:.14em;display:grid;place-items:center;touch-action:none;transition:transform .12s,box-shadow .2s;box-shadow:0 0 0 10px rgba(245,89,10,.08);-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 #btn.down{transform:scale(.94);background:radial-gradient(circle at 50% 35%,var(--flame2),var(--flame) 55%,#a33b0c);color:#0a0a0a;box-shadow:0 0 90px 18px rgba(245,89,10,.55)}
-#btn.holding{overflow:hidden}
-#btn .hold-progress{position:absolute;left:18%;right:18%;bottom:22%;height:4px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden}
-#btn .hold-progress i{display:block;width:100%;height:100%;transform:scaleX(0);transform-origin:left;background:#fff2d6;animation:hold-fill 2.5s linear forwards}
-@keyframes hold-fill{to{transform:scaleX(1)}}
+#btn:active:not(:disabled){transform:scale(.96)}
 #btn:disabled{opacity:.35}
 #status{font-size:17px;font-weight:300;text-align:center;min-height:48px;letter-spacing:.04em}
 
@@ -404,7 +401,9 @@ body.qam-screen-display #valance{display:none}
 #home .phone-card:nth-child(4){animation-delay:420ms}
 #home .phone-card:nth-child(5){animation-delay:490ms}
 #home .phone-card:nth-child(6){animation-delay:560ms}
-#home .phone-card:nth-child(7){grid-column:1/-1;width:calc(50% - 7px);justify-self:center;animation-delay:630ms}
+#home .phone-card:nth-child(7){animation-delay:630ms}
+#home .phone-card:nth-child(8){animation-delay:700ms}
+#home .phone-card:nth-child(9){grid-column:1/-1;width:calc(50% - 7px);justify-self:center;animation-delay:770ms}
 #home .phone-card .home-card-link{min-height:56px;padding-top:15px;padding-bottom:15px;font-size:16px}
 #home .name-field{position:relative;padding:0 18px 12px 22px}
 #home .name-field::after{position:absolute;right:18px;bottom:8px;left:22px;height:1px;content:"";background:rgba(245,89,10,.55);transform:scaleX(.35);transform-origin:center;transition:transform 220ms cubic-bezier(.16,1,.3,1)}
@@ -421,7 +420,7 @@ body.qam-screen-display #valance{display:none}
  #home .home-stage{min-height:120px}
  #home .home-sphere-wrap{top:30%;right:-26vw;width:76vw;opacity:.2}
  #home .phone-grid{grid-template-columns:minmax(0,1fr);gap:12px}
- #home .phone-card:nth-child(7){grid-column:auto;width:auto}
+ #home .phone-card:nth-child(9){grid-column:auto;width:auto}
  #home .phone-card .home-card-link{min-height:48px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -523,8 +522,6 @@ function Phone({ n }) {
   const s = useShared();
   const isLit = Boolean(s.lit && s.lit[n]);
   const litCount = GUEST_IDS.filter((number) => s.lit && s.lit[number]).length;
-  const holdTimerRef = useRef(null);
-  const [holding, setHolding] = useState(false);
 
   const lightDiya = () => {
     if (isLit) return;
@@ -532,24 +529,6 @@ function Phone({ n }) {
     if (!s.phase || s.phase === "idle" || s.phase === "lit") put("phase", "open");
     put(`lit/${n}`, true);
   };
-
-  const cancelHold = () => {
-    window.clearTimeout(holdTimerRef.current);
-    holdTimerRef.current = null;
-    setHolding(false);
-  };
-  const startHold = (event) => {
-    if (isLit || holdTimerRef.current) return;
-    event.preventDefault();
-    setHolding(true);
-    holdTimerRef.current = window.setTimeout(() => {
-      holdTimerRef.current = null;
-      setHolding(false);
-      lightDiya();
-    }, 2500);
-  };
-
-  useEffect(() => () => window.clearTimeout(holdTimerRef.current), []);
 
   useEffect(() => {
     put(`names/${n}`, Q.get("n" + n) || null);
@@ -573,18 +552,13 @@ function Phone({ n }) {
       <div id="net" role="status" aria-live="polite">{netState || "connecting…"}</div>
       <button
         id="btn"
-        className={`${isLit ? "down" : ""}${holding ? " holding" : ""}`}
+        className={isLit ? "down" : ""}
         disabled={isLit}
-        onPointerDown={startHold}
-        onPointerUp={cancelHold}
-        onPointerCancel={cancelHold}
-        onPointerLeave={cancelHold}
-        onContextMenu={(event) => event.preventDefault()}
+        onClick={lightDiya}
       >
-        <span>{isLit ? "LIT" : holding ? "HOLD" : "LIGHT"}</span>
-        {holding ? <span className="hold-progress" aria-hidden="true"><i /></span> : null}
+        {isLit ? "LIT" : "LIGHT"}
       </button>
-      <div id="status">{isLit ? status : holding ? "Keep holding to light your diya…" : "Press and hold for 2.5 seconds to light your diya"}</div>
+      <div id="status">{status}</div>
     </div>
   );
 }
@@ -598,9 +572,10 @@ const TITLE = "Quant-A-Maze 3.0";
    QUANTUM BACKDROP — replaces the old floating-math-symbols layer only.
    Canvas-drawn, three-depth quantum motifs stay behind the unchanged lamp/HUD.
    ===================================================================== */
-function QuantumBackdrop() {
+function QuantumBackdrop({ active }) {
   const canvasRef = useRef(null);
   useEffect(() => {
+    if (!active) return undefined;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d", { alpha: true });
     if (!ctx) return undefined;
@@ -616,9 +591,9 @@ function QuantumBackdrop() {
       { kind: "notation", x: .69, y: .79, r: 1, depth: 0, tint: "34,211,238", text: "|0⟩   |1⟩   |+⟩" },
       { kind: "circuit", x: .25, y: .43, r: 1, depth: 1, tint: "34,211,238" },
     ];
-    const dust = Array.from({ length: 170 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .35 + Math.random() * .9, depth: Math.floor(Math.random() * 3) }));
+    const dust = Array.from({ length: window.innerWidth < 700 ? 72 : 120 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .35 + Math.random() * .9, depth: Math.floor(Math.random() * 3) }));
     let width = 1, height = 1, dpr = 1, raf = 0, pointerX = 0, pointerY = 0;
-    const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.5); canvas.width = width * dpr; canvas.height = height * dpr; };
+    const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.25); canvas.width = width * dpr; canvas.height = height * dpr; };
     const move = (e) => { pointerX = (e.clientX / width - .5); pointerY = (e.clientY / height - .5); };
     const wire = (x, y, r, tint, angle, opacity) => {
       ctx.strokeStyle = `rgba(${tint},${opacity})`; ctx.lineWidth = 1;
@@ -665,7 +640,7 @@ function QuantumBackdrop() {
     };
     fit(); window.addEventListener("resize", fit); window.addEventListener("pointermove", move, { passive: true }); raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", fit); window.removeEventListener("pointermove", move); };
-  }, []);
+  }, [active]);
   return <canvas id="quantum-backdrop" ref={canvasRef} aria-hidden="true" />;
 }
 
@@ -786,13 +761,14 @@ function Stage() {
 
     // fireworks / sparks
     const cv = cvRef.current, cx = cv.getContext("2d");
-    let parts = [], raf;
+    let parts = [], raf = 0;
+    const burstTimers = [];
     const fit = () => { cv.width = window.innerWidth; cv.height = window.innerHeight; };
     fit();
     window.addEventListener("resize", fit);
     burstRef.current = (k) => {
       for (let b = 0; b < k; b++)
-        setTimeout(() => {
+        burstTimers.push(setTimeout(() => {
           const x = window.innerWidth * (0.15 + Math.random() * 0.7);
           const y = window.innerHeight * (0.15 + Math.random() * 0.45);
           const hue = 28 + Math.random() * 30;
@@ -800,19 +776,21 @@ function Stage() {
             const a = Math.random() * 6.283, v = 1 + Math.random() * 6;
             parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 1, h: hue });
           }
-        }, b * 260);
+          if (!raf) raf = requestAnimationFrame(loop);
+        }, b * 260));
     };
     const loop = () => {
+      raf = 0;
       cx.clearRect(0, 0, cv.width, cv.height);
-      parts = parts.filter((p) => p.l > 0);
-      parts.forEach((p) => {
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        if (p.l <= 0) { parts.splice(i, 1); continue; }
         p.x += p.vx; p.y += p.vy; p.vy += 0.06; p.vx *= 0.985; p.l -= 0.011;
         cx.fillStyle = `hsla(${p.h},100%,65%,${p.l})`;
         cx.beginPath(); cx.arc(p.x, p.y, 2.4, 0, 6.283); cx.fill();
-      });
-      raf = requestAnimationFrame(loop);
+      }
+      if (parts.length) raf = requestAnimationFrame(loop);
     };
-    loop();
 
     return () => {
       subs.delete(sub);
@@ -820,6 +798,7 @@ function Stage() {
       window.removeEventListener("resize", fit);
       clearInterval(tick);
       cancelAnimationFrame(raf);
+      burstTimers.forEach(clearTimeout);
       delete window.__qamSim;
     };
   }, []);
@@ -854,7 +833,7 @@ function Stage() {
 
   return (
     <div id="stage" className={cls} onPointerDown={onStageDown}>
-      <QuantumBackdrop />
+      <QuantumBackdrop active={phase !== "idle" && phase !== "welcome"} />
       <div id="valance">QUANT-A-MAZE 3.0</div>
       <div id="cL" className="curtain" />
       <div id="cR" className="curtain" />
@@ -970,7 +949,7 @@ function Stage() {
           ))}
         </div>
         <div id="bar"><b ref={barRef} /></div>
-        <div id="hint">EACH PHONE LIGHTS ITS OWN DIYA · ALL FIVE TO REVEAL THE WELCOME</div>
+        <div id="hint">EACH PHONE LIGHTS ITS OWN DIYA · ALL NINE TO REVEAL THE WELCOME</div>
       </div>
 
       <div id="welcome">

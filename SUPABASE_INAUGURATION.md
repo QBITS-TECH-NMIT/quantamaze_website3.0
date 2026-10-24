@@ -1,6 +1,6 @@
 # Inauguration realtime database
 
-The inauguration stage and Phone 1–7 views synchronize through Supabase Realtime and the `public.inauguration_state` table. The browser uses the public anon key; never expose `SUPABASE_SERVICE_ROLE_KEY` in client-side code.
+The inauguration stage and Phone 1–9 views synchronize through Supabase Realtime and the `public.inauguration_state` table. The browser uses the public anon key; never expose `SUPABASE_SERVICE_ROLE_KEY` in client-side code.
 
 ## Setup
 
@@ -10,7 +10,7 @@ The inauguration stage and Phone 1–7 views synchronize through Supabase Realti
 
 ## Lighting sequence
 
-Each guest opens their assigned phone link and taps `LIGHT` once to light only their matching diya. A diya stays lit after the guest releases the button. The stage shows the welcome only after all seven different diyas are lit. Reset the sequence from the stage with `R`; number keys `1`–`7` (or the visible stage slots with `&hud=1`) simulate lighting an individual diya during rehearsal.
+Each guest opens their assigned phone link and taps `LIGHT` once to light only their matching diya. A diya stays lit after the guest releases the button. The stage shows the welcome only after all nine different diyas are lit. Reset the sequence from the stage with `R`; number keys `1`–`9` (or the visible stage slots with `&hud=1`) simulate lighting an individual diya during rehearsal.
 
 This is intentionally a no-sign-in setup: anyone with the site links can participate in the `qam3` event. State and guest names in that room are readable by anonymous clients. Remove `qam3` rows from the table after the event if the state is no longer needed.
 

@@ -184,9 +184,14 @@ export default function HandWithCandle({
 
       const dest = targetForDiya(index);
       if (!dest) {
-        runningRef.current = false;
-        requestAnimationFrame(() => { if (!cancelledRef.current) void runQueue(); });
-        return;
+        // A WebGL Html wick can briefly have no measurable bounds during
+        // startup/context recovery. Never leave that diya queued forever.
+        onIgnite(index);
+        litRef.current.add(index);
+        queueRef.current.shift();
+        queuedSetRef.current.delete(index);
+        currentTargetRef.current = null;
+        continue;
       }
 
       // Step 2 — travel to this diya; duration scales with distance.

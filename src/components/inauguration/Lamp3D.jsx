@@ -130,58 +130,24 @@ function LampStand({ brass }) {
   );
 }
 
-function Diya({ index, brass, diyaRefCallback, lit }) {
+function Diya({ index, brass, diyaRefCallback, lit, assets }) {
   const flameRef = useRef(null);
   const angle = slotAngle(index);
   const x = Math.sin(angle) * DIYA_RING_R;
   const z = Math.cos(angle) * DIYA_RING_R;
-  const bowl = useMemo(() => latheGeom([
-    [0, -0.28],
-    [0.12, -0.28],
-    [0.38, -0.22],
-    [0.48, -0.1],
-    [0.5, 0],
-    [0.46, 0.04],
-    [0.42, 0],
-    [0.34, -0.12],
-    [0.1, -0.2],
-    [0, -0.2],
-  ]), []);
-  const oil = useMemo(() => new THREE.CircleGeometry(0.34, 24), []);
-  const flame = useMemo(() => latheGeom([
-    [0, 0],
-    [0.075, 0.035],
-    [0.12, 0.16],
-    [0.105, 0.3],
-    [0.065, 0.44],
-    [0.025, 0.54],
-    [0, 0.6],
-  ], 24), []);
-  useEffect(() => () => {
-    bowl.dispose();
-    oil.dispose();
-    flame.dispose();
-  }, [bowl, oil, flame]);
   useFrame(({ clock }) => {
     if (!flameRef.current || !lit[index]) return;
     const flicker = 1 + Math.sin(clock.elapsedTime * 17 + index) * 0.07;
-    flameRef.current.scale.set(1 / flicker, flicker, 1 / flicker);
+    flameRef.current.scale.set(1.2 / flicker, 1.4 * flicker, 1.2 / flicker);
   });
 
   return (
     <group name={`diya-${index}`} position={[x, PLATE_Y, z]} rotation={[0, angle, 0]} scale={DIYA_SCALE}>
       <group position={[0, 0.28, 0]}>
-        <mesh geometry={bowl} material={brass} />
-        <mesh geometry={oil} position={[0, -0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <meshStandardMaterial color="#1a0a06" roughness={0.85} metalness={0.1} />
-        </mesh>
-        <mesh position={[0, -0.02, 0.46]} rotation={[0.35, 0, 0]} material={brass}>
-          <coneGeometry args={[0.12, 0.22, 12]} />
-        </mesh>
-        <mesh name={`wick-${index}`} position={[0, 0.08, 0.04]} rotation={[0.25, 0, 0]}>
-          <cylinderGeometry args={[0.025, 0.03, 0.14, 8]} />
-          <meshStandardMaterial color="#f5efe6" roughness={0.9} metalness={0} />
-        </mesh>
+        <mesh geometry={assets.bowl} material={brass} />
+        <mesh geometry={assets.oil} material={assets.oilMaterial} position={[0, -0.06, 0]} rotation={[-Math.PI / 2, 0, 0]} />
+        <mesh geometry={assets.wickTip} position={[0, -0.02, 0.46]} rotation={[0.35, 0, 0]} material={brass} />
+        <mesh name={`wick-${index}`} geometry={assets.wick} material={assets.wickMaterial} position={[0, 0.08, 0.04]} rotation={[0.25, 0, 0]} />
         <Html position={[0, 0.15, 0.04]} center>
           <span
             ref={diyaRefCallback}
@@ -192,13 +158,9 @@ function Diya({ index, brass, diyaRefCallback, lit }) {
         </Html>
         {lit[index] ? (
           <group position={[0, 0.15, 0.04]}>
-            <mesh ref={flameRef} geometry={flame}>
-              <meshBasicMaterial color="#ff7a1a" />
-            </mesh>
-            <mesh geometry={flame} scale={0.68} position={[0, 0.02, 0]}>
-              <meshBasicMaterial color="#fff0b3" />
-            </mesh>
-            <pointLight color="#ff8a24" intensity={1.8} distance={2.2} decay={2} />
+            <mesh geometry={assets.flame} material={assets.glowMaterial} scale={[1.65, 1.55, 1.65]} />
+            <mesh ref={flameRef} geometry={assets.flame} material={assets.flameMaterial} />
+            <mesh geometry={assets.flame} material={assets.innerFlameMaterial} scale={0.78} position={[0, 0.02, 0]} />
           </group>
         ) : null}
       </group>
@@ -291,7 +253,29 @@ function HiddenTabPause() {
   return null;
 }
 
-function Scene({ onReady, onZoomChange, diyaRefCallbacks, lit, rotateLampRef }) {
+function WebGLContextRecovery({ onLost, onRestored }) {
+  const { gl, invalidate } = useThree();
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const handleLost = (event) => {
+      event.preventDefault();
+      onLost?.();
+    };
+    const handleRestored = () => {
+      onRestored?.();
+      invalidate();
+    };
+    canvas.addEventListener("webglcontextlost", handleLost, false);
+    canvas.addEventListener("webglcontextrestored", handleRestored, false);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", handleLost, false);
+      canvas.removeEventListener("webglcontextrestored", handleRestored, false);
+    };
+  }, [gl, invalidate, onLost, onRestored]);
+  return null;
+}
+
+function Scene({ onReady, onZoomChange, onContextLost, onContextRestored, diyaRefCallbacks, lit, rotateLampRef }) {
   const lampGroupRef = useRef(null);
   const rotationTargetRef = useRef(0);
   const rotationResolverRef = useRef(null);
@@ -302,7 +286,28 @@ function Scene({ onReady, onZoomChange, diyaRefCallbacks, lit, rotateLampRef }) 
     envMapIntensity: 1.4,
     side: THREE.DoubleSide,
   }), []);
-  useEffect(() => () => brass.dispose(), [brass]);
+  const diyaAssets = useMemo(() => ({
+    bowl: latheGeom([
+      [0, -0.28], [0.12, -0.28], [0.38, -0.22], [0.48, -0.1], [0.5, 0],
+      [0.46, 0.04], [0.42, 0], [0.34, -0.12], [0.1, -0.2], [0, -0.2],
+    ]),
+    oil: new THREE.CircleGeometry(0.34, 24),
+    wickTip: new THREE.ConeGeometry(0.12, 0.22, 12),
+    wick: new THREE.CylinderGeometry(0.025, 0.03, 0.14, 8),
+    flame: latheGeom([
+      [0, 0], [0.075, 0.035], [0.12, 0.16], [0.105, 0.3],
+      [0.065, 0.44], [0.025, 0.54], [0, 0.6],
+    ], 24),
+    oilMaterial: new THREE.MeshStandardMaterial({ color: "#1a0a06", roughness: 0.85, metalness: 0.1 }),
+    wickMaterial: new THREE.MeshStandardMaterial({ color: "#f5efe6", roughness: 0.9, metalness: 0 }),
+    glowMaterial: new THREE.MeshBasicMaterial({ color: "#ff7a1a", transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }),
+    flameMaterial: new THREE.MeshBasicMaterial({ color: "#ff9b32" }),
+    innerFlameMaterial: new THREE.MeshBasicMaterial({ color: "#fff4c6" }),
+  }), []);
+  useEffect(() => () => {
+    brass.dispose();
+    Object.values(diyaAssets).forEach((asset) => asset.dispose());
+  }, [brass, diyaAssets]);
 
   useEffect(() => {
     if (!rotateLampRef) return undefined;
@@ -346,6 +351,7 @@ function Scene({ onReady, onZoomChange, diyaRefCallbacks, lit, rotateLampRef }) 
       <ambientLight intensity={0.22} />
       <directionalLight position={[6, 10, 8]} intensity={1.35} color={BRASS_HI} />
       <directionalLight position={[-5, 4, -3]} intensity={0.3} color={BRASS_DARK} />
+      {lit.some(Boolean) ? <pointLight position={[0, PLATE_Y + 0.35, 0]} color="#ff9b32" intensity={2.4} distance={5.5} decay={2} /> : null}
       <Suspense fallback={null}>
         <Environment preset="sunset" environmentIntensity={0.32} background={false} />
       </Suspense>
@@ -358,9 +364,11 @@ function Scene({ onReady, onZoomChange, diyaRefCallbacks, lit, rotateLampRef }) 
             brass={brass}
             diyaRefCallback={diyaRefCallbacks[i]}
             lit={lit}
+            assets={diyaAssets}
           />
         ))}
       </group>
+      <WebGLContextRecovery onLost={onContextLost} onRestored={onContextRestored} />
       <IdleControls onReady={onReady} onZoomChange={onZoomChange} />
       <HiddenTabPause />
     </>
@@ -369,11 +377,13 @@ function Scene({ onReady, onZoomChange, diyaRefCallbacks, lit, rotateLampRef }) 
 
 export default function Lamp3D({
   onReady,
-  onFail,
+  onContextLost,
+  onContextRestored,
   onZoomChange,
   diyaRefCallbacks,
   lit,
   rotateLampRef,
+  active,
 }) {
   const [hidden, setHidden] = useState(false);
 
@@ -385,24 +395,22 @@ export default function Lamp3D({
 
   return (
     <Canvas
-        dpr={[1, 1.5]}
-        frameloop={hidden ? "never" : "always"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        dpr={[0.55, 0.75]}
+        frameloop={hidden ? "never" : active ? "always" : "demand"}
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
         camera={{ position: defaultCameraPosition(), fov: CAM_FOV, near: 0.1, far: 80 }}
         style={{ width: "100%", height: "100%", background: "transparent", touchAction: "none", display: "block" }}
         onCreated={({ gl, scene }) => {
           gl.setClearColor(0x000000, 0);
           scene.background = null;
-          gl.domElement.addEventListener("webglcontextlost", (e) => {
-            e.preventDefault();
-            onFail?.();
-          });
         }}
         onPointerDown={(e) => e.stopPropagation()}
       >
         <Scene
           onReady={onReady}
           onZoomChange={onZoomChange}
+          onContextLost={onContextLost}
+          onContextRestored={onContextRestored}
           diyaRefCallbacks={diyaRefCallbacks}
           lit={lit}
           rotateLampRef={rotateLampRef}

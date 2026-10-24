@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, useState } from "react";
+import { Component, useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 
 const Lamp3D = dynamic(() => import("./Lamp3D"), { ssr: false, loading: () => null });
@@ -36,11 +36,15 @@ export default function LampViewport({
   rotateLampRef,
   onZoomChange,
   lit,
+  active,
 }) {
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
+  const [contextLost, setContextLost] = useState(false);
+  const handleContextLost = useCallback(() => setContextLost(true), []);
+  const handleContextRestored = useCallback(() => setContextLost(false), []);
 
-  const showFallback = failed || !ready;
+  const showFallback = failed || !ready || contextLost;
 
   return (
     <>
@@ -59,18 +63,20 @@ export default function LampViewport({
           style={{
             position: "absolute",
             inset: 0,
-            opacity: ready ? 1 : 0,
-            pointerEvents: ready ? "auto" : "none",
+            opacity: ready && !contextLost ? 1 : 0,
+            pointerEvents: ready && !contextLost ? "auto" : "none",
           }}
         >
           <Lamp3DBoundary onFail={() => setFailed(true)}>
             <Lamp3D
               onReady={() => setReady(true)}
-              onFail={() => setFailed(true)}
               onZoomChange={onZoomChange}
+              onContextLost={handleContextLost}
+              onContextRestored={handleContextRestored}
               diyaRefCallbacks={diyaRefCallbacks}
               rotateLampRef={rotateLampRef}
               lit={lit}
+              active={active}
             />
           </Lamp3DBoundary>
         </div>

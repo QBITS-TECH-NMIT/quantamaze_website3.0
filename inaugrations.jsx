@@ -272,8 +272,12 @@ body.qam-screen-display #valance{display:none}
 
 /* STAGE */
 #stage{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 85%,#1a1512 0%,var(--ink) 65%)}
-#quantum-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:.82}
-#lampWrap{position:absolute;left:50%;bottom:6vh;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
+#quantum-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:1}
+#aura-figure{position:absolute;top:12vh;right:2.4vw;z-index:0;width:clamp(125px,16vw,260px);height:min(43vh,430px);pointer-events:none;opacity:0;visibility:hidden;background:url('/images/aura-figure.png') center/contain no-repeat;mix-blend-mode:screen;transform:translateZ(0);transition:opacity .9s ease,visibility 0s linear .9s}
+#stage.welcome #aura-figure{opacity:.65;visibility:visible;transition-delay:0s;animation:aura-figure-drift 14s ease-in-out infinite}
+#aura-figure::before{position:absolute;inset:15% -15%;z-index:-1;content:"";background:radial-gradient(ellipse,rgba(255,171,55,.16),rgba(139,92,246,.06) 38%,transparent 72%);filter:blur(22px)}
+@keyframes aura-figure-drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-8px,0)}}
+#lampWrap{position:absolute;left:50%;bottom:6vh;z-index:2;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
 #stage.open #lampWrap{transform:translate(-50%,0)}
 #lampLayer{position:relative;width:100%;height:100%;overflow:hidden;--ring-radius:${RING_R};--ring-cx:${RING_CX};--ring-cy:${RING_CY}}
 #stage.zoom-expanded #lampWrap{z-index:7;bottom:-10vh;width:120vw;height:120vh;aspect-ratio:auto;transition:width .35s ease,height .35s ease,bottom .35s ease}
@@ -312,6 +316,7 @@ body.qam-screen-display #valance{display:none}
 #hint{display:none;font-size:2.2vh;font-weight:300;letter-spacing:.18em}
 
 #welcome{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(10,10,10,.55),rgba(10,10,10,.92));transition:opacity .6s}
+#welcome small,#welcome h2,#welcome p{position:relative;z-index:1}
 #stage.welcome #welcome{opacity:1}
 #welcome small{display:flex;align-items:center;gap:clamp(12px,2vw,28px);font-family:var(--display);font-size:clamp(18px,2.5vw,36px);letter-spacing:.38em;color:var(--ivory);opacity:0;transform:translateY(14px)}
 #welcome small::before,#welcome small::after{width:clamp(24px,5vw,72px);height:1px;content:"";background:linear-gradient(90deg,transparent,var(--flame2))}
@@ -331,6 +336,8 @@ body.qam-screen-display #valance{display:none}
 #stage.welcome #welcome p{animation:welcome-tagline-in .8s cubic-bezier(.16,1,.3,1) 1.15s forwards}
 @keyframes welcome-tagline-in{to{opacity:.9;transform:translateY(0)}}
 @media (max-width:720px){
+ #aura-figure{top:11vh;right:1vw;width:clamp(90px,25vw,170px);height:min(34vh,280px)}
+ #stage.welcome #aura-figure{opacity:.575}
  #welcome h2{font-size:clamp(34px,9vw,66px);width:96vw;padding:14px 4px}
  #welcome .welcome-title-line{letter-spacing:.015em}
  #welcome .welcome-title-line-accent{font-size:.68em;letter-spacing:.2em}
@@ -338,6 +345,7 @@ body.qam-screen-display #valance{display:none}
  #welcome p{max-width:90vw;font-size:clamp(11px,3vw,16px);letter-spacing:.24em}
 }
 @media (prefers-reduced-motion:reduce){
+ #aura-figure{animation:none}
  #stage.welcome #welcome small,#stage.welcome #welcome .welcome-letter,#stage.welcome #welcome h2::after,#stage.welcome #welcome p{animation:none;opacity:1;transform:none;filter:none}
 }
 #fx{position:absolute;inset:0;z-index:9;pointer-events:none}
@@ -432,7 +440,7 @@ body.qam-screen-display #valance{display:none}
  #home .home-card::after,#home .card-sweep{display:none}
 }
 #banner{position:fixed;left:0;right:0;bottom:0;z-index:99;background:#f5590a;color:#0a0a0a;font-size:12px;text-align:center;padding:4px}
-@media (prefers-reduced-motion:reduce){#quantum-backdrop{opacity:.68}}
+@media (prefers-reduced-motion:reduce){#quantum-backdrop{opacity:.82}}
 `;
 
 /* =====================================================================
@@ -590,10 +598,15 @@ function QuantumBackdrop({ active }) {
       { kind: "notation", x: .31, y: .19, r: 1, depth: 1, tint: "255,190,100", text: "|ψ⟩  H  ⟨φ|" },
       { kind: "notation", x: .69, y: .79, r: 1, depth: 0, tint: "34,211,238", text: "|0⟩   |1⟩   |+⟩" },
       { kind: "circuit", x: .25, y: .43, r: 1, depth: 1, tint: "34,211,238" },
+      { kind: "pair", x: .08, y: .43, r: 10, depth: 0, tint: "255,180,82" },
+      { kind: "bloch", x: .94, y: .39, r: 31, depth: 1, tint: "139,92,246" },
+      { kind: "atom", x: .88, y: .86, r: 30, depth: 1, tint: "34,211,238" },
+      { kind: "circuit", x: .12, y: .84, r: 1, depth: 0, tint: "139,92,246" },
+      { kind: "notation", x: .82, y: .13, r: 1, depth: 2, tint: "255,190,100", text: "Σ |ψ⟩ → H → X" },
     ];
-    const dust = Array.from({ length: window.innerWidth < 700 ? 72 : 120 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .35 + Math.random() * .9, depth: Math.floor(Math.random() * 3) }));
-    let width = 1, height = 1, dpr = 1, raf = 0, pointerX = 0, pointerY = 0;
-    const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1.25); canvas.width = width * dpr; canvas.height = height * dpr; };
+    const dust = Array.from({ length: window.innerWidth < 700 ? 64 : 96 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .55 + Math.random() * 1.05, depth: Math.floor(Math.random() * 3) }));
+    let width = 1, height = 1, dpr = 1, raf = 0, pointerX = 0, pointerY = 0, lastDraw = 0;
+    const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1); canvas.width = width * dpr; canvas.height = height * dpr; };
     const move = (e) => { pointerX = (e.clientX / width - .5); pointerY = (e.clientY / height - .5); };
     const wire = (x, y, r, tint, angle, opacity) => {
       ctx.strokeStyle = `rgba(${tint},${opacity})`; ctx.lineWidth = 1;
@@ -602,19 +615,45 @@ function QuantumBackdrop({ active }) {
       ctx.beginPath(); ctx.ellipse(x, y, r, r * .68, angle, 0, Math.PI * 2); ctx.stroke();
     };
     const draw = (ms) => {
+      // This atmospheric layer is intentionally capped at 60fps. The interactive
+      // WebGL lamp remains refresh-driven, leaving GPU time for the main subject.
+      if (ms - lastDraw < 1000 / 60) { raf = requestAnimationFrame(draw); return; }
+      lastDraw = ms;
       const t = ms * (reduce ? .00012 : .00035); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, height);
+      // Quantum aura: a dim coherence halo and orbital field behind the lamp.
+      const auraX = width * 0.5, auraY = height * 0.59;
+      const auraRadius = Math.min(width * 0.48, height * 0.46);
+      const auraPulse = 0.92 + Math.sin(t * 1.4) * 0.08;
+      const aura = ctx.createRadialGradient(auraX, auraY, auraRadius * 0.08, auraX, auraY, auraRadius * auraPulse);
+      aura.addColorStop(0, "rgba(34,211,238,.11)");
+      aura.addColorStop(0.48, "rgba(139,92,246,.075)");
+      aura.addColorStop(1, "rgba(34,211,238,0)");
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, width, height);
+      ctx.save(); ctx.globalCompositeOperation = "screen";
+      for (let orbit = 0; orbit < 3; orbit++) {
+        const angle = orbit * 0.92 + t * (reduce ? 0.05 : 0.18);
+        const rx = auraRadius * (0.72 + orbit * 0.12), ry = auraRadius * (0.32 + orbit * 0.075);
+        ctx.strokeStyle = `rgba(${orbit === 1 ? "139,92,246" : "34,211,238"},${0.065 + orbit * 0.012})`;
+        ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(auraX, auraY, rx, ry, angle, 0, Math.PI * 2); ctx.stroke();
+        const photonAngle = angle + t * (reduce ? 0.35 : 1.25) + orbit * 2.1;
+        const px = auraX + Math.cos(photonAngle) * rx, py = auraY + Math.sin(photonAngle) * ry;
+        const photon = ctx.createRadialGradient(px, py, 0, px, py, 16);
+        photon.addColorStop(0, "rgba(179,245,255,.48)"); photon.addColorStop(1, "rgba(34,211,238,0)");
+        ctx.fillStyle = photon; ctx.beginPath(); ctx.arc(px, py, 16, 0, 6.28); ctx.fill();
+      }
+      ctx.restore();
       // Far-field interference ribbons
       for (let band = 0; band < 3; band++) {
         ctx.beginPath();
-        for (let x = -20; x <= width + 20; x += 12) { const y = height * (.17 + band * .29) + Math.sin(x * .009 + t * 2 + band) * (12 + band * 3) + Math.sin(x * .019 - t + band * 1.7) * 5; x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
-        ctx.strokeStyle = `rgba(${band === 1 ? "139,92,246" : "34,211,238"},${.035 + band * .008})`; ctx.lineWidth = 1; ctx.stroke();
+        for (let x = -20; x <= width + 20; x += 18) { const y = height * (.17 + band * .29) + Math.sin(x * .009 + t * 2 + band) * (12 + band * 3) + Math.sin(x * .019 - t + band * 1.7) * 5; x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.strokeStyle = `rgba(${band === 1 ? "139,92,246" : "34,211,238"},${.06 + band * .012})`; ctx.lineWidth = 1.2; ctx.stroke();
       }
       // Quantum foam: one batched field of tiny twinkling points.
-      for (const p of dust) { const a = (.12 + .3 * (.5 + .5 * Math.sin(t * 3 + p.phase))) * (p.depth === 2 ? .45 : 1); ctx.fillStyle = p.phase > 3 ? `rgba(139,92,246,${a})` : `rgba(34,211,238,${a})`; ctx.beginPath(); ctx.arc(p.x * width + pointerX * (16 - p.depth * 5), p.y * height + pointerY * (12 - p.depth * 4), p.size, 0, 6.283); ctx.fill(); }
+      for (const p of dust) { const a = (.22 + .42 * (.5 + .5 * Math.sin(t * 3 + p.phase))) * (p.depth === 2 ? .58 : 1); ctx.fillStyle = p.phase > 3 ? `rgba(139,92,246,${a})` : `rgba(34,211,238,${a})`; ctx.beginPath(); ctx.arc(p.x * width + pointerX * (16 - p.depth * 5), p.y * height + pointerY * (12 - p.depth * 4), p.size, 0, 6.283); ctx.fill(); }
       motifs.forEach((m, i) => {
         const parallax = (3 - m.depth) * (reduce ? 2 : 9); const x = m.x * width + pointerX * parallax; const y = m.y * height + pointerY * parallax * .7;
-        const dim = m.depth === 2 ? .2 : m.depth === 1 ? .34 : .5; const phase = t * (reduce ? .25 : .8) + i * 1.7;
-        ctx.save(); ctx.filter = m.depth === 2 ? "blur(1.2px)" : "none"; ctx.shadowBlur = m.depth === 2 ? 4 : 12; ctx.shadowColor = `rgba(${m.tint},.45)`;
+        const dim = m.depth === 2 ? .3 : m.depth === 1 ? .52 : .72; const phase = t * (reduce ? .25 : .8) + i * 1.7;
+        ctx.save(); ctx.filter = m.depth === 2 ? "blur(1px)" : "none"; ctx.shadowBlur = m.depth === 2 ? 6 : 16; ctx.shadowColor = `rgba(${m.tint},.62)`;
         if (m.kind === "bloch") {
           const r = m.r * (width < 700 ? .73 : 1); ctx.strokeStyle = `rgba(${m.tint},${dim})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.stroke(); wire(x, y, r, m.tint, phase * .12, dim * .72);
           ctx.fillStyle = `rgba(${m.tint},.5)`; ctx.font = "10px Georgia"; ctx.fillText("|0⟩", x - 9, y - r - 8); ctx.fillText("|1⟩", x - 9, y + r + 15);
@@ -701,7 +740,12 @@ function Stage() {
 
     // Stage slots and number keys simulate lighting a specific guest's diya.
     const lightDiya = (n) => {
-      if (isLit(n) || S.phase === "welcome") return;
+      if (isLit(n)) return;
+      const litCount = GUEST_IDS.filter(isLit).length;
+      // A stale welcome phase from an older seven-diya run must not lock
+      // newly added guest slots. Reopen until all current diyas are lit.
+      if (S.phase === "welcome" && litCount >= NUM_DIYAS) return;
+      if (S.phase === "welcome") setPhase("open");
       if (!S.phase || S.phase === "idle" || S.phase === "lit") setPhase("open");
       put(`lit/${n}`, true);
     };
@@ -848,6 +892,7 @@ function Stage() {
           rotateLampRef={rotateLampRef}
           onZoomChange={setZoomExpanded}
           lit={visualLit}
+          active={phase !== "idle" && phase !== "welcome"}
           overlay={(activeDiyaRefs) => (
             <HandWithCandle
               containerRef={lampRef}
@@ -953,6 +998,7 @@ function Stage() {
       </div>
 
       <div id="welcome">
+        <div id="aura-figure" aria-hidden="true" />
         <small>WELCOME TO</small>
         <h2 aria-label={TITLE}>
           {["QUANT-A-MAZE", "3.0"].map((word, wordIndex) => (

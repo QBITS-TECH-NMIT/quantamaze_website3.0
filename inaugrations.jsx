@@ -273,6 +273,8 @@ body.qam-screen-display #valance{display:none}
 /* STAGE */
 #stage{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 85%,#1a1512 0%,var(--ink) 65%)}
 #quantum-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:1}
+#cosmic-dancer-bg{position:absolute;z-index:1;top:50%;right:4vw;width:clamp(270px,32vw,610px);height:88vh;transform:translateY(-50%);pointer-events:none;background:url('/images/cosmic-dancer.png') center/contain no-repeat;mix-blend-mode:screen;opacity:.38;filter:drop-shadow(0 0 24px rgba(34,211,238,.42)) drop-shadow(0 0 72px rgba(34,211,238,.2));animation:cosmic-dancer-drift 18s ease-in-out infinite}
+@keyframes cosmic-dancer-drift{0%,100%{transform:translate3d(0,-50%,0)}50%{transform:translate3d(0,calc(-50% - 8px),0)}}
 #lampWrap{position:absolute;left:50%;bottom:6vh;z-index:2;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
 #stage.open #lampWrap{transform:translate(-50%,0)}
 #lampLayer{position:relative;width:100%;height:100%;overflow:hidden;--ring-radius:${RING_R};--ring-cx:${RING_CX};--ring-cy:${RING_CY}}
@@ -332,6 +334,7 @@ body.qam-screen-display #valance{display:none}
 #stage.welcome #welcome p{animation:welcome-tagline-in .8s cubic-bezier(.16,1,.3,1) 1.15s forwards}
 @keyframes welcome-tagline-in{to{opacity:.9;transform:translateY(0)}}
 @media (max-width:720px){
+ #cosmic-dancer-bg{right:-10vw;width:clamp(240px,55vw,390px);height:72vh;opacity:.3}
  #welcome h2{font-size:clamp(34px,9vw,66px);width:96vw;padding:14px 4px}
  #welcome .welcome-title-line{letter-spacing:.015em}
  #welcome .welcome-title-line-accent{font-size:.68em;letter-spacing:.2em}
@@ -339,6 +342,7 @@ body.qam-screen-display #valance{display:none}
  #welcome p{max-width:90vw;font-size:clamp(11px,3vw,16px);letter-spacing:.24em}
 }
 @media (prefers-reduced-motion:reduce){
+ #cosmic-dancer-bg{animation:none}
  #stage.welcome #welcome small,#stage.welcome #welcome .welcome-letter,#stage.welcome #welcome h2::after,#stage.welcome #welcome p{animation:none;opacity:1;transform:none;filter:none}
 }
 #fx{position:absolute;inset:0;z-index:9;pointer-events:none}
@@ -584,20 +588,11 @@ function QuantumBackdrop({ active }) {
     const motifs = [
       { kind: "bloch", x: .12, y: .31, r: 49, depth: 0, tint: "34,211,238" },
       { kind: "atom", x: .83, y: .24, r: 43, depth: 1, tint: "139,92,246" },
-      { kind: "pair", x: .19, y: .72, r: 10, depth: 1, tint: "34,211,238" },
-      { kind: "bloch", x: .88, y: .69, r: 34, depth: 2, tint: "255,180,82" },
-      { kind: "atom", x: .09, y: .53, r: 25, depth: 2, tint: "34,211,238" },
-      { kind: "circuit", x: .76, y: .48, r: 1, depth: 2, tint: "139,92,246" },
       { kind: "notation", x: .31, y: .19, r: 1, depth: 1, tint: "255,190,100", text: "|ψ⟩  H  ⟨φ|" },
-      { kind: "notation", x: .69, y: .79, r: 1, depth: 0, tint: "34,211,238", text: "|0⟩   |1⟩   |+⟩" },
-      { kind: "circuit", x: .25, y: .43, r: 1, depth: 1, tint: "34,211,238" },
-      { kind: "pair", x: .08, y: .43, r: 10, depth: 0, tint: "255,180,82" },
-      { kind: "bloch", x: .94, y: .39, r: 31, depth: 1, tint: "139,92,246" },
-      { kind: "atom", x: .88, y: .86, r: 30, depth: 1, tint: "34,211,238" },
-      { kind: "circuit", x: .12, y: .84, r: 1, depth: 0, tint: "139,92,246" },
-      { kind: "notation", x: .82, y: .13, r: 1, depth: 2, tint: "255,190,100", text: "Σ |ψ⟩ → H → X" },
+      { kind: "pair", x: .16, y: .68, r: 10, depth: 1, tint: "34,211,238" },
+      { kind: "circuit", x: .16, y: .85, r: 1, depth: 0, tint: "139,92,246" },
     ];
-    const dust = Array.from({ length: window.innerWidth < 700 ? 64 : 96 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .55 + Math.random() * 1.05, depth: Math.floor(Math.random() * 3) }));
+    const dust = Array.from({ length: window.innerWidth < 700 ? 34 : 52 }, () => ({ x: Math.random(), y: Math.random(), phase: Math.random() * 6.28, size: .55 + Math.random() * 1.05, depth: Math.floor(Math.random() * 3) }));
     let width = 1, height = 1, dpr = 1, raf = 0, pointerX = 0, pointerY = 0, lastDraw = 0;
     const fit = () => { width = window.innerWidth; height = window.innerHeight; dpr = Math.min(window.devicePixelRatio || 1, 1); canvas.width = width * dpr; canvas.height = height * dpr; };
     const move = (e) => { pointerX = (e.clientX / width - .5); pointerY = (e.clientY / height - .5); };
@@ -623,7 +618,7 @@ function QuantumBackdrop({ active }) {
       aura.addColorStop(1, "rgba(34,211,238,0)");
       ctx.fillStyle = aura; ctx.fillRect(0, 0, width, height);
       ctx.save(); ctx.globalCompositeOperation = "screen";
-      for (let orbit = 0; orbit < 3; orbit++) {
+      for (let orbit = 0; orbit < 2; orbit++) {
         const angle = orbit * 0.92 + t * (reduce ? 0.05 : 0.18);
         const rx = auraRadius * (0.72 + orbit * 0.12), ry = auraRadius * (0.32 + orbit * 0.075);
         ctx.strokeStyle = `rgba(${orbit === 1 ? "139,92,246" : "34,211,238"},${0.065 + orbit * 0.012})`;
@@ -636,7 +631,7 @@ function QuantumBackdrop({ active }) {
       }
       ctx.restore();
       // Far-field interference ribbons
-      for (let band = 0; band < 3; band++) {
+      for (let band = 0; band < 2; band++) {
         ctx.beginPath();
         for (let x = -20; x <= width + 20; x += 18) { const y = height * (.17 + band * .29) + Math.sin(x * .009 + t * 2 + band) * (12 + band * 3) + Math.sin(x * .019 - t + band * 1.7) * 5; x === -20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
         ctx.strokeStyle = `rgba(${band === 1 ? "139,92,246" : "34,211,238"},${.06 + band * .012})`; ctx.lineWidth = 1.2; ctx.stroke();
@@ -665,7 +660,7 @@ function QuantumBackdrop({ active }) {
           gates.forEach(([gx, gy, label], n) => { const pulse = ((phase * 20 + n * 42) % 150) / 150; ctx.strokeStyle = `rgba(${m.tint},${dim})`; ctx.strokeRect(gx, gy - 7, 16, 14); ctx.fillStyle = `rgba(220,250,255,${dim * (.55 + .45 * Math.max(0, 1 - Math.abs(pulse - .5) * 2))})`; ctx.font = "9px sans-serif"; ctx.fillText(label, gx + 5, gy + 3); });
         }
         // Gentle two-state ghosting gives a few forms a superposition shimmer.
-        if (i === 0 || i === 3) { ctx.globalAlpha = .13 * (.5 + .5 * Math.sin(phase * 1.4)); ctx.strokeStyle = `rgba(${m.tint},.7)`; ctx.beginPath(); ctx.arc(x + Math.sin(phase) * 5, y, m.r, 0, 6.28); ctx.stroke(); }
+        if (i === 0) { ctx.globalAlpha = .13 * (.5 + .5 * Math.sin(phase * 1.4)); ctx.strokeStyle = `rgba(${m.tint},.7)`; ctx.beginPath(); ctx.arc(x + Math.sin(phase) * 5, y, m.r, 0, 6.28); ctx.stroke(); }
         ctx.restore();
       });
       raf = requestAnimationFrame(draw);
@@ -964,6 +959,7 @@ function Stage() {
     <div id="stage" className={cls} onPointerDown={onStageDown}>
       <audio ref={stageMusicRef} src="/music/deepam-jyothi.mp3" preload="auto" loop playsInline aria-hidden="true" />
       <QuantumBackdrop active={phase !== "idle" && phase !== "welcome"} />
+      <div id="cosmic-dancer-bg" aria-hidden="true" />
       <div id="valance">QUANT-A-MAZE 3.0</div>
       <div id="cL" className="curtain" />
       <div id="cR" className="curtain" />

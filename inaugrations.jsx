@@ -273,10 +273,6 @@ body.qam-screen-display #valance{display:none}
 /* STAGE */
 #stage{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 85%,#1a1512 0%,var(--ink) 65%)}
 #quantum-backdrop{position:absolute;inset:0;z-index:0;width:100%;height:100%;pointer-events:none;opacity:1}
-#aura-figure{position:absolute;top:12vh;right:2.4vw;z-index:0;width:clamp(125px,16vw,260px);height:min(43vh,430px);pointer-events:none;opacity:0;visibility:hidden;background:url('/images/aura-figure.png') center/contain no-repeat;mix-blend-mode:screen;transform:translateZ(0);transition:opacity .9s ease,visibility 0s linear .9s}
-#stage.welcome #aura-figure{opacity:.65;visibility:visible;transition-delay:0s;animation:aura-figure-drift 14s ease-in-out infinite}
-#aura-figure::before{position:absolute;inset:15% -15%;z-index:-1;content:"";background:radial-gradient(ellipse,rgba(255,171,55,.16),rgba(139,92,246,.06) 38%,transparent 72%);filter:blur(22px)}
-@keyframes aura-figure-drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-8px,0)}}
 #lampWrap{position:absolute;left:50%;bottom:6vh;z-index:2;width:min(100vw, calc(92vh * ${LAMP_VIEW_W} / ${LAMP_VIEW_H}));aspect-ratio:${LAMP_VIEW_W} / ${LAMP_VIEW_H};height:auto;transform:translate(-50%,115%);transition:transform 3.2s cubic-bezier(.2,.8,.2,1) .9s}
 #stage.open #lampWrap{transform:translate(-50%,0)}
 #lampLayer{position:relative;width:100%;height:100%;overflow:hidden;--ring-radius:${RING_R};--ring-cx:${RING_CX};--ring-cy:${RING_CY}}
@@ -336,8 +332,6 @@ body.qam-screen-display #valance{display:none}
 #stage.welcome #welcome p{animation:welcome-tagline-in .8s cubic-bezier(.16,1,.3,1) 1.15s forwards}
 @keyframes welcome-tagline-in{to{opacity:.9;transform:translateY(0)}}
 @media (max-width:720px){
- #aura-figure{top:11vh;right:1vw;width:clamp(90px,25vw,170px);height:min(34vh,280px)}
- #stage.welcome #aura-figure{opacity:.575}
  #welcome h2{font-size:clamp(34px,9vw,66px);width:96vw;padding:14px 4px}
  #welcome .welcome-title-line{letter-spacing:.015em}
  #welcome .welcome-title-line-accent{font-size:.68em;letter-spacing:.2em}
@@ -345,7 +339,6 @@ body.qam-screen-display #valance{display:none}
  #welcome p{max-width:90vw;font-size:clamp(11px,3vw,16px);letter-spacing:.24em}
 }
 @media (prefers-reduced-motion:reduce){
- #aura-figure{animation:none}
  #stage.welcome #welcome small,#stage.welcome #welcome .welcome-letter,#stage.welcome #welcome h2::after,#stage.welcome #welcome p{animation:none;opacity:1;transform:none;filter:none}
 }
 #fx{position:absolute;inset:0;z-index:9;pointer-events:none}
@@ -703,9 +696,100 @@ function Stage() {
   );
   const enqueueLightRef = useRef(() => {});
   const phaseRef = useRef("idle");
+  const stageMusicRef = useRef(null);
+  const startStageMusicRef = useRef(() => {});
+  const fadeStageMusicRef = useRef(() => {});
+  const musicFadeFrameRef = useRef(0);
   const barRef = useRef(null);
   const cvRef = useRef(null);
   const burstRef = useRef(() => {});
+
+  // Keep music playback outside the animation/render loops. A user gesture
+  // starts playback synchronously; if the stage opened remotely and autoplay
+  // is blocked, the next gesture retries. Fade the track when the welcome
+  // screen begins so it does not continue under the finale.
+  useEffect(() => {
+    const audio = stageMusicRef.current;
+    if (!audio) return undefined;
+    audio.volume = 0;
+    const fadeTo = (target, pauseAtEnd = false) => {
+      cancelAnimationFrame(musicFadeFrameRef.current);
+      musicFadeFrameRef.current = 0;
+      const from = audio.volume;
+      const startedAt = performance.now();
+      const duration = 1200;
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = progress * progress * (3 - 2 * progress);
+        audio.volume = from + (target - from) * eased;
+        if (progress < 1) {
+          musicFadeFrameRef.current = requestAnimationFrame(tick);
+          return;
+        }
+        musicFadeFrameRef.current = 0;
+        if (pauseAtEnd) {
+          audio.pause();
+          if (audio.readyState > 0) audio.currentTime = 0;
+          audio.volume = 0;
+        }
+      };
+      musicFadeFrameRef.current = requestAnimationFrame(tick);
+    };
+    fadeStageMusicRef.current = (shouldStop = false) => {
+      if (shouldStop && audio.paused) {
+        cancelAnimationFrame(musicFadeFrameRef.current);
+        musicFadeFrameRef.current = 0;
+        if (audio.readyState > 0) audio.currentTime = 0;
+        audio.volume = 0;
+        return;
+      }
+      fadeTo(shouldStop ? 0 : 1, shouldStop);
+    };
+    const startMusic = () => {
+      if (phaseRef.current !== "open") return;
+      cancelAnimationFrame(musicFadeFrameRef.current);
+      musicFadeFrameRef.current = 0;
+      if (audio.paused) {
+        audio.volume = 0;
+        const playback = audio.play();
+        if (playback && typeof playback.catch === "function") playback.catch(() => {});
+      }
+      fadeTo(1);
+    };
+    startStageMusicRef.current = startMusic;
+    const retryFromGesture = () => startMusic();
+    const resumeWhenVisible = () => {
+      if (document.visibilityState === "visible") startMusic();
+    };
+    document.addEventListener("pointerdown", retryFromGesture, true);
+    document.addEventListener("keydown", retryFromGesture, true);
+    window.addEventListener("pageshow", resumeWhenVisible);
+    window.addEventListener("online", resumeWhenVisible);
+    document.addEventListener("visibilitychange", resumeWhenVisible);
+    return () => {
+      document.removeEventListener("pointerdown", retryFromGesture, true);
+      document.removeEventListener("keydown", retryFromGesture, true);
+      window.removeEventListener("pageshow", resumeWhenVisible);
+      window.removeEventListener("online", resumeWhenVisible);
+      document.removeEventListener("visibilitychange", resumeWhenVisible);
+      cancelAnimationFrame(musicFadeFrameRef.current);
+      musicFadeFrameRef.current = 0;
+      startStageMusicRef.current = () => {};
+      fadeStageMusicRef.current = () => {};
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = stageMusicRef.current;
+    if (!audio) return;
+    if (phase === "idle") {
+      fadeStageMusicRef.current(true);
+    } else if (phase === "welcome") {
+      fadeStageMusicRef.current(true);
+    } else {
+      startStageMusicRef.current();
+    }
+  }, [phase]);
 
   useEffect(() => {
     const seenC = {}, lastC = {};
@@ -867,6 +951,7 @@ function Stage() {
     if (phaseRef.current !== "idle") return;
     phaseRef.current = "open";
     setPhaseState("open");
+    startStageMusicRef.current();
     put("phase", "open");
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch((error) => {
@@ -877,6 +962,7 @@ function Stage() {
 
   return (
     <div id="stage" className={cls} onPointerDown={onStageDown}>
+      <audio ref={stageMusicRef} src="/music/deepam-jyothi.mp3" preload="auto" loop playsInline aria-hidden="true" />
       <QuantumBackdrop active={phase !== "idle" && phase !== "welcome"} />
       <div id="valance">QUANT-A-MAZE 3.0</div>
       <div id="cL" className="curtain" />
@@ -998,7 +1084,6 @@ function Stage() {
       </div>
 
       <div id="welcome">
-        <div id="aura-figure" aria-hidden="true" />
         <small>WELCOME TO</small>
         <h2 aria-label={TITLE}>
           {["QUANT-A-MAZE", "3.0"].map((word, wordIndex) => (
